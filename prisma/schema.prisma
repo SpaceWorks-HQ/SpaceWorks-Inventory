@@ -706,7 +706,7 @@ model Location {
   updatedAt   DateTime     @updatedAt
 
   space    Space      @relation(fields: [spaceId], references: [id], onDelete: Cascade)
-  parent   Location?  @relation("LocationTree", fields: [parentId], references: [id], onDelete: Restrict)
+  parent   Location?  @relation("LocationTree", fields: [parentId], references: [id], onDelete: NoAction)
   children Location[] @relation("LocationTree")
 
   stockLevels StockLevel[]
@@ -732,7 +732,7 @@ model Category {
   createdAt          DateTime    @default(now())
 
   space    Space      @relation(fields: [spaceId], references: [id], onDelete: Cascade)
-  parent   Category?  @relation("CategoryTree", fields: [parentId], references: [id], onDelete: Restrict)
+  parent   Category?  @relation("CategoryTree", fields: [parentId], references: [id], onDelete: NoAction)
   children Category[] @relation("CategoryTree")
   items    Item[]
 
@@ -876,7 +876,7 @@ model Asset {
   updatedAt         DateTime       @updatedAt
 
   space          Space               @relation(fields: [spaceId], references: [id], onDelete: Cascade)
-  item           Item                @relation(fields: [itemId], references: [id], onDelete: Restrict)
+  item           Item                @relation(fields: [itemId], references: [id], onDelete: NoAction)
   location       Location?           @relation(fields: [locationId], references: [id], onDelete: SetNull)
   movements      StockMovement[]
   reservations   StockReservation[]
@@ -906,7 +906,7 @@ model StockLevel {
 
   space    Space    @relation(fields: [spaceId], references: [id], onDelete: Cascade)
   item     Item     @relation(fields: [itemId], references: [id], onDelete: Cascade)
-  location Location @relation(fields: [locationId], references: [id], onDelete: Restrict)
+  location Location @relation(fields: [locationId], references: [id], onDelete: NoAction)
 
   @@unique([itemId, locationId])
   @@index([spaceId, locationId])
@@ -1174,7 +1174,7 @@ model TransferLine {
   note               String?
 
   transfer Transfer            @relation(fields: [transferId], references: [id], onDelete: Cascade)
-  item     Item                @relation("TransferLineItem", fields: [itemId], references: [id], onDelete: Restrict)
+  item     Item                @relation("TransferLineItem", fields: [itemId], references: [id], onDelete: NoAction)
   destItem Item?               @relation("TransferLineDestItem", fields: [destItemId], references: [id], onDelete: SetNull)
   assets   TransferLineAsset[]
 
@@ -1188,7 +1188,7 @@ model TransferLineAsset {
   state   TransferAssetState @default(ASSIGNED)
 
   line  TransferLine @relation(fields: [lineId], references: [id], onDelete: Cascade)
-  asset Asset        @relation(fields: [assetId], references: [id], onDelete: Restrict)
+  asset Asset        @relation(fields: [assetId], references: [id], onDelete: NoAction)
 
   @@unique([lineId, assetId])
 }
@@ -1242,7 +1242,7 @@ model Loan {
   updatedAt      DateTime   @updatedAt
 
   space     Space          @relation(fields: [spaceId], references: [id], onDelete: Cascade)
-  borrower  User           @relation("LoanBorrower", fields: [borrowerId], references: [id], onDelete: Restrict)
+  borrower  User           @relation("LoanBorrower", fields: [borrowerId], references: [id], onDelete: NoAction)
   container Container?     @relation(fields: [containerId], references: [id], onDelete: SetNull)
   lines     LoanLine[]
   evidence  Evidence[]
@@ -1271,7 +1271,7 @@ model LoanLine {
   quantityLost      Int     @default(0)
 
   loan      Loan           @relation(fields: [loanId], references: [id], onDelete: Cascade)
-  item      Item           @relation(fields: [itemId], references: [id], onDelete: Restrict)
+  item      Item           @relation(fields: [itemId], references: [id], onDelete: NoAction)
   asset     Asset?         @relation(fields: [assetId], references: [id], onDelete: SetNull)
   incidents LoanIncident[]
 
