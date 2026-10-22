@@ -4,7 +4,7 @@
 #   single   one app container serves the website and the API, one hostname
 #   netlify  the website runs on Netlify; this VPS serves the API
 # Two images: the backend runs the API, migrations (migrator), the outbox
-# worker, beat, realtime updates and the operator tools; the frontend runs
+# worker, beat and the operator tools; the frontend runs
 # the website. PostgreSQL, Redis, Silo and Caddy use their own standard images.
 # Published releases set SWI_BACKEND_IMAGE / SWI_FRONTEND_IMAGE to
 # ghcr.io/<owner>/spaceworks-inventory-backend|frontend; otherwise the images are
@@ -117,7 +117,7 @@ services:
     logging: *logging
 
   # The backend: the whole application in the single layout, the API otherwise.
-  # It runs realtime updates and reads the installer's
+  # It reads the installer's
   # backup status (no secrets) for the super-admin Operations page.
   app:
     <<: *backend

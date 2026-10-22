@@ -15,9 +15,6 @@ jobs:
       - run: npm ci
       - run: sudo apt-get update && sudo apt-get install -y shellcheck
       - run: npm run deployment:check
-      - uses: azure/setup-helm@v4
-      - run: helm lint charts/spaceworks-inventory --set existingSecret=swi-runtime
-      - run: helm template swi charts/spaceworks-inventory --set existingSecret=swi-runtime --set ingress.enabled=true --set autoscaling.enabled=true > /dev/null
   application:
     uses: ./.github/workflows/ci.yml
   container:

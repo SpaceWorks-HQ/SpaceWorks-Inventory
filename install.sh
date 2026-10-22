@@ -13,7 +13,7 @@ set +x
 show_guide() {
   cat <<'EOF'
 
-Space Works Inventory installer - the private community space on one Linux server.
+Space Works Inventory installer - inventory, lending and transfers for makerspaces on one Linux server.
 
 What you need
   - A 64-bit (x86_64 or arm64) Linux server: Ubuntu/Debian, Fedora/RHEL/Alma/Rocky,

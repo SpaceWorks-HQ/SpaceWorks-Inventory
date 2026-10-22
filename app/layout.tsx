@@ -6,10 +6,10 @@ import { Providers } from "@/components/providers";
 import { COLOR_MODE_COOKIE, isColorMode } from "@/lib/colorMode";
 
 export const metadata: Metadata = {
-  title: { default: "Space Works Inventory", template: "%s · Space Works" },
-  description: "The private space for the Space Works maker community.",
+  title: { default: "Space Works Inventory", template: "%s · Space Works Inventory" },
+  description: "Inventory, lending and stock transfers for makerspaces.",
   applicationName: "Space Works Inventory",
-  appleWebApp: { capable: true, title: "Space Works", statusBarStyle: "default" },
+  appleWebApp: { capable: true, title: "Inventory", statusBarStyle: "default" },
   metadataBase: new URL(process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3100"),
   robots: { index: false, follow: false },
 };

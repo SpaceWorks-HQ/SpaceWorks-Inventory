@@ -126,7 +126,7 @@ if [[ $managed = 1 ]]; then
       | xargs -r docker image rm >/dev/null 2>&1 || true
   done < <(find "$SWI_DIR/releases" -mindepth 1 -maxdepth 1 -type d -printf '%T@ %p\n' | sort -rn | cut -d' ' -f2-)
 fi
-say "Updated to $version. Verify sign-in, email, uploads and realtime updates."
+say "Updated to $version. Verify sign-in, email, photo uploads and a QR scan."
 # A legacy configuration without a layout may still describe a Netlify frontend.
 layout=$(conf_get "$compose_env" SWI_LAYOUT)
 if [[ $layout = netlify || ( -z $layout && -f "$SWI_CONFIG_DIR/frontend.env" ) ]]; then

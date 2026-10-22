@@ -11,6 +11,8 @@ const eslintConfig = defineConfig([
     "build/**",
     "dist/**",
         "coverage/**",
+    // Separate package with its own toolchain (Cloudflare Worker).
+    "deploy/**",
     "playwright-report/**",
     "test-results/**",
     "next-env.d.ts",

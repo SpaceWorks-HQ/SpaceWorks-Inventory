@@ -1,5 +1,5 @@
 # split layout: SITE_HOST is the website (frontend container) and PUBLIC_HOST
-# the API (backend container), which browsers also reach for realtime updates.
+# the API (backend container), which also serves API clients and webhooks.
 {
   {$SWI_CADDY_OPTIONS}
   log default {

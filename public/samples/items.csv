@@ -1,0 +1,4 @@
+sku,name,category,unit,tracking,description,brand,model,unit_cost,reorder_point,reorder_quantity,lendable,consumable,self_checkout,loan_days,deposit,tags
+PLY-3MM,"Plywood sheet, 3 mm",Sheet materials,Piece,quantity,600 x 400 mm birch plywood,,,85.00,10,20,no,yes,no,,,laser;wood
+M3-SCREW,"M3 x 10 mm screws, pack of 100",Fasteners,Pack,quantity,Stainless steel pan head,,,120.00,2,5,no,yes,no,,,fasteners
+LASER-GOGGLES,Laser safety goggles,Laser cutting,Piece,serialized,OD 6+ for CO2 lasers,,,2500.00,,,yes,no,no,3,500.00,safety;laser

@@ -15,8 +15,8 @@ const REQUIRED = [
   "NEXT_SERVER_ACTIONS_ENCRYPTION_KEY", "MFA_ENCRYPTION_KEY", "TRUSTED_PROXY_IP_HEADER", "S3_BUCKET", "S3_REGION",
 ];
 const SECRETS_32 = ["AUTH_SECRET", "CRON_SECRET", "HEALTHCHECK_SECRET"];
-const AES_256_KEYS = ["MFA_ENCRYPTION_KEY", "INTEGRATION_ENCRYPTION_KEY", "VAULT_MASTER_KEY"];
-const URL_KEYS = ["DATABASE_URL", "DIRECT_URL", "AUTH_URL", "NEXT_PUBLIC_BASE_URL", "REDIS_URL", "S3_ENDPOINT", "SEARXNG_URL"];
+const AES_256_KEYS = ["MFA_ENCRYPTION_KEY", "INTEGRATION_ENCRYPTION_KEY"];
+const URL_KEYS = ["DATABASE_URL", "DIRECT_URL", "AUTH_URL", "NEXT_PUBLIC_BASE_URL", "REDIS_URL", "S3_ENDPOINT"];
 
 function isBase64Key(value, lengths) {
   const decoded = Buffer.from(value, "base64");
@@ -63,11 +63,10 @@ export function productionProblems(source) {
   if (env.SMTP_SECURE && !["true", "false"].includes(env.SMTP_SECURE)) problems.push("SMTP_SECURE: must be true or false");
   if (env.SMTP_ALLOW_UNAUTHENTICATED === "1") warnings.push("SMTP_ALLOW_UNAUTHENTICATED=1 is meant for local Mailpit only");
 
-  for (const key of ["GITHUB_WEBHOOK_SECRET", "TELEGRAM_WEBHOOK_SECRET"]) if (env[key] && env[key].length < 16) problems.push(`${key}: must be at least 16 characters`);
   if (env.SUPER_ADMIN_EMAIL && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(env.SUPER_ADMIN_EMAIL)) problems.push("SUPER_ADMIN_EMAIL: must be an email address");
-  if (!env.SUPER_ADMIN_EMAIL) warnings.push("SUPER_ADMIN_EMAIL is not set: nobody can open /admin");
-  if (!env.INTEGRATION_ENCRYPTION_KEY) warnings.push("INTEGRATION_ENCRYPTION_KEY is not set: integration tokens use a subkey of MFA_ENCRYPTION_KEY");
-  for (const [key, maximum] of [["JOBS_HEALTH_PORT", 65535], ...["OUTBOX", "SCHEDULED", "SYNC", "MONITOR", "DOCUMENTS"].map(name => [`QUEUE_${name}_CONCURRENCY`, 64])]) {
+  if (!env.SUPER_ADMIN_EMAIL) warnings.push("SUPER_ADMIN_EMAIL is not set: only the account created by the setup wizard can open /admin");
+  if (!env.INTEGRATION_ENCRYPTION_KEY) warnings.push("INTEGRATION_ENCRYPTION_KEY is not set: payment and webhook secrets use a subkey of MFA_ENCRYPTION_KEY");
+  for (const [key, maximum] of [["JOBS_HEALTH_PORT", 65535], ...["OUTBOX", "SCHEDULED"].map(name => [`QUEUE_${name}_CONCURRENCY`, 64])]) {
     if (env[key] && (!/^\d+$/.test(env[key]) || Number(env[key]) < 1 || Number(env[key]) > maximum)) problems.push(`${key}: must be an integer from 1 to ${maximum}`);
   }
   if (env.JOBS_QUEUE_PREFIX && !/^[a-zA-Z0-9:_-]{1,100}$/.test(env.JOBS_QUEUE_PREFIX)) problems.push("JOBS_QUEUE_PREFIX: invalid queue prefix");

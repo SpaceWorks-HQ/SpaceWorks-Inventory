@@ -16,6 +16,6 @@ for(const file of scripts) {
  if(file.endsWith('.sh')){const lint=spawnSync('shellcheck',['-x',file],{encoding:'utf8'});if(lint.error?.code==='ENOENT')throw new Error('Install shellcheck before deployment verification.');if(lint.status!==0)throw new Error(`${file}: ${lint.stdout}${lint.stderr}`);}
  checks++;
 }
-const files=[...walk('.github/workflows'),...walk('deploy').filter(f=>/\.ya?ml$/.test(f)),...readdirSync('.').filter(f=>/\.ya?ml$/.test(f)),'.do/app.yaml','charts/spaceworks-inventory/Chart.yaml','charts/spaceworks-inventory/values.yaml'];
+const files=[...walk('.github/workflows'),...walk('deploy').filter(f=>/\.ya?ml$/.test(f)),...readdirSync('.').filter(f=>/\.ya?ml$/.test(f)),'.do/app.yaml'];
 for(const file of files){const docs=yaml.parseAllDocuments(readFileSync(file,'utf8'),{customTags:[{tag:'!override',collection:'map',resolve:map=>map},{tag:'!override',collection:'seq',resolve:seq=>seq}]});if(docs.some(doc=>doc.errors.length))throw new Error(`Invalid YAML: ${file}`);checks++;}
 console.log(`Deployment syntax verified: ${checks} scripts/manifests.`);

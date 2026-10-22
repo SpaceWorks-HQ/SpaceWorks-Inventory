@@ -1353,6 +1353,8 @@ model LoanIncident {
 /// "payment-secrets") and write-only in the UI.
 model SpacePaymentConfig {
   spaceId             String   @id
+  /// Opaque id in the provider webhook URL (/api/payments/<provider>/<code>), so the URL never names the space.
+  webhookPublicCode   String   @unique
   razorpayEnabled     Boolean  @default(false)
   razorpayKeyId       String?
   razorpaySecretEnc   String?

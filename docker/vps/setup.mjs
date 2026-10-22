@@ -78,7 +78,7 @@ write("app.env", envText({
   DATABASE_URL: dbUrl("swi_app", appPassword), DIRECT_URL: dbUrl("swi_app", appPassword),
   REDIS_URL: `rediss://default:${redisPassword}@redis:6379`, NODE_EXTRA_CA_CERTS: "/tls/ca.crt",
   AUTH_SECRET: hex(), CRON_SECRET: cronSecret, HEALTHCHECK_SECRET: readinessSecret,
-  NEXT_SERVER_ACTIONS_ENCRYPTION_KEY: actionsKey, MFA_ENCRYPTION_KEY: key(), INTEGRATION_ENCRYPTION_KEY: key(), VAULT_MASTER_KEY: key(), SUPER_ADMIN_EMAIL: email,
+  NEXT_SERVER_ACTIONS_ENCRYPTION_KEY: actionsKey, MFA_ENCRYPTION_KEY: key(), INTEGRATION_ENCRYPTION_KEY: key(), SUPER_ADMIN_EMAIL: email,
   TRUSTED_PROXY_IP_HEADER: "x-real-ip", S3_BUCKET: "spaceworks-inventory", S3_REGION: "us-east-1",
   S3_ENDPOINT: "https://storage:9000", S3_ACCESS_KEY_ID: "swi-app", S3_SECRET_ACCESS_KEY: storageApp, S3_FORCE_PATH_STYLE: "1",
   EMAIL_FROM: `Space Works Inventory <events@${host}>`, SMTP_HOST: "CHANGE_ME", SMTP_PORT: "587",

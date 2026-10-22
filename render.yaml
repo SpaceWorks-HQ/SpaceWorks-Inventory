@@ -26,15 +26,12 @@ services:
     buildFilter:
       ignoredPaths:
         - docs/**
-        - deploy/**
-        - charts/**
-        - .do/**
         - "**/*.md"
     envVars:
       - key: NODE_OPTIONS
         value: --max-old-space-size=384
 
-      # --- Public origin: https://work.example.org or https://<service>.onrender.com,
+      # --- Public origin: https://inventory.example.org or https://<service>.onrender.com,
       # no trailing slash. Both must be identical.
       - key: NEXT_PUBLIC_BASE_URL
         sync: false
@@ -74,8 +71,6 @@ services:
         sync: false
       - key: INTEGRATION_ENCRYPTION_KEY
         sync: false
-      - key: VAULT_MASTER_KEY
-        sync: false
 
       # --- Client IP trust: Render appends to X-Forwarded-For, so read the
       # right-most hop. Use cf-connecting-ip (and remove the hops) only when
@@ -114,9 +109,6 @@ services:
       - key: SMTP_PASSWORD
         sync: false
 
-      # --- Assistant (optional; /admin settings override it) ---
-      - key: ANTHROPIC_API_KEY
-        sync: false
 
   - type: worker
     name: spaceworks-inventory-worker
@@ -194,11 +186,6 @@ services:
           type: web
           name: spaceworks-inventory
           envVarKey: INTEGRATION_ENCRYPTION_KEY
-      - key: VAULT_MASTER_KEY
-        fromService:
-          type: web
-          name: spaceworks-inventory
-          envVarKey: VAULT_MASTER_KEY
       - key: S3_BUCKET
         fromService:
           type: web
@@ -259,11 +246,6 @@ services:
           type: web
           name: spaceworks-inventory
           envVarKey: SMTP_PASSWORD
-      - key: ANTHROPIC_API_KEY
-        fromService:
-          type: web
-          name: spaceworks-inventory
-          envVarKey: ANTHROPIC_API_KEY
       - key: SUPER_ADMIN_EMAIL
         fromService:
           type: web
@@ -345,11 +327,6 @@ services:
           type: web
           name: spaceworks-inventory
           envVarKey: INTEGRATION_ENCRYPTION_KEY
-      - key: VAULT_MASTER_KEY
-        fromService:
-          type: web
-          name: spaceworks-inventory
-          envVarKey: VAULT_MASTER_KEY
       - key: S3_BUCKET
         fromService:
           type: web
@@ -410,11 +387,6 @@ services:
           type: web
           name: spaceworks-inventory
           envVarKey: SMTP_PASSWORD
-      - key: ANTHROPIC_API_KEY
-        fromService:
-          type: web
-          name: spaceworks-inventory
-          envVarKey: ANTHROPIC_API_KEY
       - key: SUPER_ADMIN_EMAIL
         fromService:
           type: web

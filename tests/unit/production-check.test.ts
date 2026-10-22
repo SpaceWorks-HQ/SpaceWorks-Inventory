@@ -68,7 +68,7 @@ describe("production preflight script", () => {
   });
 
   it("checks deployment extras the server leaves to operators", () => {
-    expect(productionProblems({ ...productionEnv(), VAULT_MASTER_KEY: "short" }).problems).toContain("VAULT_MASTER_KEY: must be base64 for a 32 byte AES key");
+    expect(productionProblems({ ...productionEnv(), INTEGRATION_ENCRYPTION_KEY: "short" }).problems).toContain("INTEGRATION_ENCRYPTION_KEY: must be base64 for a 32 byte AES key");
     expect(productionProblems({ ...productionEnv(), SMTP_HOST: "smtp.example.org" }).problems.some((p: string) => p.startsWith("SMTP_USER"))).toBe(true);
     expect(productionProblems({ ...productionEnv(), TRUSTED_PROXY_HOPS: "1" }).problems.some((p: string) => p.startsWith("TRUSTED_PROXY_HOPS"))).toBe(true);
     expect(productionProblems({ ...productionEnv(), SUPER_ADMIN_EMAIL: "" }).warnings.some((w: string) => w.startsWith("SUPER_ADMIN_EMAIL"))).toBe(true);

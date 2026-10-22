@@ -7,10 +7,14 @@ export function buildContentSecurityPolicy(nonce: string, isProduction = process
     "base-uri 'self'",
     "object-src 'none'",
     "frame-ancestors 'none'",
-    "form-action 'self' https://accounts.google.com",
+    "form-action 'self'",
+    // Razorpay Checkout opens its payment window in a frame on the pay page.
+    "frame-src https://api.razorpay.com https://checkout.razorpay.com",
+    // The QR scanner shows the camera stream through a blob: URL.
+    "media-src 'self' blob:",
     "img-src 'self' data: blob: https:",
     "font-src 'self' data:",
-    `connect-src 'self'${process.env.NEXT_PUBLIC_BACKEND_ORIGIN && /^https?:\/\/[a-zA-Z0-9.-]+(?::[0-9]+)?$/.test(process.env.NEXT_PUBLIC_BACKEND_ORIGIN) ? ` ${process.env.NEXT_PUBLIC_BACKEND_ORIGIN}` : ""}`,
+    `connect-src 'self' https://api.razorpay.com https://lumberjack.razorpay.com${process.env.NEXT_PUBLIC_BACKEND_ORIGIN && /^https?:\/\/[a-zA-Z0-9.-]+(?::[0-9]+)?$/.test(process.env.NEXT_PUBLIC_BACKEND_ORIGIN) ? ` ${process.env.NEXT_PUBLIC_BACKEND_ORIGIN}` : ""}`,
     `script-src 'self' 'nonce-${nonce}' 'strict-dynamic'${isProduction ? "" : " 'unsafe-eval'"}`,
     "style-src 'self' 'unsafe-inline'",
     ...(isProduction ? ["upgrade-insecure-requests"] : []),

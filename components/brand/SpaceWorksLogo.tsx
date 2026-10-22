@@ -88,7 +88,7 @@ export function SpaceWorksLogo({ variant = "lockup-horizontal", tone = "full", a
 
 /**
  * The product lockup for headers: the horizontal Space Works lockup, a thin
- * rule, and "Space" in Gilroy 600. The rule and label sit a clear space
+ * rule, and "Inventory" in Gilroy 600. The rule and label sit a clear space
  * (¼ of the lockup height) away from the artwork.
  */
 export function SpaceWorksSpaceLogo({ height = 48, label = "Space Works Inventory", className }: { height?: number; label?: string | null; className?: string }) {
@@ -106,7 +106,7 @@ export function SpaceWorksSpaceLogo({ height = 48, label = "Space Works Inventor
       <SpaceWorksLogo variant="lockup-horizontal" height={size.height} label={null} className="hidden lg:inline-flex" />
       <span aria-hidden className="block w-px shrink-0 bg-line-strong" style={{ height: Math.round(size.height * 0.62) }} />
       <span aria-hidden className="font-sans font-semibold leading-none tracking-[-0.01em] text-ink" style={{ fontSize: Math.round(size.height * 0.5) }}>
-        Space
+        Inventory
       </span>
     </span>
   );

@@ -4,8 +4,8 @@ export default function manifest(): MetadataRoute.Manifest {
   return {
     id: "/",
     name: "Space Works Inventory",
-    short_name: "Space Works",
-    description: "The private space for the Space Works maker community.",
+    short_name: "Inventory",
+    description: "Inventory, lending and transfers for makerspaces.",
     start_url: "/",
     scope: "/",
     display: "standalone",
