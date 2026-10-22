@@ -1,0 +1,14 @@
+[
+  {
+    "module": "lib/queue/admin",
+    "name": "JobsHealth",
+    "id": "Shared0",
+    "value": false
+  },
+  {
+    "module": "lib/appShell",
+    "name": "ShellData",
+    "id": "Shared1",
+    "value": false
+  }
+]

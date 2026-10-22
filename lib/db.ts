@@ -1,0 +1,27 @@
+import { PrismaClient, type Prisma } from "@prisma/client";
+
+const PRISMA_KEY = Symbol.for("swi.prisma");
+type GlobalWithPrisma = typeof globalThis & { [PRISMA_KEY]?: Db };
+
+function createPrismaClient(): PrismaClient {
+  return new PrismaClient<Prisma.PrismaClientOptions>({
+    log: process.env.PRISMA_LOG_QUERIES === "1" ? ["query", "error", "warn"] : ["error"],
+  });
+}
+
+/**
+ * One PrismaClient per process, shared across Next.js bundles and dev HMR.
+ * After `prisma generate` adds models, restart the dev server so the cached
+ * client picks up the new delegates.
+ */
+const store = globalThis as GlobalWithPrisma;
+export const prisma: Db =
+  store[PRISMA_KEY] ??
+  (store[PRISMA_KEY] = createPrismaClient() as unknown as Db);
+
+// The root client implements the transaction delegate surface. Preserve its
+// identity so defaults do not structurally compare every generated delegate.
+export type Db = PrismaClient & Prisma.TransactionClient;
+export type Tx = Prisma.TransactionClient;
+/** Either the root client or an interactive transaction client. */
+export type DbClient = PrismaClient | Tx;

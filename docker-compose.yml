@@ -1,0 +1,30 @@
+# Local services only. App development runs with npm run dev or local.sh.
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment: {POSTGRES_USER: swi, POSTGRES_PASSWORD: swi_dev_password, POSTGRES_DB: swi_dev}
+    ports: ["127.0.0.1:${SWI_DEV_DB_PORT:-5440}:5432"]
+    volumes: [postgres_dev:/var/lib/postgresql/data]
+    healthcheck: {test: [CMD, pg_isready, -U, swi, -d, swi_dev], interval: 5s, timeout: 5s, retries: 20}
+  redis:
+    image: redis:7-alpine
+    ports: ["127.0.0.1:${SWI_DEV_REDIS_PORT:-6395}:6379"]
+    healthcheck: {test: [CMD, redis-cli, ping], interval: 5s, timeout: 5s, retries: 20}
+  silo:
+    image: pgsty/silo:RELEASE.2026-09-16T00-00-00Z
+    command: [server, /data, --console-address, ":9001"]
+    environment: {MINIO_ROOT_USER: swidev, MINIO_ROOT_PASSWORD: swi_dev_storage_pw}
+    ports: ["127.0.0.1:${SWI_DEV_STORAGE_PORT:-9010}:9000", "127.0.0.1:${SWI_DEV_STORAGE_CONSOLE_PORT:-9011}:9001"]
+    volumes: [storage_dev:/data]
+    healthcheck: {test: [CMD, curl, -f, "http://localhost:9000/minio/health/live"], interval: 5s, timeout: 5s, retries: 20}
+  silo-init:
+    image: pgsty/silo:RELEASE.2026-09-16T00-00-00Z
+    depends_on: {silo: {condition: service_healthy}}
+    entrypoint: [/bin/sh, -ec]
+    command: ["mc alias set local http://silo:9000 swidev swi_dev_storage_pw; mc mb --ignore-existing local/swi-dev; mc anonymous set none local/swi-dev"]
+  mailpit:
+    image: axllent/mailpit:v1.27
+    ports: ["127.0.0.1:1025:1025", "127.0.0.1:8025:8025"]
+volumes:
+  postgres_dev:
+  storage_dev:

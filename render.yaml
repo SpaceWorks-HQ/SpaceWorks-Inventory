@@ -1,0 +1,422 @@
+# Render Blueprint for Space Works Inventory.
+# Step-by-step guide: docs/DEPLOYMENT_CLOUD.md (Render section).
+#
+# Paid web, background worker and beat with external TLS PostgreSQL, persistent
+# Redis and private object storage. Free web services cannot host background
+# workers: see docs/DEPLOYMENT_CLOUD.md for the external-worker cron fallback.
+#
+# `sync: false` values are asked for once, when the Blueprint is created;
+# edit them later in the Render Dashboard (Environment tab).
+services:
+  - type: web
+    name: spaceworks-inventory
+    runtime: docker
+    plan: 0.5c-512mb
+    # Closest to your Supabase/Upstash region; cannot change after creation
+    # (oregon, ohio, virginia, frankfurt, singapore).
+    region: singapore
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
+    dockerCommand: node server.js
+    preDeployCommand: docker-entrypoint.sh migrate
+    healthCheckPath: /api/health
+    # Applies migrations once per deploy through DIRECT_URL (falls back to DATABASE_URL).
+    # Migrations run on start on the free plan.
+    autoDeployTrigger: checksPass
+    buildFilter:
+      ignoredPaths:
+        - docs/**
+        - deploy/**
+        - charts/**
+        - .do/**
+        - "**/*.md"
+    envVars:
+      - key: NODE_OPTIONS
+        value: --max-old-space-size=384
+
+      # --- Public origin: https://work.example.org or https://<service>.onrender.com,
+      # no trailing slash. Both must be identical.
+      - key: NEXT_PUBLIC_BASE_URL
+        sync: false
+      - key: AUTH_URL
+        sync: false
+      - key: SUPER_ADMIN_EMAIL
+        sync: false
+
+      # --- PostgreSQL (Supabase) ---
+      # Transaction pooler (6543), runtime:
+      #   ...pooler.supabase.com:6543/postgres?pgbouncer=true&connection_limit=5&sslmode=require
+      # Render Postgres instead: paste its External Database URL + ?sslmode=require.
+      - key: DATABASE_URL
+        sync: false
+      # Session pooler (5432), migrations only: ...pooler.supabase.com:5432/postgres?sslmode=require
+      - key: DIRECT_URL
+        sync: false
+
+      # --- Upstash Redis: rediss://default:<password>@<host>.upstash.io:6379 ---
+      - key: REDIS_URL
+        sync: false
+
+      # --- Secrets ---
+      # Render generates random 256-bit base64 values for these.
+      - key: AUTH_SECRET
+        generateValue: true
+      - key: CRON_SECRET
+        generateValue: true # copy it into the Cloudflare Worker secret too
+      - key: HEALTHCHECK_SECRET
+        generateValue: true
+      # Generate each with `openssl rand -base64 32` and keep a copy in your
+      # password manager. Losing MFA_ENCRYPTION_KEY locks out every
+      # authenticator and encrypted setting; never rotate it casually.
+      - key: NEXT_SERVER_ACTIONS_ENCRYPTION_KEY
+        sync: false
+      - key: MFA_ENCRYPTION_KEY
+        sync: false
+      - key: INTEGRATION_ENCRYPTION_KEY
+        sync: false
+      - key: VAULT_MASTER_KEY
+        sync: false
+
+      # --- Client IP trust: Render appends to X-Forwarded-For, so read the
+      # right-most hop. Use cf-connecting-ip (and remove the hops) only when
+      # your own Cloudflare zone proxies the domain.
+      - key: TRUSTED_PROXY_IP_HEADER
+        value: x-forwarded-for
+      - key: TRUSTED_PROXY_HOPS
+        value: "1"
+
+      # --- Cloudflare R2 (private bucket) ---
+      - key: S3_BUCKET
+        sync: false
+      - key: S3_REGION
+        value: auto
+      # https://<account-id>.r2.cloudflarestorage.com
+      - key: S3_ENDPOINT
+        sync: false
+      - key: S3_ACCESS_KEY_ID
+        sync: false
+      - key: S3_SECRET_ACCESS_KEY
+        sync: false
+      - key: S3_FORCE_PATH_STYLE
+        value: "1"
+
+      # --- Brevo SMTP (bootstrap fallback; /admin settings override it) ---
+      - key: EMAIL_FROM
+        sync: false
+      - key: SMTP_HOST
+        value: smtp-relay.brevo.com
+      - key: SMTP_PORT
+        value: "2525"
+      - key: SMTP_SECURE
+        value: "false"
+      - key: SMTP_USER
+        sync: false
+      - key: SMTP_PASSWORD
+        sync: false
+
+      # --- Assistant (optional; /admin settings override it) ---
+      - key: ANTHROPIC_API_KEY
+        sync: false
+
+  - type: worker
+    name: spaceworks-inventory-worker
+    runtime: docker
+    plan: 0.5c-512mb
+    region: singapore
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
+    dockerCommand: node dist/worker.js
+    autoDeployTrigger: checksPass
+    maxShutdownDelaySeconds: 300
+    envVars:
+      - key: CRON_SECRET
+        fromService:
+          type: web
+          name: spaceworks-inventory
+          envVarKey: CRON_SECRET
+      - key: HEALTHCHECK_SECRET
+        fromService:
+          type: web
+          name: spaceworks-inventory
+          envVarKey: HEALTHCHECK_SECRET
+      - key: NEXT_SERVER_ACTIONS_ENCRYPTION_KEY
+        fromService:
+          type: web
+          name: spaceworks-inventory
+          envVarKey: NEXT_SERVER_ACTIONS_ENCRYPTION_KEY
+      - key: TRUSTED_PROXY_IP_HEADER
+        fromService:
+          type: web
+          name: spaceworks-inventory
+          envVarKey: TRUSTED_PROXY_IP_HEADER
+      - key: TRUSTED_PROXY_HOPS
+        fromService:
+          type: web
+          name: spaceworks-inventory
+          envVarKey: TRUSTED_PROXY_HOPS
+      - key: DATABASE_URL
+        fromService:
+          type: web
+          name: spaceworks-inventory
+          envVarKey: DATABASE_URL
+      - key: DIRECT_URL
+        fromService:
+          type: web
+          name: spaceworks-inventory
+          envVarKey: DIRECT_URL
+      - key: REDIS_URL
+        fromService:
+          type: web
+          name: spaceworks-inventory
+          envVarKey: REDIS_URL
+      - key: NEXT_PUBLIC_BASE_URL
+        fromService:
+          type: web
+          name: spaceworks-inventory
+          envVarKey: NEXT_PUBLIC_BASE_URL
+      - key: AUTH_URL
+        fromService:
+          type: web
+          name: spaceworks-inventory
+          envVarKey: AUTH_URL
+      - key: AUTH_SECRET
+        fromService:
+          type: web
+          name: spaceworks-inventory
+          envVarKey: AUTH_SECRET
+      - key: MFA_ENCRYPTION_KEY
+        fromService:
+          type: web
+          name: spaceworks-inventory
+          envVarKey: MFA_ENCRYPTION_KEY
+      - key: INTEGRATION_ENCRYPTION_KEY
+        fromService:
+          type: web
+          name: spaceworks-inventory
+          envVarKey: INTEGRATION_ENCRYPTION_KEY
+      - key: VAULT_MASTER_KEY
+        fromService:
+          type: web
+          name: spaceworks-inventory
+          envVarKey: VAULT_MASTER_KEY
+      - key: S3_BUCKET
+        fromService:
+          type: web
+          name: spaceworks-inventory
+          envVarKey: S3_BUCKET
+      - key: S3_REGION
+        fromService:
+          type: web
+          name: spaceworks-inventory
+          envVarKey: S3_REGION
+      - key: S3_ENDPOINT
+        fromService:
+          type: web
+          name: spaceworks-inventory
+          envVarKey: S3_ENDPOINT
+      - key: S3_ACCESS_KEY_ID
+        fromService:
+          type: web
+          name: spaceworks-inventory
+          envVarKey: S3_ACCESS_KEY_ID
+      - key: S3_SECRET_ACCESS_KEY
+        fromService:
+          type: web
+          name: spaceworks-inventory
+          envVarKey: S3_SECRET_ACCESS_KEY
+      - key: S3_FORCE_PATH_STYLE
+        fromService:
+          type: web
+          name: spaceworks-inventory
+          envVarKey: S3_FORCE_PATH_STYLE
+      - key: EMAIL_FROM
+        fromService:
+          type: web
+          name: spaceworks-inventory
+          envVarKey: EMAIL_FROM
+      - key: SMTP_HOST
+        fromService:
+          type: web
+          name: spaceworks-inventory
+          envVarKey: SMTP_HOST
+      - key: SMTP_PORT
+        fromService:
+          type: web
+          name: spaceworks-inventory
+          envVarKey: SMTP_PORT
+      - key: SMTP_SECURE
+        fromService:
+          type: web
+          name: spaceworks-inventory
+          envVarKey: SMTP_SECURE
+      - key: SMTP_USER
+        fromService:
+          type: web
+          name: spaceworks-inventory
+          envVarKey: SMTP_USER
+      - key: SMTP_PASSWORD
+        fromService:
+          type: web
+          name: spaceworks-inventory
+          envVarKey: SMTP_PASSWORD
+      - key: ANTHROPIC_API_KEY
+        fromService:
+          type: web
+          name: spaceworks-inventory
+          envVarKey: ANTHROPIC_API_KEY
+      - key: SUPER_ADMIN_EMAIL
+        fromService:
+          type: web
+          name: spaceworks-inventory
+          envVarKey: SUPER_ADMIN_EMAIL
+  - type: worker
+    name: spaceworks-inventory-beat
+    runtime: docker
+    plan: 0.5c-512mb
+    region: singapore
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
+    dockerCommand: node dist/beat.js
+    autoDeployTrigger: checksPass
+    maxShutdownDelaySeconds: 300
+    envVars:
+      - key: CRON_SECRET
+        fromService:
+          type: web
+          name: spaceworks-inventory
+          envVarKey: CRON_SECRET
+      - key: HEALTHCHECK_SECRET
+        fromService:
+          type: web
+          name: spaceworks-inventory
+          envVarKey: HEALTHCHECK_SECRET
+      - key: NEXT_SERVER_ACTIONS_ENCRYPTION_KEY
+        fromService:
+          type: web
+          name: spaceworks-inventory
+          envVarKey: NEXT_SERVER_ACTIONS_ENCRYPTION_KEY
+      - key: TRUSTED_PROXY_IP_HEADER
+        fromService:
+          type: web
+          name: spaceworks-inventory
+          envVarKey: TRUSTED_PROXY_IP_HEADER
+      - key: TRUSTED_PROXY_HOPS
+        fromService:
+          type: web
+          name: spaceworks-inventory
+          envVarKey: TRUSTED_PROXY_HOPS
+      - key: DATABASE_URL
+        fromService:
+          type: web
+          name: spaceworks-inventory
+          envVarKey: DATABASE_URL
+      - key: DIRECT_URL
+        fromService:
+          type: web
+          name: spaceworks-inventory
+          envVarKey: DIRECT_URL
+      - key: REDIS_URL
+        fromService:
+          type: web
+          name: spaceworks-inventory
+          envVarKey: REDIS_URL
+      - key: NEXT_PUBLIC_BASE_URL
+        fromService:
+          type: web
+          name: spaceworks-inventory
+          envVarKey: NEXT_PUBLIC_BASE_URL
+      - key: AUTH_URL
+        fromService:
+          type: web
+          name: spaceworks-inventory
+          envVarKey: AUTH_URL
+      - key: AUTH_SECRET
+        fromService:
+          type: web
+          name: spaceworks-inventory
+          envVarKey: AUTH_SECRET
+      - key: MFA_ENCRYPTION_KEY
+        fromService:
+          type: web
+          name: spaceworks-inventory
+          envVarKey: MFA_ENCRYPTION_KEY
+      - key: INTEGRATION_ENCRYPTION_KEY
+        fromService:
+          type: web
+          name: spaceworks-inventory
+          envVarKey: INTEGRATION_ENCRYPTION_KEY
+      - key: VAULT_MASTER_KEY
+        fromService:
+          type: web
+          name: spaceworks-inventory
+          envVarKey: VAULT_MASTER_KEY
+      - key: S3_BUCKET
+        fromService:
+          type: web
+          name: spaceworks-inventory
+          envVarKey: S3_BUCKET
+      - key: S3_REGION
+        fromService:
+          type: web
+          name: spaceworks-inventory
+          envVarKey: S3_REGION
+      - key: S3_ENDPOINT
+        fromService:
+          type: web
+          name: spaceworks-inventory
+          envVarKey: S3_ENDPOINT
+      - key: S3_ACCESS_KEY_ID
+        fromService:
+          type: web
+          name: spaceworks-inventory
+          envVarKey: S3_ACCESS_KEY_ID
+      - key: S3_SECRET_ACCESS_KEY
+        fromService:
+          type: web
+          name: spaceworks-inventory
+          envVarKey: S3_SECRET_ACCESS_KEY
+      - key: S3_FORCE_PATH_STYLE
+        fromService:
+          type: web
+          name: spaceworks-inventory
+          envVarKey: S3_FORCE_PATH_STYLE
+      - key: EMAIL_FROM
+        fromService:
+          type: web
+          name: spaceworks-inventory
+          envVarKey: EMAIL_FROM
+      - key: SMTP_HOST
+        fromService:
+          type: web
+          name: spaceworks-inventory
+          envVarKey: SMTP_HOST
+      - key: SMTP_PORT
+        fromService:
+          type: web
+          name: spaceworks-inventory
+          envVarKey: SMTP_PORT
+      - key: SMTP_SECURE
+        fromService:
+          type: web
+          name: spaceworks-inventory
+          envVarKey: SMTP_SECURE
+      - key: SMTP_USER
+        fromService:
+          type: web
+          name: spaceworks-inventory
+          envVarKey: SMTP_USER
+      - key: SMTP_PASSWORD
+        fromService:
+          type: web
+          name: spaceworks-inventory
+          envVarKey: SMTP_PASSWORD
+      - key: ANTHROPIC_API_KEY
+        fromService:
+          type: web
+          name: spaceworks-inventory
+          envVarKey: ANTHROPIC_API_KEY
+      - key: SUPER_ADMIN_EMAIL
+        fromService:
+          type: web
+          name: spaceworks-inventory
+          envVarKey: SUPER_ADMIN_EMAIL

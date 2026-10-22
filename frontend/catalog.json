@@ -1,0 +1,246 @@
+{
+  "readers": [
+    {
+      "module": "lib/views/generated/account-page-loadAccountPage",
+      "name": "loadAccountPage",
+      "id": "account-page:loadAccountPage"
+    },
+    {
+      "module": "lib/views/generated/admin-mfa-page-loadAdminMfaPage",
+      "name": "loadAdminMfaPage",
+      "id": "admin-mfa-page:loadAdminMfaPage"
+    },
+    {
+      "module": "lib/views/generated/admin-jobs-page-loadAdminJobsPage",
+      "name": "loadAdminJobsPage",
+      "id": "admin-jobs-page:loadAdminJobsPage"
+    },
+    {
+      "module": "lib/views/generated/admin-layout-loadAdminLayout",
+      "name": "loadAdminLayout",
+      "id": "admin-layout:loadAdminLayout"
+    },
+    {
+      "module": "lib/views/generated/admin-outbox-page-loadAdminOutboxPage",
+      "name": "loadAdminOutboxPage",
+      "id": "admin-outbox-page:loadAdminOutboxPage"
+    },
+    {
+      "module": "lib/views/generated/admin-page-loadAdminOverviewPage",
+      "name": "loadAdminOverviewPage",
+      "id": "admin-page:loadAdminOverviewPage"
+    },
+    {
+      "module": "lib/views/generated/admin-settings-page-loadAdminSettingsPage",
+      "name": "loadAdminSettingsPage",
+      "id": "admin-settings-page:loadAdminSettingsPage"
+    },
+    {
+      "module": "lib/views/generated/admin-spaces-page-loadAdminSpacesPage",
+      "name": "loadAdminSpacesPage",
+      "id": "admin-spaces-page:loadAdminSpacesPage"
+    },
+    {
+      "module": "lib/views/generated/admin-users-page-loadAdminUsersPage",
+      "name": "loadAdminUsersPage",
+      "id": "admin-users-page:loadAdminUsersPage"
+    },
+    {
+      "module": "lib/views/generated/invite-token-page-loadInvitePage",
+      "name": "loadInvitePage",
+      "id": "invite-token-page:loadInvitePage"
+    },
+    {
+      "module": "lib/views/generated/login-link-token-page-loadMagicLinkPage",
+      "name": "loadMagicLinkPage",
+      "id": "login-link-token-page:loadMagicLinkPage"
+    },
+    {
+      "module": "lib/views/generated/login-page-loadLoginPage",
+      "name": "loadLoginPage",
+      "id": "login-page:loadLoginPage"
+    },
+    {
+      "module": "lib/views/generated/page-loadHomeRedirect",
+      "name": "loadHomeRedirect",
+      "id": "page:loadHomeRedirect"
+    },
+    {
+      "module": "lib/views/generated/reset-password-token-page-loadResetPasswordPage",
+      "name": "loadResetPasswordPage",
+      "id": "reset-password-token-page:loadResetPasswordPage"
+    },
+    {
+      "module": "lib/views/generated/s-spaceSlug-layout-loadgenerateMetadata",
+      "name": "loadgenerateMetadata",
+      "id": "s-spaceSlug-layout:loadgenerateMetadata"
+    },
+    {
+      "module": "lib/views/generated/s-spaceSlug-layout-loadSpaceLayout",
+      "name": "loadSpaceLayout",
+      "id": "s-spaceSlug-layout:loadSpaceLayout"
+    },
+    {
+      "module": "lib/views/generated/s-spaceSlug-page-loadSpaceHomePage",
+      "name": "loadSpaceHomePage",
+      "id": "s-spaceSlug-page:loadSpaceHomePage"
+    },
+    {
+      "module": "lib/views/generated/setup-page-loadSetupPage",
+      "name": "loadSetupPage",
+      "id": "setup-page:loadSetupPage"
+    }
+  ],
+  "actions": [
+    {
+      "module": "app/actions/account",
+      "name": "updateProfile",
+      "id": "account:updateProfile"
+    },
+    {
+      "module": "app/actions/account",
+      "name": "changePassword",
+      "id": "account:changePassword"
+    },
+    {
+      "module": "app/actions/account",
+      "name": "beginMfaEnrollment",
+      "id": "account:beginMfaEnrollment"
+    },
+    {
+      "module": "app/actions/account",
+      "name": "confirmMfaEnrollment",
+      "id": "account:confirmMfaEnrollment"
+    },
+    {
+      "module": "app/actions/account",
+      "name": "disableMfa",
+      "id": "account:disableMfa"
+    },
+    {
+      "module": "app/actions/account",
+      "name": "signOutEverywhere",
+      "id": "account:signOutEverywhere"
+    },
+    {
+      "module": "app/actions/admin",
+      "name": "verifyAdminMfa",
+      "id": "admin:verifyAdminMfa"
+    },
+    {
+      "module": "app/actions/admin",
+      "name": "updateInstanceSettingsAction",
+      "id": "admin:updateInstanceSettingsAction"
+    },
+    {
+      "module": "app/actions/admin",
+      "name": "adminCreateSpace",
+      "id": "admin:adminCreateSpace"
+    },
+    {
+      "module": "app/actions/admin",
+      "name": "adminSetUserDisabled",
+      "id": "admin:adminSetUserDisabled"
+    },
+    {
+      "module": "app/actions/admin",
+      "name": "adminSetSpaceArchived",
+      "id": "admin:adminSetSpaceArchived"
+    },
+    {
+      "module": "app/actions/apiTokens",
+      "name": "createApiTokenAction",
+      "id": "apiTokens:createApiTokenAction"
+    },
+    {
+      "module": "app/actions/apiTokens",
+      "name": "revokeApiTokenAction",
+      "id": "apiTokens:revokeApiTokenAction"
+    },
+    {
+      "module": "app/actions/auth",
+      "name": "completeSetup",
+      "id": "auth:completeSetup"
+    },
+    {
+      "module": "app/actions/auth",
+      "name": "requestPasswordReset",
+      "id": "auth:requestPasswordReset"
+    },
+    {
+      "module": "app/actions/auth",
+      "name": "requestMagicLink",
+      "id": "auth:requestMagicLink"
+    },
+    {
+      "module": "app/actions/auth",
+      "name": "resetPassword",
+      "id": "auth:resetPassword"
+    },
+    {
+      "module": "app/actions/auth",
+      "name": "acceptInviteWithNewAccount",
+      "id": "auth:acceptInviteWithNewAccount"
+    },
+    {
+      "module": "app/actions/auth",
+      "name": "acceptInviteAsCurrentUser",
+      "id": "auth:acceptInviteAsCurrentUser"
+    },
+    {
+      "module": "app/actions/jobs",
+      "name": "manageJobsAction",
+      "id": "jobs:manageJobsAction"
+    },
+    {
+      "module": "app/actions/members",
+      "name": "createInvitationAction",
+      "id": "members:createInvitationAction"
+    },
+    {
+      "module": "app/actions/members",
+      "name": "resendInvitationAction",
+      "id": "members:resendInvitationAction"
+    },
+    {
+      "module": "app/actions/members",
+      "name": "revokeInvitationAction",
+      "id": "members:revokeInvitationAction"
+    },
+    {
+      "module": "app/actions/members",
+      "name": "changeMemberRoleAction",
+      "id": "members:changeMemberRoleAction"
+    },
+    {
+      "module": "app/actions/members",
+      "name": "setMemberStatusAction",
+      "id": "members:setMemberStatusAction"
+    },
+    {
+      "module": "app/actions/members",
+      "name": "removeMemberAction",
+      "id": "members:removeMemberAction"
+    },
+    {
+      "module": "app/actions/members",
+      "name": "leaveSpaceAction",
+      "id": "members:leaveSpaceAction"
+    },
+    {
+      "module": "app/actions/members",
+      "name": "setBorrowingAccessAction",
+      "id": "members:setBorrowingAccessAction"
+    },
+    {
+      "module": "app/actions/notifications",
+      "name": "markNotificationsReadAction",
+      "id": "notifications:markNotificationsReadAction"
+    },
+    {
+      "module": "app/actions/settings",
+      "name": "updateSettingsSection",
+      "id": "settings:updateSettingsSection"
+    }
+  ]
+}
