@@ -13,7 +13,7 @@ export async function availabilityFor(spaceId: string, itemIds?: string[]): Prom
   const [levels, loans, transit] = await Promise.all([
     prisma.stockLevel.groupBy({ by: ["itemId"], where: { spaceId, ...(ids ? { itemId: { in: ids } } : {}) }, _sum: { onHand: true, reserved: true, quarantined: true } }),
     prisma.$queryRaw<{ itemId: string; out: bigint }[]>`
-      SELECT l."itemId", SUM(l."quantityIssued" - l."quantityReturned" - l."quantityDamaged" - l."quantityLost") AS "out"
+      SELECT l."itemId", SUM(l."quantityIssued" - l."quantityReturned" - l."quantityDamaged" - l."quantityLost" - l."quantityConsumed") AS "out"
       FROM "LoanLine" l JOIN "Loan" o ON o."id" = l."loanId"
       WHERE o."spaceId" = ${spaceId} AND o."status" IN ('ISSUED', 'PARTIALLY_RETURNED')
       GROUP BY l."itemId"`,

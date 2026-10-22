@@ -706,7 +706,7 @@ model Location {
   updatedAt   DateTime     @updatedAt
 
   space    Space      @relation(fields: [spaceId], references: [id], onDelete: Cascade)
-  parent   Location?  @relation("LocationTree", fields: [parentId], references: [id], onDelete: NoAction)
+  parent   Location?  @relation("LocationTree", fields: [parentId], references: [id], onDelete: Cascade)
   children Location[] @relation("LocationTree")
 
   stockLevels StockLevel[]
@@ -732,7 +732,7 @@ model Category {
   createdAt          DateTime    @default(now())
 
   space    Space      @relation(fields: [spaceId], references: [id], onDelete: Cascade)
-  parent   Category?  @relation("CategoryTree", fields: [parentId], references: [id], onDelete: NoAction)
+  parent   Category?  @relation("CategoryTree", fields: [parentId], references: [id], onDelete: Cascade)
   children Category[] @relation("CategoryTree")
   items    Item[]
 
@@ -876,7 +876,7 @@ model Asset {
   updatedAt         DateTime       @updatedAt
 
   space          Space               @relation(fields: [spaceId], references: [id], onDelete: Cascade)
-  item           Item                @relation(fields: [itemId], references: [id], onDelete: NoAction)
+  item           Item                @relation(fields: [itemId], references: [id], onDelete: Cascade)
   location       Location?           @relation(fields: [locationId], references: [id], onDelete: SetNull)
   movements      StockMovement[]
   reservations   StockReservation[]
@@ -906,7 +906,7 @@ model StockLevel {
 
   space    Space    @relation(fields: [spaceId], references: [id], onDelete: Cascade)
   item     Item     @relation(fields: [itemId], references: [id], onDelete: Cascade)
-  location Location @relation(fields: [locationId], references: [id], onDelete: NoAction)
+  location Location @relation(fields: [locationId], references: [id], onDelete: Cascade)
 
   @@unique([itemId, locationId])
   @@index([spaceId, locationId])
@@ -1174,7 +1174,7 @@ model TransferLine {
   note               String?
 
   transfer Transfer            @relation(fields: [transferId], references: [id], onDelete: Cascade)
-  item     Item                @relation("TransferLineItem", fields: [itemId], references: [id], onDelete: NoAction)
+  item     Item                @relation("TransferLineItem", fields: [itemId], references: [id], onDelete: Cascade)
   destItem Item?               @relation("TransferLineDestItem", fields: [destItemId], references: [id], onDelete: SetNull)
   assets   TransferLineAsset[]
 
@@ -1188,7 +1188,7 @@ model TransferLineAsset {
   state   TransferAssetState @default(ASSIGNED)
 
   line  TransferLine @relation(fields: [lineId], references: [id], onDelete: Cascade)
-  asset Asset        @relation(fields: [assetId], references: [id], onDelete: NoAction)
+  asset Asset        @relation(fields: [assetId], references: [id], onDelete: Cascade)
 
   @@unique([lineId, assetId])
 }
@@ -1237,6 +1237,11 @@ model Loan {
   closedAt       DateTime?
   lastReminderAt DateTime?
   remindersSent  Int        @default(0)
+  /// Set once the due-soon reminder went out (cleared when the due date changes).
+  dueReminderAt  DateTime?
+  /// Set once the loan.overdue event and staff escalation fired (cleared when the due date changes).
+  overdueAt      DateTime?
+  escalatedAt    DateTime?
   staffNote      String?
   createdAt      DateTime   @default(now())
   updatedAt      DateTime   @updatedAt
@@ -1269,9 +1274,11 @@ model LoanLine {
   quantityReturned  Int     @default(0)
   quantityDamaged   Int     @default(0)
   quantityLost      Int     @default(0)
+  /// Consumables are used up at issue and never come back.
+  quantityConsumed  Int     @default(0)
 
   loan      Loan           @relation(fields: [loanId], references: [id], onDelete: Cascade)
-  item      Item           @relation(fields: [itemId], references: [id], onDelete: NoAction)
+  item      Item           @relation(fields: [itemId], references: [id], onDelete: Cascade)
   asset     Asset?         @relation(fields: [assetId], references: [id], onDelete: SetNull)
   incidents LoanIncident[]
 

@@ -2,7 +2,7 @@ import "server-only";
 
 import type { Tx } from "@/lib/db";
 import { assertPositiveQuantity, StockError, type Actor, type MovementRef } from "./errors";
-import { applyLevelChange, availableOf, lockItems, lockLevels } from "./levels";
+import { applyLevelChange, availableOf, lockItems, lockLevels, recordLedgerOnly } from "./levels";
 import { checkLowStock } from "./lowStock";
 
 export type HoldOwner = { loanLineId: string } | { transferLineId: string };
@@ -102,4 +102,10 @@ export async function putBack(tx: Tx, input: { spaceId: string; itemId: string; 
   const level = (await lockLevels(tx, input.spaceId, [input])).get(`${input.itemId}:${input.locationId}`)!;
   await applyLevelChange(tx, level, { onHand: total, quarantined: input.damaged, type: input.type, assetId: input.assetId ?? null }, actor, ref);
   await checkLowStock(tx, [input.itemId]);
+}
+
+/** Units lost while out on a loan or in transit: no balance changes (they already left), but the ledger records it. */
+export async function recordLossWhileOut(tx: Tx, input: { spaceId: string; itemId: string; quantity: number; type: "LOSS" | "TRANSFER_LOSS"; locationId?: string | null }, actor: Actor, ref: MovementRef = {}) {
+  assertPositiveQuantity(input.quantity);
+  await recordLedgerOnly(tx, { spaceId: input.spaceId, itemId: input.itemId, locationId: input.locationId ?? null, type: input.type, reason: "LOST" }, actor, { ...ref, note: ref.note ?? `${input.quantity} lost` });
 }

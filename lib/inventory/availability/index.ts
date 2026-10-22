@@ -9,7 +9,7 @@
 export { StockError, assertPositiveQuantity, type Actor, type MovementRef } from "./errors";
 export { availableOf, lockItems, lockLevels } from "./levels";
 export { receiveStock, adjustStock, moveStock, quarantineStock, resolveQuarantine, nextAverageCost } from "./operations";
-export { reserve, releaseHolds, takeFromHolds, takeFree, putBack, type HoldOwner } from "./reservations";
+export { reserve, releaseHolds, takeFromHolds, takeFree, putBack, recordLossWhileOut, type HoldOwner } from "./reservations";
 export { addAssetToStock, takeAsset, bringBackAsset, moveAsset, changeAssetState, lockAssets, type AssetOutcome } from "./assets";
 export { applyCount } from "./counts";
 export { checkLowStock, availableTotal } from "./lowStock";

@@ -92,12 +92,12 @@ export async function checkBorrowingEligibility(client: DbClient, input: { space
   if (space.requireMemberNumber && !membership.memberNumber) return { ok: false, code: "member_number", error: "Staff need to record a membership number before this member can borrow." };
   const active = await client.loan.findMany({
     where: { spaceId: input.spaceId, borrowerId: input.userId, status: { in: ["ISSUED", "PARTIALLY_RETURNED"] }, ...(input.excludeLoanId ? { NOT: { id: input.excludeLoanId } } : {}) },
-    select: { lines: { select: { quantityIssued: true, quantityReturned: true, quantityDamaged: true, quantityLost: true } } },
+    select: { lines: { select: { quantityIssued: true, quantityReturned: true, quantityDamaged: true, quantityLost: true, quantityConsumed: true } } },
   });
   if (space.maxActiveLoans > 0 && active.length >= space.maxActiveLoans) {
     return { ok: false, code: "loan_limit", error: `Members can have ${space.maxActiveLoans} active ${space.maxActiveLoans === 1 ? "loan" : "loans"} at a time. Return one first.` };
   }
-  const outstanding = active.flatMap((loan) => loan.lines).reduce((sum, line) => sum + line.quantityIssued - line.quantityReturned - line.quantityDamaged - line.quantityLost, 0);
+  const outstanding = active.flatMap((loan) => loan.lines).reduce((sum, line) => sum + line.quantityIssued - line.quantityReturned - line.quantityDamaged - line.quantityLost - line.quantityConsumed, 0);
   if (space.maxItemsOnLoan > 0 && outstanding + input.incomingUnits > space.maxItemsOnLoan) {
     return { ok: false, code: "item_limit", error: `Members can hold ${space.maxItemsOnLoan} items at a time; this would make ${outstanding + input.incomingUnits}.` };
   }
