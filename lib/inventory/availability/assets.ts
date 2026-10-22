@@ -126,3 +126,29 @@ export async function changeAssetState(tx: Tx, input: { spaceId: string; assetId
   await checkLowStock(tx, [asset.itemId]);
   return asset;
 }
+
+/**
+ * Cycle-count outcome for one asset: an available asset that was not found
+ * on its shelf becomes lost; a lost asset scanned during the count is back
+ * on the shelf it was scanned at.
+ */
+export async function countAsset(tx: Tx, input: { spaceId: string; assetId: string; outcome: "missing" | "found"; locationId: string }, actor: Actor, ref: MovementRef = {}) {
+  const current = await tx.asset.findUnique({ where: { id: input.assetId }, select: { itemId: true } });
+  if (!current) throw new StockError("That asset no longer exists.", "asset_unavailable");
+  await lockItems(tx, [current.itemId]);
+  const asset = (await lockAssets(tx, [input.assetId])).get(input.assetId)!;
+  if (asset.spaceId !== input.spaceId) throw new StockError("That asset belongs to another space.", "asset_unavailable");
+  if (input.outcome === "missing") {
+    if (asset.status !== "AVAILABLE" || !asset.locationId) return asset;
+    const level = (await lockLevels(tx, input.spaceId, [{ itemId: asset.itemId, locationId: asset.locationId }])).get(`${asset.itemId}:${asset.locationId}`)!;
+    if (availableOf(level) < 1) throw new StockError(`${asset.assetTag} is held for a request; resolve that before posting the count.`, "asset_unavailable");
+    await applyLevelChange(tx, level, { onHand: -1, type: "COUNT", reason: "LOST", assetId: asset.id }, actor, ref);
+    await tx.asset.update({ where: { id: asset.id }, data: { status: "LOST", locationId: null } });
+  } else if (asset.status === "LOST") {
+    const level = (await lockLevels(tx, input.spaceId, [{ itemId: asset.itemId, locationId: input.locationId }])).get(`${asset.itemId}:${input.locationId}`)!;
+    await applyLevelChange(tx, level, { onHand: 1, type: "COUNT", reason: "FOUND", assetId: asset.id }, actor, ref);
+    await tx.asset.update({ where: { id: asset.id }, data: { status: "AVAILABLE", locationId: input.locationId } });
+  }
+  await checkLowStock(tx, [asset.itemId]);
+  return asset;
+}

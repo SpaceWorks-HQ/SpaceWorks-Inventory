@@ -2,6 +2,8 @@ import "server-only";
 import type { JobDefinition } from "@/lib/queue/definitions";
 import { enqueueDueOutbox } from "@/lib/queue/enqueue";
 import { purgeExpiredOperationalData } from "@/lib/retention";
+import { runCountSchedules } from "@/lib/counts/schedules";
+import { runLoanReminders } from "@/lib/lending/reminders";
 
 /**
  * Periodic jobs. Every job is idempotent (safe to run twice or late): it
@@ -10,6 +12,8 @@ import { purgeExpiredOperationalData } from "@/lib/retention";
  */
 export const SCHEDULED_JOBS: ReadonlyArray<JobDefinition> = [
   { area: "outbox-relay", queue: "outbox", schedule: { every: 5_000 }, run: async () => { await enqueueDueOutbox(); } },
+  { area: "loan-reminders", schedule: { every: 5 * 60_000 }, run: async (now) => { await runLoanReminders(now); } },
+  { area: "count-schedules", schedule: { every: 15 * 60_000 }, run: async (now) => { await runCountSchedules(now); } },
   { area: "operational-retention", schedule: { pattern: "0 0 * * *", tz: "UTC" }, run: async () => { await purgeExpiredOperationalData(); } },
 ];
 
