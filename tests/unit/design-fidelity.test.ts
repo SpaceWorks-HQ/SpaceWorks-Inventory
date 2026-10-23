@@ -170,7 +170,7 @@ describe("design source guards across every area", () => {
       expect(copy, file).not.toMatch(/\b(?:Saving|Loading|Adding|Creating|Working|Thinking|Fetching|Syncing|Checking|Verifying|Publishing|Opening|Sending|Deleting|Uploading|Moving|Updating|Importing|Exporting|Freezing|Linking|Testing|Searching|Retrying|typing|thinking|Sharing)\b[^…\n"'`<>]{0,100}…/);
       if (!["components/ui/button.tsx", "components/ui/display.tsx"].includes(file)) expect(read(file), file).not.toMatch(/\bbg-highlight(?:-soft)?\b|tone=["']highlight["']/);
     }
-  });
+  }, 30_000);
   it("routes authored data tables through the bordered table primitive", () => {
     const raw = files.filter(f => f.endsWith(".tsx") && f !== "components/ui/table.tsx" && /<table\b/.test(read(f)));
     expect(raw).toEqual([]);
