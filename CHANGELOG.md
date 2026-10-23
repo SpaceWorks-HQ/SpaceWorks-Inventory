@@ -8,6 +8,34 @@ build is tagged `v<version>-main.<run>.<commit>`; see
 
 ## [Unreleased]
 
+## [0.2.0] - Unreleased
+
+### Added
+
+- **Desk and member UI** for lending (approve, issue and return with scans,
+  photos and remarks; renewals; incidents), "My loans", the borrow catalogue
+  with a request tray and self-checkout, transfers (approve, dispatch,
+  receive, returns), cycle counts and a scan page, with a step heading on
+  every desk flow.
+- End-to-end journeys for the lending desk, member loans, transfers, counts
+  and scanning; the hosting harness runs them against production builds with
+  `--external-services --demo`.
+- README screenshots in light and dark mode under `docs/screenshots/`.
+- A static test of the Render Blueprint.
+
+### Fixed
+
+- Members can no longer learn another member's loan status, and the member
+  loan page no longer receives desk notes, shelves or standing details.
+- Posting a count no longer writes off untouched serialized tools; posted
+  variances are stored, and count schedule changes are audited.
+- The desk UI no longer enables actions the server refuses (tag counts,
+  payments, renewals, label scans on receipt, text and quantity limits).
+- Wide tables no longer widen the page on phones; optional field labels read
+  correctly to screen readers; the inbox badge no longer covers its label.
+- The split frontend build: the missing `frontend/pure-exports.json`, Windows
+  paths in its scripts, and a contract hash that depended on line endings.
+
 ## [0.1.0] - Unreleased (first release candidate)
 
 The first release of Space Works Inventory: a self-hosted stock room and

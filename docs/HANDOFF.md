@@ -46,10 +46,11 @@ Brand and UI rules come only from [SpaceWorks-Design](https://spaceworks-hq.gith
   (branch protection + `.github/CODEOWNERS`). Branch from `dev`, open PRs into `dev`.
 - Work in phases; each phase ends with lint, typecheck and tests green, a commit and a push to `dev`.
 - `CLAUDE.md` and `AGENTS.md` are byte-identical; edit one, copy it over the other.
-- The original build was done by Claude Code sessions (no Codex). Any coding agent can continue from
-  this file plus `CLAUDE.md`.
+- The original build was done by Claude Code sessions. Since 2026-10-23 (phases I1–I5) Claude Code drives
+  Codex: Codex implements and reviews (`codex exec review --uncommitted`), Claude verifies every step and
+  runs the gates. Any coding agent can continue from this file plus `CLAUDE.md`.
 
-## Status (2026-10-23)
+## Status (2026-10-24, version 0.2.0)
 
 **Done and committed on `dev`:** platform foundation, catalogue (items, locations, taxonomy, assets, kits,
 QR codes), transfer workflow between locations and spaces, cycle counts and purchasing, the lending
@@ -57,7 +58,7 @@ workflow (free or paid lending, import, labels), demo seed, architecture/invaria
 README with banner art and the screenshot capture script, catalogue, stock, space admin, setup wizard,
 reports and REST API UI, free-plan inline jobs and payment webhooks, e2e harness.
 
-**Last commit, work in progress (`wip:`):** the staff and member UI for lending, transfers, counts and
+**Finished in I1–I5 (was the last `wip:` commit):** the staff and member UI for lending, transfers, counts and
 scanning. That covers `app/s/[spaceSlug]/{loans,my-loans,transfers,counts,scan,catalogue}`,
 `app/actions/{loans,transfers,counts,scan}.ts`, the evidence upload API, and `components/{borrow,counts,desk,loans,transfers}`.
 `lib/views/generated/*` and `frontend/*.json` are regenerated outputs. When it was committed, typecheck
@@ -107,13 +108,24 @@ endings.
 
 ## What is left
 
-1. ~~Finish and click-test the WIP pages above against the workflows in `lib/lending`, `lib/transfers`
-   and `lib/counts`, then run `npm run test:integration` and `npm run test:e2e`.~~ Done in I1.
-2. Capture the real README screenshots (light and dark) into `docs/screenshots/` with the existing
-   capture script, and link them in `README.md`.
-3. Verify the one-line VPS install and the Render deploy end to end, and fix anything they surface.
-4. Run an independent review pass and design polish against SpaceWorks-Design, then fix the findings.
-5. Bump `VERSION` and update `CHANGELOG.md`, then open the `dev → main` PR for the owner.
+1. ~~Finish and click-test the WIP pages~~ Done in I1.
+2. ~~README screenshots (light and dark) in `docs/screenshots/`~~ Done in I4 (`npm run readme:screens`
+   against a production build of the seeded demo).
+3. Owner checks in the "Deferred checks" table above: a real Render deploy, a real VPS install, the first
+   GHCR release and live payment gateways.
+4. ~~Independent review and design polish~~ Done in I2.
+5. ~~VERSION and CHANGELOG~~ Done in I5 (0.2.0). Push `dev` and open the `dev → main` PR when the owner
+   has done QA (commits since 2026-10-23 are local only).
+
+## Open questions (conservative choices made, owner to confirm)
+
+- 0.1.0 was never released; this work is versioned 0.2.0. Fold it into 0.1.0 if preferred.
+- Self-checkout answers not-found when it is switched off (the catalogue only links to it when on), as
+  other disabled areas do, rather than explaining.
+- Issue scan catalogues hold up to 500 eligible tags per loan; codes beyond that are not resolved on demand.
+- `npm run test:e2e` on Windows runs `npm run dev`, whose Fast Refresh can reload pages mid-test; the
+  production harness (`test:e2e:vps` / `test:e2e:split -- --external-services --demo`, in a Linux
+  container) is the authoritative browser gate.
 
 ## Run it locally
 
