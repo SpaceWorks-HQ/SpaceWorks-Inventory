@@ -96,8 +96,7 @@ export async function rejectLoan(tx: Tx, input: { spaceId: string; loanId: strin
  * holds and unpaid charges go, and paid deposits or rental are queued for refund.
  */
 export async function cancelLoan(tx: Tx, input: { spaceId: string; loanId: string; reason: string | null; byBorrowerId?: string }, actor: Actor) {
-  const loan = await lockLoan(tx, input.spaceId, input.loanId, "cancel");
-  if (input.byBorrowerId && loan.borrowerId !== input.byBorrowerId) throw new DomainError("That loan wasn't found.", "not_found");
+  const loan = await lockLoan(tx, input.spaceId, input.loanId, "cancel", input.byBorrowerId);
   for (const line of loan.lines) {
     await releaseHolds(tx, { spaceId: input.spaceId, itemId: line.itemId, owner: { loanLineId: line.id } }, actor, { refType: "Loan", refId: loan.id });
   }

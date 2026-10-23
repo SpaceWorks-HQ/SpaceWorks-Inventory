@@ -1,6 +1,6 @@
 import { Card, CardHeader, Chip } from "@/components/ui/display";
 import { Table, TBody, TD, TH, THead, TR } from "@/components/ui/table";
-import { signed } from "@/lib/desk/format";
+import { varianceLabel } from "@/lib/desk/format";
 import type { CountLineView } from "@/lib/desk/countsDetail";
 
 /** Lines whose count differs from what was expected: what posting will change. */
@@ -29,7 +29,7 @@ export function VarianceTable({ lines, threshold }: { lines: CountLineView[]; th
                 <TD className="text-right">{line.expected}</TD>
                 <TD className="text-right">{line.serialized ? line.scannedTags.length : line.countedQty}</TD>
                 <TD className="text-right">
-                  <Chip tone={Math.abs(line.variance!) > limit ? "danger" : "warning"}>{`${signed(line.variance!)}${line.unit ? ` ${line.unit}` : ""}`}</Chip>
+                  <Chip className="tabular-nums" tone={Math.abs(line.variance!) > limit ? "danger" : "warning"}>{varianceLabel(line.variance!, line.unit)}</Chip>
                 </TD>
               </TR>
             ))}

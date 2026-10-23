@@ -12,6 +12,7 @@ type Props = {
   onChange: (codes: string[]) => void;
   /** What this flow expects, code → label ("Drill · TSK-000042"). Codes outside it are flagged. */
   known?: Record<string, string>;
+  unavailable?: Record<string, string>;
   title?: ReactNode;
   helper?: ReactNode;
   disabled?: boolean;
@@ -23,7 +24,7 @@ type Props = {
  * is added once to a list the person can check, remove from or clear. The
  * server resolves the codes again when the step is saved.
  */
-export function Scanner({ codes, onChange, known, title = "Scanned labels", helper, disabled, max = 300 }: Props) {
+export function Scanner({ codes, onChange, known, unavailable, title = "Scanned labels", helper, disabled, max = 300 }: Props) {
   const describe = (code: string) => known?.[code] ?? `${SCAN_KIND_WORD[scanKindOf(code) ?? "item"]} ${code}`;
   return (
     <div className="flex flex-col gap-4">
@@ -31,6 +32,7 @@ export function Scanner({ codes, onChange, known, title = "Scanned labels", help
         helper={helper}
         disabled={disabled}
         onCode={(code) => {
+          if (unavailable?.[code]) return { tone: "warning", text: `${unavailable[code]} is not available right now.` };
           if (codes.length >= max && !codes.includes(code)) return { tone: "warning", text: `Scan at most ${max} labels at once.` };
           const next = addScan(codes, code);
           if (!next.added) return { tone: "success", text: `Already scanned: ${describe(code)}.` };

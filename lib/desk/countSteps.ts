@@ -51,7 +51,7 @@ export async function countTransitionStep(who: Who, step: CountTransition, count
 export async function saveScheduleStep(who: Who & { timeZone: string }, input: ScheduleInput) {
   const firstRunAt = dateInputToDate(input.firstRunDate, who.timeZone, "09:00");
   if (firstRunAt && Number.isNaN(firstRunAt.getTime())) throw new DomainError("Pick a start date.", "invalid");
-  return prisma.$transaction((tx) => saveCountSchedule(tx, { spaceId: who.spaceId, scheduleId: null, name: input.name, locationId: input.locationId, categoryId: input.categoryId, everyDays: input.everyDays, blind: input.blind, active: true, firstRunAt }));
+  return prisma.$transaction((tx) => saveCountSchedule(tx, { spaceId: who.spaceId, actorId: who.actorId, scheduleId: null, name: input.name, locationId: input.locationId, categoryId: input.categoryId, everyDays: input.everyDays, blind: input.blind, active: true, firstRunAt }));
 }
 
 /** Pause or resume a schedule, keeping its next run date. */
@@ -60,7 +60,7 @@ export async function setScheduleActiveStep(who: Who, input: { scheduleId: strin
     const schedule = await tx.countSchedule.findFirst({ where: { id: input.scheduleId, spaceId: who.spaceId } });
     if (!schedule) throw new DomainError("That schedule wasn't found.", "not_found");
     await saveCountSchedule(tx, {
-      spaceId: who.spaceId, scheduleId: schedule.id, name: schedule.name, locationId: schedule.locationId, categoryId: schedule.categoryId,
+      spaceId: who.spaceId, actorId: who.actorId, scheduleId: schedule.id, name: schedule.name, locationId: schedule.locationId, categoryId: schedule.categoryId,
       everyDays: schedule.everyDays, blind: schedule.blind, active: input.active, firstRunAt: schedule.nextRunAt,
     });
   });

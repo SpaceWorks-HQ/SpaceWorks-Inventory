@@ -7,11 +7,13 @@ import { LocationPicker, type LocationOption } from "@/components/desk/LocationP
 import { PhotoCapture } from "@/components/desk/PhotoCapture";
 import { QuantityInput } from "@/components/desk/QuantityInput";
 import { Scanner } from "@/components/desk/Scanner";
+import { StepHeading } from "@/components/desk/StepHeading";
 import { useActionRunner } from "@/components/desk/useActionRunner";
 import { Button } from "@/components/ui/button";
 import { Callout, Card, CardHeader } from "@/components/ui/display";
 import { Field, Textarea } from "@/components/ui/field";
 import { scanIndex, type TransferLineView } from "./types";
+import { receiptLabelsMissing } from "@/lib/desk/transferStock";
 
 type Props = { slug: string; transferId: string; lines: TransferLineView[]; locations: LocationOption[]; defaultLocationId: string | null; minPhotos: number };
 
@@ -31,29 +33,41 @@ export function ReceiveReturnFlow({ slug, transferId, lines, locations, defaultL
   ]);
   const assetUnits = back.flatMap((line) => line.assets).filter((asset) => asset.state === "RETURNING" && codes.includes(asset.code)).length;
   const units = assetUnits + back.filter((line) => line.tracking === "QUANTITY").reduce((sum, line) => sum + (quantities[line.id] ?? 0), 0);
-  const ready = units > 0 && Boolean(locationId) && photos.length >= Math.max(1, minPhotos);
+  const labelsMissing = receiptLabelsMissing(back.map((line) => ({ ...line, units: quantities[line.id] ?? 0 })), codes);
+  const completed = [units > 0 && !labelsMissing, units > 0, Boolean(locationId) && photos.length >= Math.max(1, minPhotos)];
+  const ready = completed.every(Boolean);
 
   return (
     <Card as="section" aria-label="Receive returned units" className="flex flex-col gap-6">
       <CardHeader title="Receive the return" description="Units sent back by the receiving space. Scan their labels as they come off the van." className="mb-0" />
-      <Scanner codes={codes} onChange={setCodes} known={known} disabled={pending} />
-      <ul className="divide-y divide-line rounded-lg border border-line">
-        {back.map((line) => (
-          <li key={line.id} className="flex min-h-14 flex-wrap items-center justify-between gap-3 px-4 py-2">
-            <span className="min-w-0 text-body-ui text-ink">{line.itemName} <span className="text-ink-muted">{line.comingBack} coming back</span></span>
-            {line.tracking === "QUANTITY" ? (
-              <QuantityInput label={`Returned ${line.itemName}`} value={quantities[line.id] ?? 0} max={line.comingBack} onChange={(value) => setQuantities((current) => ({ ...current, [line.id]: value }))} />
-            ) : (
-              <span className="text-caption text-ink-muted">{line.assets.filter((asset) => asset.state === "RETURNING" && codes.includes(asset.code)).length} tags scanned</span>
-            )}
-          </li>
-        ))}
-      </ul>
-      <LocationPicker label="Put it on" locations={locations} value={locationId} onChange={setLocationId} />
-      <PhotoCapture files={photos} onChange={setPhotos} min={minPhotos} disabled={pending} />
-      <Field label="Remarks" optional><Textarea rows={3} maxLength={1000} value={remarks} onChange={(event) => setRemarks(event.target.value)} /></Field>
+      <section className="flex flex-col gap-3">
+        <StepHeading step={1} completed={completed}>Scan returned units</StepHeading>
+        <Scanner codes={codes} onChange={setCodes} known={known} disabled={pending} />
+      </section>
+      <section className="flex flex-col gap-3">
+        <StepHeading step={2} completed={completed}>Check the quantities</StepHeading>
+        <ul className="divide-y divide-line rounded-lg border border-line">
+          {back.map((line) => (
+            <li key={line.id} className="flex min-h-14 flex-wrap items-center justify-between gap-3 px-4 py-2">
+              <span className="min-w-0 text-body-ui text-ink">{line.itemName} <span className="text-ink-muted">{line.comingBack} coming back</span></span>
+              {line.tracking === "QUANTITY" ? (
+                <QuantityInput label={`Returned ${line.itemName}`} value={quantities[line.id] ?? 0} max={line.comingBack} onChange={(value) => setQuantities((current) => ({ ...current, [line.id]: value }))} />
+              ) : (
+                <span className="text-caption text-ink-muted">{line.assets.filter((asset) => asset.state === "RETURNING" && codes.includes(asset.code)).length} tags scanned</span>
+              )}
+            </li>
+          ))}
+        </ul>
+      </section>
+      <section className="flex flex-col gap-4">
+        <StepHeading step={3} completed={completed}>Shelf, photos and remarks</StepHeading>
+        <LocationPicker label="Put it on" locations={locations} value={locationId} onChange={setLocationId} />
+        <PhotoCapture files={photos} onChange={setPhotos} min={minPhotos} disabled={pending} />
+        <Field label="Remarks" optional><Textarea rows={3} maxLength={1000} value={remarks} onChange={(event) => setRemarks(event.target.value)} /></Field>
+      </section>
       {error ? <Callout tone="danger" role="alert">{error}</Callout> : null}
       <div>
+        {!ready ? <p className="mb-2 text-caption text-ink-muted">{labelsMissing ? "Scan each returned item's label." : "Mark at least one unit, choose a shelf and finish the photos."}</p> : null}
         <Button
           variant="primary"
           loading={pending}

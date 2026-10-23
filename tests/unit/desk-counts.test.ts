@@ -15,6 +15,26 @@ describe("count variances", () => {
     expect(lineVariance({ ...quantity, tracking: "SERIALIZED", availableAssets: 3, scannedAssets: 2 })).toEqual({ expected: 3, variance: -1, counted: true });
   });
 
+  it("leaves untouched serialised lines alone and recognises an explicit zero", () => {
+    const line = { ...quantity, tracking: "SERIALIZED" as const, availableAssets: 3 };
+    expect(lineVariance(line)).toEqual({ expected: 3, variance: 0, counted: false });
+    expect(lineVariance({ ...line, countedQty: 0 })).toEqual({ expected: 3, variance: -3, counted: true });
+  });
+
+  it("uses persisted serialised quantities after posting regardless of live stock or scans", () => {
+    expect(lineVariance({ ...quantity, tracking: "SERIALIZED", posted: true, expectedQty: 3, countedQty: 2, availableAssets: 20, scannedAssets: 8 }))
+      .toEqual({ expected: 3, variance: -1, counted: true });
+  });
+
+  it("falls back to recorded scans for legacy posted serialised lines without a saved count", () => {
+    const legacy = { ...quantity, tracking: "SERIALIZED" as const, posted: true, expectedQty: 3, availableAssets: 20, scannedAssets: 2 };
+    expect(lineVariance(legacy)).toEqual({ expected: 3, variance: -1, counted: true });
+    expect(lineVariance({ ...legacy, expectedQty: 0 })).toEqual({ expected: 0, variance: 2, counted: true });
+    expect(lineVariance({ ...legacy, scannedAssets: 0 })).toEqual({ expected: 3, variance: 0, counted: false });
+    expect(lineVariance({ ...legacy, countedQty: 0 })).toEqual({ expected: 3, variance: -3, counted: true });
+    expect(lineVariance({ ...legacy, tracking: "QUANTITY" }).counted).toBe(false);
+  });
+
   it("flags quantity lines whose stock moved since the snapshot", () => {
     expect(isStale({ tracking: "QUANTITY", expectedQty: 10, onHand: 11 })).toBe(true);
     expect(isStale({ tracking: "QUANTITY", expectedQty: 10, onHand: 10 })).toBe(false);

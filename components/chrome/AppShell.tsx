@@ -117,11 +117,12 @@ function NotificationsLink({ data, onNavigate }: { data: ShellData; onNavigate?:
       href={`/s/${data.space.slug}/notifications`}
       onClick={onNavigate}
       aria-label={label}
-      className="relative inline-flex size-11 shrink-0 items-center justify-center rounded-md text-ink transition-colors hover:bg-sidebar-hover"
+      className="inline-flex h-11 min-w-11 shrink-0 items-center justify-center gap-1.5 rounded-md px-2 text-ink transition-colors hover:bg-sidebar-hover"
     >
       <span className="text-xs font-semibold">Inbox</span>
+      {/* Inline, not overlaid: an absolute badge covered the word. */}
       {count > 0 ? (
-        <span aria-hidden className="absolute right-1 top-1 min-w-5 rounded-full bg-accent-soft px-1.5 text-center text-xs font-semibold leading-5 tabular-nums text-accent-text">
+        <span aria-hidden className="min-w-5 rounded-full bg-accent-soft px-1.5 text-center text-xs font-semibold leading-5 tabular-nums text-accent-text">
           {count > 99 ? "99+" : count}
         </span>
       ) : null}

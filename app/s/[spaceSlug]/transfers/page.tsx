@@ -45,7 +45,8 @@ export default async function TransfersPage({ params, searchParams }: PageProps<
   }));
   const tabs = TRANSFER_FILTERS.map((value) => ({ href: listHref(slug, direction, value), label: FILTER_LABEL[value], active: value === filter }));
   const directions = TRANSFER_DIRECTIONS.map((value) => ({ href: listHref(slug, value, filter), label: DIRECTION_LABEL[value], active: value === direction }));
-  const emptyText = filter === "open" ? "No transfers on the move. Raise one to move stock between shelves or spaces." : `No ${FILTER_LABEL[filter].toLowerCase()} transfers here.`;
+  const filtered = filter !== "open" || direction !== "all";
+  const emptyText = filtered ? "No transfers match these filters." : "No transfers on the move. Raise one to move stock between shelves or spaces.";
 
   return (
     <ListLayout
@@ -59,7 +60,7 @@ export default async function TransfersPage({ params, searchParams }: PageProps<
       toolbar={<div className="flex flex-col gap-3"><NavTabs label="Transfer status" items={tabs} /><DirectionLinks label="Direction" items={directions} /></div>}
     >
       {rows.length ? <TransfersTable slug={slug} rows={rows} /> : (
-        <EmptyState patch={filter === "open" && direction === "all" ? true : undefined} action={canRequest && filter === "open" ? <Link href={`/s/${slug}/transfers/new`} className={buttonClasses({ variant: "secondary" })}>Raise a transfer</Link> : undefined}>
+        <EmptyState patch={!filtered ? true : undefined} action={filtered ? <Link href={`/s/${slug}/transfers`} className={buttonClasses({ variant: "secondary" })}>Clear filters</Link> : canRequest ? <Link href={`/s/${slug}/transfers/new`} className={buttonClasses({ variant: "secondary" })}>Raise a transfer</Link> : undefined}>
           {emptyText}
         </EmptyState>
       )}

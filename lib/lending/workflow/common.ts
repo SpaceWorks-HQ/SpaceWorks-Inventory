@@ -13,7 +13,7 @@ export type Actor = { userId: string | null; apiTokenId?: string | null };
  * then re-read it, so concurrent desk actions serialise and each re-checks
  * the status it acts on.
  */
-export async function lockLoan(tx: Tx, spaceId: string, loanId: string, action: LoanAction) {
+export async function lockLoan(tx: Tx, spaceId: string, loanId: string, action: LoanAction, borrowerId?: string) {
   const [row] = await tx.$queryRaw<{ id: string; status: LoanStatus }[]>`
     SELECT "id", "status"::text AS "status" FROM "Loan" WHERE "id" = ${loanId} AND "spaceId" = ${spaceId} FOR UPDATE`;
   if (!row) throw new DomainError("That loan wasn't found.", "not_found");
@@ -25,6 +25,7 @@ export async function lockLoan(tx: Tx, spaceId: string, loanId: string, action: 
       borrower: { select: { id: true, name: true, email: true } },
     },
   });
+  if (borrowerId !== undefined && loan.borrowerId !== borrowerId) throw new DomainError("That loan wasn't found.", "not_found");
   if (!canTransition(loan.status, action)) {
     throw new DomainError(`${loanRef(loan.number)} is ${LOAN_STATUS_LABEL[loan.status].toLowerCase()}, so it can't be ${PAST[action]} now.`, "conflict");
   }

@@ -29,7 +29,8 @@ type Props = {
 /** Raise a transfer: between shelves here, to another space, or from a space that shares its stock. */
 export function NewTransferForm({ slug, initialMode, locations, localItems, pushTargets, pullSources, shared }: Props) {
   const router = useRouter();
-  const { run, pending, error } = useActionRunner();
+  const { run, pending, error, setError } = useActionRunner();
+  const [changingSource, setChangingSource] = useState(false);
   const [mode, setMode] = useState<Mode>(initialMode);
   const [sourceLocationId, setSourceLocationId] = useState("");
   const [destLocationId, setDestLocationId] = useState("");
@@ -45,9 +46,10 @@ export function NewTransferForm({ slug, initialMode, locations, localItems, push
     setMode(next);
     setLines([]);
   };
-  const ready = lines.length > 0 && (mode === "internal" ? sourceLocationId && destLocationId : mode === "push" ? sourceLocationId && destSpaceSlug : Boolean(shared));
+  const ready = !changingSource && lines.length > 0 && lines.every((line) => line.quantity <= (pickable.find((item) => item.id === line.itemId)?.available ?? 0)) && (mode === "internal" ? sourceLocationId && destLocationId : mode === "push" ? sourceLocationId && destSpaceSlug : Boolean(shared));
 
   const submit = () => {
+    if (!ready) return;
     const common = { lines, reason, neededBy };
     const input = mode === "internal" ? { ...common, mode, sourceLocationId, destLocationId }
       : mode === "push" ? { ...common, mode, sourceLocationId, destSpaceSlug }
@@ -83,7 +85,13 @@ export function NewTransferForm({ slug, initialMode, locations, localItems, push
           pullSources.length ? (
             <>
               <Field label="From space" helperText="You see their item names and free counts only. They approve, pick and dispatch.">
-                <Dropdown value={shared?.slug ?? ""} onChange={(event) => router.push(`/s/${slug}/transfers/new?mode=pull&from=${encodeURIComponent(event.target.value)}`)}>
+                <Dropdown value={shared?.slug ?? ""} disabled={changingSource} onChange={(event) => {
+                  setLines([]);
+                  setSourceLocationId("");
+                  setError(null);
+                  setChangingSource(true);
+                  router.push(`/s/${slug}/transfers/new?mode=pull&from=${encodeURIComponent(event.target.value)}`);
+                }}>
                   {!shared ? <option value="" disabled>Choose a space</option> : null}
                   {pullSources.map((space) => <option key={space.slug} value={space.slug}>{space.name}</option>)}
                 </Dropdown>
@@ -96,7 +104,7 @@ export function NewTransferForm({ slug, initialMode, locations, localItems, push
 
       <Card className="flex flex-col gap-4">
         <CardHeader title="What should move?" description={mode === "pull" ? (shared ? `Free stock at ${shared.name}.` : "Choose a space first.") : sourceLocationId ? "Free stock at the chosen shelf." : "Choose where it comes from first."} className="mb-0" />
-        <TransferLinePicker items={pickable} lines={lines} onChange={setLines} disabled={pending || (mode === "pull" ? !shared : !sourceLocationId)} />
+        <TransferLinePicker key={`${mode}:${mode === "pull" ? shared?.slug ?? "" : sourceLocationId}`} onOneShelf={mode === "pull"} items={pickable} lines={lines} onChange={setLines} disabled={pending || changingSource || (mode === "pull" ? !shared : !sourceLocationId)} />
       </Card>
 
       <Card className="flex flex-col gap-4">
@@ -110,6 +118,7 @@ export function NewTransferForm({ slug, initialMode, locations, localItems, push
       </Card>
 
       {error ? <Callout tone="danger" role="alert">{error}</Callout> : null}
+      {!ready ? <p className="text-caption text-ink-muted">{changingSource ? "Wait for the source stock to load." : "Choose the source, destination and at least one available item."}</p> : null}
       <div className="flex flex-wrap gap-2">
         <Button type="submit" variant="primary" loading={pending} disabled={!ready}>Request transfer</Button>
         <Button variant="quiet" onClick={() => router.push(`/s/${slug}/transfers`)}>Cancel</Button>

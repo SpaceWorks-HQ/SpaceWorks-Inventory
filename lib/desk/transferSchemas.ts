@@ -3,6 +3,8 @@ import { z } from "zod";
 /** Input schemas for the transfer desk actions (pure; shared by actions and tests). */
 
 const id = z.string().trim().min(1).max(64);
+export const TRANSFER_REASON_MAX = 500;
+export const TRANSFER_NOTE_MAX = 1000;
 const count = z.number({ message: "Quantities must be whole numbers." }).int("Quantities must be whole numbers.").min(0, "Quantities can't be negative.").max(100_000);
 const optionalText = (max: number) => z.string().trim().max(max).optional().transform((value) => (value ? value : null));
 const dateInput = z.string().trim().max(10).optional().transform((value) => value ?? "");
@@ -19,8 +21,8 @@ export const requestTransferSchema = z.discriminatedUnion("mode", [
 export type RequestTransferInput = z.output<typeof requestTransferSchema>;
 
 export const approveSchema = z.object({ transferId: id, quantities: z.record(id, count) });
-export const reasonSchema = z.object({ transferId: id, reason: z.string().trim().min(1, "Give a short reason.").max(500) });
-export const cancelSchema = z.object({ transferId: id, reason: optionalText(500) });
+export const reasonSchema = z.object({ transferId: id, reason: z.string().trim().min(1, "Give a short reason.").max(TRANSFER_REASON_MAX) });
+export const cancelSchema = z.object({ transferId: id, reason: optionalText(TRANSFER_REASON_MAX) });
 
 const remarks = z.string().trim().max(1000, "Keep remarks under 1,000 characters.").optional().transform((value) => value ?? "");
 const codes = z.array(z.string().trim().min(1).max(300)).max(300, "Scan at most 300 labels at once.");
@@ -48,14 +50,14 @@ export const missingSchema = z.object({
   transferId: id,
   lines: z.array(z.object({ lineId: id, missing: count })).max(100),
   missingAssetIds: z.array(id).max(300).default([]),
-  note: z.string().trim().min(1, "Note what happened to the missing units.").max(1000),
+  note: z.string().trim().min(1, "Note what happened to the missing units.").max(TRANSFER_NOTE_MAX),
 });
 
 export const sendBackSchema = z.object({
   transferId: id,
   lines: z.array(z.object({ lineId: id, quantity: count })).max(100),
   assetIds: z.array(id).max(300).default([]),
-  reason: z.string().trim().min(1, "Say why the units are going back.").max(500),
+  reason: z.string().trim().min(1, "Say why the units are going back.").max(TRANSFER_REASON_MAX),
 });
 
 export const receiveReturnSchema = z.object({

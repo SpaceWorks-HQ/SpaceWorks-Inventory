@@ -37,7 +37,8 @@ const rows = queue.rows.map((loan) => ({
 const tabs = LOAN_TABS.map((t) => ({ href: `/s/${space.slug}/loans?tab=${t}${q ? `&q=${encodeURIComponent(q)}` : ""}`, label: `${LOAN_TAB_LABEL[t]} (${queue.counts[t]})`, active: t === tab }));
 const slug = space.slug;
 const dateHeading = DATE_HEADING[tab];
-const emptyText = q ? "No loans match that search." : EMPTY[tab];
-const nothingYet = !q && LOAN_TABS.every((t) => queue.counts[t] === 0);
-return viewDto({ tab, q, rows, tabs, slug, dateHeading, emptyText, nothingYet } as const);
+const filtered = Boolean(q.trim()) || tab !== "requests";
+const emptyText = filtered ? "No loans match these filters." : EMPTY[tab];
+const nothingYet = !filtered && LOAN_TABS.every((t) => queue.counts[t] === 0);
+return viewDto({ tab, q, rows, tabs, slug, dateHeading, filtered, emptyText, nothingYet } as const);
 }

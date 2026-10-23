@@ -10,19 +10,20 @@ import { Field, Input } from "@/components/ui/field";
 import { ReasonDialog } from "./ReasonDialog";
 
 /** Renew, move the due date or cancel a ready loan (staff). */
-export function LoanSideActions({ slug, loanId, canRenew, renewHint, canSetDue, dueValue, canCancel }: {
-  slug: string; loanId: string; canRenew: boolean; renewHint: string; canSetDue: boolean; dueValue: string; canCancel: boolean;
+export function LoanSideActions({ slug, loanId, canRenew, renewHint, renewReason, canSetDue, dueValue, canCancel }: {
+  slug: string; loanId: string; canRenew: boolean; renewHint: string; renewReason: string | null; canSetDue: boolean; dueValue: string; canCancel: boolean;
 }) {
   const [dialog, setDialog] = useState<"due" | "cancel" | null>(null);
   const [due, setDue] = useState(dueValue);
   const renew = useActionRunner();
   const change = useActionRunner();
-  if (!canRenew && !canSetDue && !canCancel) return null;
+  if (!canRenew && !renewReason && !canSetDue && !canCancel) return null;
   return (
     <Card as="section" aria-label="Loan actions">
       <CardHeader title="Loan actions" />
       <div className="flex flex-col gap-2">
         {renew.error ? <Callout tone="danger" role="alert">{renew.error}</Callout> : null}
+        {renewReason ? <p className="text-caption text-ink-muted">{renewReason}</p> : null}
         {canRenew ? (
           <>
             <Button variant="secondary" fullWidth loading={renew.pending} onClick={() => void renew.run(() => renewLoanAction(slug, { loanId }), "Loan renewed.")}>Renew</Button>

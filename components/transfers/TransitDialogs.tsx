@@ -6,6 +6,7 @@ import { QuantityInput } from "@/components/desk/QuantityInput";
 import { useActionRunner } from "@/components/desk/useActionRunner";
 import { CheckboxField } from "@/components/ui/choice";
 import { StepDialog } from "./StepDialog";
+import { TRANSFER_NOTE_MAX, TRANSFER_REASON_MAX } from "@/lib/desk/transferSchemas";
 import type { TransferLineView } from "./types";
 
 type Base = { slug: string; transferId: string };
@@ -44,7 +45,7 @@ export function MissingDialog({ slug, transferId, lines }: Base & { lines: Trans
     <StepDialog
       trigger="Declare missing…" triggerVariant="danger" title="Declare units missing?" destructive
       description="Missing units leave the sending space's stock for good. Use this only when they won't turn up."
-      textLabel="What happened" textRequired confirmLabel="Declare missing" pending={runner.pending} error={runner.error}
+      textLabel="What happened" textRequired maxLength={TRANSFER_NOTE_MAX} confirmLabel="Declare missing" pending={runner.pending} error={runner.error}
       onConfirm={(note) => runner.run(() => declareMissingAction(slug, { transferId, lines: toLines(quantities, "missing"), missingAssetIds: assetIds, note }), "Missing units recorded.")}
     >
       <InTransitPicker lines={lines} quantities={quantities} setQuantities={setQuantities} assetIds={assetIds} setAssetIds={setAssetIds} verb="Missing" />
@@ -61,7 +62,7 @@ export function SendBackDialog({ slug, transferId, lines }: Base & { lines: Tran
     <StepDialog
       trigger="Send back…" title="Send units back to the sender?"
       description="They stay out of both spaces' stock until the sender receives them."
-      textLabel="Reason" textRequired confirmLabel="Send back" pending={runner.pending} error={runner.error}
+      textLabel="Reason" textRequired maxLength={TRANSFER_REASON_MAX} confirmLabel="Send back" pending={runner.pending} error={runner.error}
       onConfirm={(reason) => runner.run(() => sendBackAction(slug, { transferId, lines: toLines(quantities, "quantity"), assetIds, reason }), "Units are on their way back.")}
     >
       <InTransitPicker lines={lines} quantities={quantities} setQuantities={setQuantities} assetIds={assetIds} setAssetIds={setAssetIds} verb="Send back" />
@@ -76,7 +77,7 @@ export function CancelTransferDialog({ slug, transferId }: Base) {
     <StepDialog
       trigger="Cancel transfer…" triggerVariant="danger" title="Cancel this transfer?" destructive
       description="Any held stock is released. This can't be undone."
-      textLabel="Reason" confirmLabel="Cancel transfer" pending={runner.pending} error={runner.error}
+      textLabel="Reason" maxLength={TRANSFER_REASON_MAX} confirmLabel="Cancel transfer" pending={runner.pending} error={runner.error}
       onConfirm={(reason) => runner.run(() => cancelTransferAction(slug, { transferId, reason }), "Transfer cancelled.")}
     />
   );

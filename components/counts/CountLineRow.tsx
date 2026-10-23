@@ -1,13 +1,14 @@
 "use client";
 
-import { useState } from "react";
+import { useId, useState } from "react";
 import { recordCountAction, refreshCountLineAction } from "@/app/actions/counts";
 import { useActionRunner } from "@/components/desk/useActionRunner";
 import { Button } from "@/components/ui/button";
 import { Chip } from "@/components/ui/display";
 import { Input } from "@/components/ui/field";
-import { signed, wholeNumber } from "@/lib/desk/format";
+import { varianceLabel, wholeNumber } from "@/lib/desk/format";
 import type { CountLineView } from "@/lib/desk/countsDetail";
+import { COUNT_QUANTITY_MAX, recordCountSchema } from "@/lib/desk/countSchemas";
 
 function focusNext(current: HTMLInputElement) {
   const inputs = [...document.querySelectorAll<HTMLInputElement>("input[data-count-input]")];
@@ -21,8 +22,12 @@ export function CountLineRow({ slug, countId, line, editable }: { slug: string; 
   const { run, pending, error } = useActionRunner();
   const [value, setValue] = useState(line.countedQty === null ? "" : String(line.countedQty));
   const parsed = wholeNumber(value);
-  const changed = parsed !== null && parsed !== line.countedQty;
+  const validation = value ? recordCountSchema.shape.counted.safeParse(parsed) : null;
+  const fieldError = validation && !validation.success ? validation.error.issues[0]!.message : null;
+  const errorId = useId();
+  const changed = parsed !== null && !fieldError && parsed !== line.countedQty;
   const unit = line.unit ? ` ${line.unit}` : "";
+  const found = line.countedQty ?? (line.serialized && line.scannedTags.length > 0 ? line.scannedTags.length : null);
 
   const save = (input?: HTMLInputElement) => {
     if (parsed === null || !changed) {
@@ -45,25 +50,31 @@ export function CountLineRow({ slug, countId, line, editable }: { slug: string; 
         <div className="flex flex-wrap items-center gap-2">
           {line.stale ? <Chip tone="warning">Stock moved</Chip> : null}
           {line.expected !== null ? <span className="text-caption tabular-nums text-ink-muted">Expected {line.expected}{unit}</span> : null}
-          {line.variance !== null ? <Chip tone={line.variance === 0 ? "success" : "warning"}>{line.variance === 0 ? "Matches" : `${signed(line.variance)}${unit}`}</Chip> : null}
+          {line.variance !== null ? <Chip className="tabular-nums" tone={line.variance === 0 ? "success" : "warning"}>{varianceLabel(line.variance, line.unit)}</Chip> : null}
         </div>
       </div>
       {line.serialized ? (
         <p className="text-body-ui text-ink-secondary">
-          {line.scannedTags.length ? `Scanned: ${line.scannedTags.join(", ")}` : "No tags scanned here yet. Use scan mode for this shelf."}
+          {line.scannedTags.length ? `Scanned: ${line.scannedTags.join(", ")}` : editable ? "Scan each tag found here, or save 0 if none were found." : "No tags scanned here."}
         </p>
-      ) : editable ? (
+      ) : null}
+      {editable ? (
         <div className="flex flex-wrap items-center gap-2">
           <Input
             data-count-input
-            type="text"
+            type="number"
+            min={0}
+            max={COUNT_QUANTITY_MAX}
+            step={1}
             inputMode="numeric"
             pattern="[0-9]*"
             aria-label={`Counted ${line.itemName} at ${line.locationPath}`}
+            aria-invalid={Boolean(fieldError || error)}
+            aria-describedby={fieldError || error ? errorId : undefined}
             value={value}
-            placeholder="Count"
+            placeholder={line.serialized ? "Tags found" : "Count"}
             onFocus={(event) => event.target.select()}
-            onChange={(event) => setValue(event.target.value.replace(/\D/g, "").slice(0, 7))}
+            onChange={(event) => setValue(event.target.value)}
             onKeyDown={(event) => {
               if (event.key !== "Enter") return;
               event.preventDefault();
@@ -83,9 +94,9 @@ export function CountLineRow({ slug, countId, line, editable }: { slug: string; 
           ) : null}
         </div>
       ) : (
-        <p className="text-body-ui tabular-nums text-ink">{line.countedQty === null ? "Not counted" : `Counted ${line.countedQty}${unit}`}</p>
+        <p className="text-body-ui tabular-nums text-ink">{found === null ? "Not counted" : `Counted ${found}${unit}`}</p>
       )}
-      {error ? <p role="alert" className="text-caption text-danger-fg">{error}</p> : null}
+      {fieldError || error ? <p id={errorId} role="alert" className="text-caption text-danger-fg">{fieldError ?? error}</p> : null}
     </li>
   );
 }

@@ -6,6 +6,7 @@ import { countRef } from "@/lib/catalogue/references";
 import { DomainError } from "@/lib/domainError";
 import { emitEvent } from "@/lib/events/emit";
 import { applyCount, countAsset, moveAsset } from "@/lib/inventory/availability";
+import { lineVariance } from "./variance";
 
 async function lockCount(tx: Tx, spaceId: string, countId: string) {
   const [row] = await tx.$queryRaw<{ id: string }[]>`SELECT "id" FROM "StockCount" WHERE "id" = ${countId} AND "spaceId" = ${spaceId} FOR UPDATE`;
@@ -20,14 +21,14 @@ type LockedCount = Awaited<ReturnType<typeof lockCount>>;
 
 /** Variance per line: quantity lines compare counted with the snapshot; serialized lines compare scans with available assets. */
 export async function countVariances(tx: Tx, count: LockedCount) {
-  const result: { lineId: string; itemName: string; variance: number; counted: boolean }[] = [];
+  const result: { lineId: string; itemName: string; expected: number; variance: number; counted: boolean }[] = [];
   for (const line of count.lines) {
     if (line.item.tracking === "SERIALIZED") {
-      const expected = await tx.asset.count({ where: { itemId: line.itemId, locationId: line.locationId, status: "AVAILABLE" } });
+      const expected = await tx.asset.count({ where: { spaceId: count.spaceId, itemId: line.itemId, locationId: line.locationId, status: "AVAILABLE" } });
       const scanned = count.scans.filter((s) => s.asset.itemId === line.itemId && s.locationId === line.locationId).length;
-      result.push({ lineId: line.id, itemName: line.item.name, variance: scanned - expected, counted: true });
+      result.push({ lineId: line.id, itemName: line.item.name, ...lineVariance({ ...line, tracking: "SERIALIZED", onHand: 0, availableAssets: expected, scannedAssets: scanned, posted: count.status === "POSTED" }) });
     } else {
-      result.push({ lineId: line.id, itemName: line.item.name, variance: line.countedQty === null ? 0 : line.countedQty - line.expectedQty, counted: line.countedQty !== null });
+      result.push({ lineId: line.id, itemName: line.item.name, expected: line.expectedQty, variance: line.countedQty === null ? 0 : line.countedQty - line.expectedQty, counted: line.countedQty !== null });
     }
   }
   return result;
@@ -68,13 +69,16 @@ export async function postCount(tx: Tx, input: { spaceId: string; countId: strin
   let adjusted = 0;
   for (const line of count.lines) {
     if (line.item.tracking === "SERIALIZED") {
+      const variance = variances.find((v) => v.lineId === line.id)!;
+      if (!variance.counted) continue;
       const scansHere = count.scans.filter((s) => s.asset.itemId === line.itemId && s.locationId === line.locationId);
+      await tx.stockCountLine.update({ where: { id: line.id }, data: { expectedQty: variance.expected, countedQty: scansHere.length } });
       for (const scan of scansHere) {
         if (scan.asset.status === "LOST") await countAsset(tx, { spaceId: input.spaceId, assetId: scan.assetId, outcome: "found", locationId: line.locationId }, actor, ref);
         else if (scan.asset.status === "AVAILABLE" && scan.asset.locationId !== line.locationId) await moveAsset(tx, { spaceId: input.spaceId, assetId: scan.assetId, toLocationId: line.locationId }, actor, ref);
       }
       const scannedIds = new Set(count.scans.map((s) => s.assetId));
-      const missing = await tx.asset.findMany({ where: { itemId: line.itemId, locationId: line.locationId, status: "AVAILABLE", id: { notIn: [...scannedIds] } }, select: { id: true } });
+      const missing = await tx.asset.findMany({ where: { spaceId: input.spaceId, itemId: line.itemId, locationId: line.locationId, status: "AVAILABLE", id: { notIn: [...scannedIds] } }, select: { id: true } });
       for (const asset of missing) await countAsset(tx, { spaceId: input.spaceId, assetId: asset.id, outcome: "missing", locationId: line.locationId }, actor, ref);
       adjusted += missing.length;
       continue;

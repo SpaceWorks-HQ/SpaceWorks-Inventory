@@ -1,29 +1,7 @@
 import type { CountStatus } from "@prisma/client";
 
-/**
- * Pure cycle-count rules for the desk pages (client-safe, unit tested).
- * They mirror lib/counts/post.ts: quantity lines compare the counted number
- * with the snapshot taken at the start; serialized lines compare the asset
- * tags scanned at a shelf with the assets available there now.
- */
-
-export type CountLineFacts = {
-  tracking: "QUANTITY" | "SERIALIZED";
-  expectedQty: number;
-  countedQty: number | null;
-  /** On hand at the line's location right now (quantity lines). */
-  onHand: number;
-  /** Serialized: assets available at the location now, and tags scanned there. */
-  availableAssets: number;
-  scannedAssets: number;
-};
-
-/** What was found minus what was expected; uncounted quantity lines have no variance yet. */
-export function lineVariance(line: CountLineFacts): { expected: number; variance: number; counted: boolean } {
-  if (line.tracking === "SERIALIZED") return { expected: line.availableAssets, variance: line.scannedAssets - line.availableAssets, counted: true };
-  if (line.countedQty === null) return { expected: line.expectedQty, variance: 0, counted: false };
-  return { expected: line.expectedQty, variance: line.countedQty - line.expectedQty, counted: true };
-}
+import type { CountLineFacts } from "@/lib/counts/variance";
+export { lineVariance, type CountLineFacts } from "@/lib/counts/variance";
 
 /** Stock moved since the snapshot (quantity lines only): the line must be refreshed and recounted before posting. */
 export function isStale(line: Pick<CountLineFacts, "tracking" | "expectedQty" | "onHand">): boolean {

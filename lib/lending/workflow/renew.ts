@@ -10,6 +10,8 @@ import { notifyUsers } from "@/lib/notify";
 import { addRenewalCharge } from "@/lib/payments/charges";
 import { syncAutomaticRestriction } from "../access";
 import { addDays, outstanding } from "../policy";
+import { renewalRefusal } from "../renewalPolicy";
+import { renewalFacts } from "../renewalReadiness";
 import { lockLoan, loanUrl, type Actor } from "./common";
 
 /**
@@ -18,22 +20,12 @@ import { lockLoan, loanUrl, type Actor } from "./common";
  * nobody else is waiting for the same items.
  */
 export async function renewLoan(tx: Tx, input: { spaceId: string; loanId: string; byBorrowerId?: string }, actor: Actor) {
-  const loan = await lockLoan(tx, input.spaceId, input.loanId, "renew");
-  if (input.byBorrowerId && loan.borrowerId !== input.byBorrowerId) throw new DomainError("That loan wasn't found.", "not_found");
+  const loan = await lockLoan(tx, input.spaceId, input.loanId, "renew", input.byBorrowerId);
   const space = loan.space;
-  if (space.maxRenewals === 0) throw new DomainError("Renewals are switched off in this space.", "forbidden");
-  if (loan.renewalCount >= space.maxRenewals) throw new DomainError(`This loan has used its ${space.maxRenewals} ${space.maxRenewals === 1 ? "renewal" : "renewals"}.`, "conflict");
-  if (input.byBorrowerId) {
-    const membership = await tx.membership.findUnique({ where: { userId_spaceId: { userId: loan.borrowerId, spaceId: input.spaceId } }, select: { borrowingStatus: true } });
-    // An overdue-only restriction does not block a renewal of the overdue loan itself.
-    const overdueOnly = membership?.borrowingStatus === "RESTRICTED" && !(await tx.loanIncident.count({ where: { spaceId: input.spaceId, borrowerId: loan.borrowerId, status: "OPEN" } }));
-    if (membership?.borrowingStatus !== "GOOD" && !overdueOnly) throw new DomainError("Your borrowing is restricted; ask staff to renew.", "forbidden");
-  }
   const outstandingItems = loan.lines.filter((line) => outstanding(line) > 0).map((line) => line.itemId);
-  const waiting = await tx.loanLine.count({
-    where: { itemId: { in: outstandingItems }, loan: { spaceId: input.spaceId, status: { in: ["REQUESTED", "APPROVED"] }, NOT: { borrowerId: loan.borrowerId } } },
-  });
-  if (waiting > 0) throw new DomainError("Someone else is waiting for these items, so the loan can't be renewed.", "conflict");
+  const facts = await renewalFacts(tx, input.spaceId, loan.borrowerId, outstandingItems);
+  const refusal = renewalRefusal({ ...facts, status: loan.status, maxRenewals: space.maxRenewals, renewalCount: loan.renewalCount, byBorrower: Boolean(input.byBorrowerId) });
+  if (refusal) throw new DomainError(refusal.reason, refusal.code);
   const base = loan.dueAt > new Date() ? loan.dueAt : new Date();
   const dueAt = addDays(base, space.renewalDays);
   await tx.loan.update({ where: { id: loan.id }, data: { dueAt, renewalCount: { increment: 1 }, dueReminderAt: null, overdueAt: null, escalatedAt: null } });

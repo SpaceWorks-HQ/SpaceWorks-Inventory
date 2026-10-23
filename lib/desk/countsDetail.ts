@@ -4,6 +4,7 @@ import { prisma } from "@/lib/db";
 import { countRef } from "@/lib/catalogue/references";
 import { locationTree } from "@/lib/catalogue/locations";
 import { fourEyes, isStale, lineVariance, scopeWords, showsExpected } from "./countsLogic";
+import { countLineTotals } from "./countReadiness";
 import { namesOf } from "./evidence";
 
 export type CountLineView = {
@@ -62,6 +63,7 @@ export async function countDetail(spaceId: string, countId: string, viewerId: st
       onHand: onHand.get(key(line.itemId, line.locationId)) ?? 0,
       availableAssets: available.get(key(line.itemId, line.locationId)) ?? 0,
       scannedAssets: scanned.length,
+      posted: count.status === "POSTED",
     };
     return { line, scanned, fact, result: lineVariance(fact) };
   });
@@ -91,6 +93,11 @@ export async function countDetail(spaceId: string, countId: string, viewerId: st
     startedById: count.startedById,
     counterIds: [...count.lines.map((line) => line.countedById), ...count.scans.map((scan) => scan.scannedById)],
   });
+  const countedShelves = facts.filter((f) => f.line.item.tracking === "SERIALIZED" && f.result.counted)
+    .map(({ line }) => ({ itemId: line.itemId, locationId: line.locationId }));
+  const missingTools = count.status === "SUBMITTED" && countedShelves.length
+    ? await prisma.asset.count({ where: { spaceId, status: "AVAILABLE", OR: countedShelves, id: { notIn: count.scans.map((scan) => scan.assetId) } } })
+    : 0;
 
   return {
     id: count.id,
@@ -107,7 +114,8 @@ export async function countDetail(spaceId: string, countId: string, viewerId: st
     submittedAt: count.submittedAt,
     postedAt: count.postedAt,
     lines,
-    totals: { lines: lines.length, counted: lines.filter((l) => l.serialized ? l.scannedTags.length > 0 : l.countedQty !== null).length, stale: lines.filter((l) => l.stale).length },
+    missingTools,
+    totals: countLineTotals(facts.map((fact, index) => ({ counted: fact.result.counted, stale: lines[index]!.stale }))),
     // The four-eyes check only matters once there is something to post (and expected numbers are visible).
     fourEyes: visible && count.status === "SUBMITTED" ? check : { overThreshold: false, involved: check.involved, blocked: false },
   };

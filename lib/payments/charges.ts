@@ -4,7 +4,8 @@ import type { ChargeKind, LoanStatus } from "@prisma/client";
 import type { Tx } from "@/lib/db";
 import { DomainError } from "@/lib/domainError";
 import { depositFor, incidentChargeFor, incidentChargeKind, lateFeeFor, loanDays, rentalFor, renewalRentalFor } from "./fees";
-import { chargedQuantity, feeLines, LOAN_FEE_INCLUDE, lockLoanRow, openPayLater, outstandingQuantity } from "./internal";
+import { chargedQuantity, feeLines, LOAN_FEE_INCLUDE, lockLoanRow, outstandingQuantity } from "./internal";
+import { issuePaymentReady } from "./readiness";
 
 /**
  * The charges side of the loan workflow. Every function takes the
@@ -56,16 +57,15 @@ export async function createLoanCharges(tx: Tx, args: { loanId: string; now?: Da
  * An offline payment still awaiting a staff confirmation does not count.
  */
 export async function assertIssueAllowed(tx: Tx, args: { loanId: string }) {
-  const loan = await tx.loan.findUniqueOrThrow({ where: { id: args.loanId }, select: { id: true, space: { select: { paymentBeforeIssue: true } } } });
+  const loan = await tx.loan.findUniqueOrThrow({ where: { id: args.loanId }, select: { id: true, spaceId: true, space: { select: { paymentBeforeIssue: true } } } });
   if (!loan.space.paymentBeforeIssue) return;
   const due = await tx.loanCharge.findMany({
-    where: { loanId: loan.id, status: "DUE", kind: { in: ["DEPOSIT", "RENTAL"] } },
-    select: { payment: { select: { status: true, payLater: true } } },
+    where: { spaceId: loan.spaceId, loanId: loan.id, status: "DUE", kind: { in: ["DEPOSIT", "RENTAL"] } },
+    select: { kind: true, status: true, paymentId: true },
   });
   if (due.length === 0) return;
-  const promise = await openPayLater(tx, loan.id);
-  const covered = (charge: (typeof due)[number]) => charge.payment?.status === "PAID" || (charge.payment?.payLater && charge.payment.status === "PENDING") || Boolean(promise);
-  if (!due.every(covered)) throw new DomainError("Collect the deposit and rental first, or mark it pay later.", "conflict");
+  const payments = await tx.payment.findMany({ where: { spaceId: loan.spaceId, loanId: loan.id }, select: { id: true, status: true, payLater: true } });
+  if (!issuePaymentReady(true, due, payments)) throw new DomainError("Collect the deposit and rental first, or mark it pay later.", "conflict");
 }
 
 /** When a loan is fully returned: one LATE_FEE charge if it came back late. Returns the charge or null. */

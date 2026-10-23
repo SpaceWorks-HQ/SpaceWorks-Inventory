@@ -33,8 +33,8 @@ async function openIncident(tx: Tx, loan: LockedLoan, line: LockedLoan["lines"][
  * charges), which can restrict the borrower until resolved.
  */
 export async function returnLoan(tx: Tx, input: { spaceId: string; loanId: string; scannedCodes: string[]; lines: ReturnLine[]; evidence: EvidenceInput; byBorrowerId?: string }, actor: Actor) {
-  const loan = await lockLoan(tx, input.spaceId, input.loanId, "return");
-  if (input.byBorrowerId && (loan.borrowerId !== input.byBorrowerId || !loan.selfCheckout)) throw new DomainError("Return this loan at the desk.", "forbidden");
+  const loan = await lockLoan(tx, input.spaceId, input.loanId, "return", input.byBorrowerId);
+  if (input.byBorrowerId && !loan.selfCheckout) throw new DomainError("Return this loan at the desk.", "forbidden");
   const scans = await resolveScans(tx, input.spaceId, input.scannedCodes);
   const byId = new Map(loan.lines.map((line) => [line.id, line]));
   if (new Set(input.lines.map((l) => l.lineId)).size !== input.lines.length) throw new DomainError("List each line once.", "invalid");

@@ -1,7 +1,8 @@
 "use client";
 
 import Image from "next/image";
-import { Plus } from "lucide-react";
+import { useState } from "react";
+import { Package, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Chip } from "@/components/ui/display";
 
@@ -13,13 +14,14 @@ export type CatalogueItem = {
 
 /** One borrowable item: photo, availability in words, fees, and add-to-request. */
 export function ItemCard({ item, inTray, onAdd, disabled }: { item: CatalogueItem; inTray: number; onAdd: () => void; disabled: boolean }) {
+  const [failedImage, setFailedImage] = useState<string | null>(null);
   return (
     <li className="flex min-w-0 flex-col overflow-hidden rounded-xl border border-line bg-panel">
       <div className="flex aspect-square items-center justify-center bg-surface">
-        {item.imageUrl ? (
-          <Image src={item.imageUrl} alt={item.name} width={400} height={400} unoptimized className="h-full w-full object-cover" />
+        {item.imageUrl && failedImage !== item.imageUrl ? (
+          <Image src={item.imageUrl} alt={item.name} width={400} height={400} unoptimized className="h-full w-full object-cover" onError={() => setFailedImage(item.imageUrl)} />
         ) : (
-          <span aria-hidden className="text-h1 text-ink-muted">{item.name.trim().charAt(0).toUpperCase()}</span>
+          <Package aria-hidden="true" className="size-5 text-ink-muted" />
         )}
       </div>
       <div className="flex flex-1 flex-col gap-2 p-4">

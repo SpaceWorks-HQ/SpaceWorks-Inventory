@@ -13,6 +13,9 @@ import { formatDayTime, formatRelativeTime } from "@/lib/format/datetime";
 import { availabilityFor, availabilityOf } from "@/lib/inventory/availability";
 import { checkBorrowingEligibility } from "@/lib/lending/access";
 import { isOverdue } from "@/lib/lending/policy";
+import { renewalRefusal } from "@/lib/lending/renewalPolicy";
+import { renewalFacts } from "@/lib/lending/renewalReadiness";
+import { issuePaymentReady } from "@/lib/payments/readiness";
 import { getLoanPaymentView } from "@/lib/payments/view";
 import { canApproveLoans, canIssueLoans, canResolveIncidents, requireSpace } from "@/lib/permissions";
 
@@ -55,8 +58,10 @@ const facts = loanFacts(loan, tz, now, { showBorrower: true });
 const timeline = timelineRows.map((row) => ({ id: row.id, title: row.title, detail: row.detail, actorName: row.actorName, whenLabel: formatRelativeTime(row.createdAt, tz, now) }));
 const evidence = evidenceRows.map((row) => ({ ...row, whenLabel: formatDayTime(row.createdAt, tz) }));
 const renewalsLeft = Math.max(0, space.maxRenewals - loan.renewalCount);
+const renewal = active ? renewalRefusal({ ...await renewalFacts(prisma, space.id, loan.borrower.id, loan.lines.filter((line) => line.outstanding > 0).map((line) => line.itemId)), status, maxRenewals: space.maxRenewals, renewalCount: loan.renewalCount, byBorrower: false }) : null;
 const sideActions = {
-    canRenew: desk && active && renewalsLeft > 0,
+    canRenew: desk && active && !renewal,
+    renewReason: desk && active ? renewal?.reason ?? null : null,
     renewHint: `Adds ${space.renewalDays} days. ${renewalsLeft} ${renewalsLeft === 1 ? "renewal" : "renewals"} left.`,
     canSetDue: desk && (status === "APPROVED" || active),
     dueValue: dateInputValue(loan.dueAt, tz),
@@ -65,6 +70,8 @@ const sideActions = {
 const minPhotos = space.minEvidencePhotos;
 const requireRemarks = space.requireIssueRemarks;
 const requireContainer = space.requireContainer;
+const paymentReady = payment ? issuePaymentReady(space.paymentBeforeIssue, payment.charges, payment.payments) : !space.paymentBeforeIssue;
+const returnKey = `${loan.id}:${returnLines.map((line) => `${line.id}:${line.outstanding}`).join(",")}`;
 const closedNote = status === "REJECTED" ? loan.rejectReason : status === "CANCELLED" ? loan.staffNote : null;
-return viewDto({ loan, slug, reference, status, overdue, approver, desk, resolver, active, payment, locations, eligibility, eligibilityProblem, approveLines, catalog, issueLines, returnLines, container, lines, incidents, facts, timeline, evidence, sideActions, minPhotos, requireRemarks, requireContainer, closedNote } as const);
+return viewDto({ loan, slug, reference, status, overdue, approver, desk, resolver, active, payment, locations, eligibility, eligibilityProblem, approveLines, catalog, issueLines, returnLines, container, lines, incidents, facts, timeline, evidence, sideActions, minPhotos, requireRemarks, requireContainer, paymentReady, returnKey, closedNote } as const);
 }

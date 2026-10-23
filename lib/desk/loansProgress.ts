@@ -18,15 +18,26 @@ export function issueProgress(lines: readonly HandoverLine[], scanned: readonly 
   const result = lines.filter((line) => line.units > 0).map((line) => {
     if (line.tracking === "SERIALIZED") {
       const have = [...codes].filter((code) => catalog.assets[code]?.itemId === line.itemId).length;
-      return { lineId: line.id, name: line.name, need: line.units, have, hint: have >= line.units ? "All asset tags scanned" : `Scan ${line.units - have} more asset ${line.units - have === 1 ? "tag" : "tags"}` };
+      return { lineId: line.id, name: line.name, need: line.units, have, hint: have > line.units ? `Remove ${have - line.units} extra ${have - line.units === 1 ? "tag" : "tags"}` : have === line.units ? "All asset tags scanned" : `Scan ${line.units - have} more asset ${line.units - have === 1 ? "tag" : "tags"}` };
     }
     const have = codes.has(line.itemCode) || containerScanned ? 1 : 0;
     return { lineId: line.id, name: line.name, need: 1, have, hint: have ? "Label scanned" : "Scan the item label or the container" };
   });
-  return { lines: result, containerScanned, done: result.every((line) => line.have >= line.need) };
+  return { lines: result, containerScanned, done: result.every((line) => line.have === line.need) };
 }
 
 export type ReturnChange = { lineId: string; returned: number; damaged: number; lost: number };
+
+/** Keep every outcome within the latest outstanding balance, including after a refresh. */
+export function clampReturnChange<T extends ReturnChange>(change: T, outstanding: number): T {
+  let remaining = Math.max(0, outstanding);
+  const take = (value: number) => {
+    const units = Number.isSafeInteger(value) ? Math.min(remaining, Math.max(0, value)) : 0;
+    remaining -= units;
+    return units;
+  };
+  return { ...change, returned: take(change.returned), damaged: take(change.damaged), lost: take(change.lost) };
+}
 
 /**
  * Return: a returned or damaged serialized unit needs its asset tag; a

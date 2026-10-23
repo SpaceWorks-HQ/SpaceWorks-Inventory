@@ -78,7 +78,7 @@ export function PhotoCapture({ files, onChange, min, max = 6, label = "Photos", 
             {short ? `Take at least ${required} ${required === 1 ? "photo" : "photos"} of the items.` : `${files.length} of up to ${max} photos.`}
           </p>
         </div>
-        <label htmlFor={inputId} aria-disabled={disabled || busy || files.length >= max} className={buttonClasses({ variant: "secondary", className: "cursor-pointer" })}>
+        <label htmlFor={inputId} aria-disabled={disabled || busy || files.length >= max} className={buttonClasses({ variant: "secondary", className: "cursor-pointer focus-within:outline-2 focus-within:outline-offset-2 focus-within:outline-[var(--yy-focus)]" })}>
           {busy ? "Preparing photos" : files.length ? "Add another photo" : "Take photo"}
           <input
             id={inputId}

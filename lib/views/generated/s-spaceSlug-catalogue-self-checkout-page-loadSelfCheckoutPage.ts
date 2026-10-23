@@ -11,10 +11,10 @@ export async function loadSelfCheckoutPage({ params }: PageProps<"/s/[spaceSlug]
 const { spaceSlug } = await params;
 const { space, user } = await requireSpace(spaceSlug, "MEMBER");
 if (!space.lendingEnabled || !space.selfCheckoutEnabled) notFound();
-const items = await selfCheckoutCatalog(space.id);
+const { items, paymentExcluded, unavailable } = await selfCheckoutCatalog(space.id);
 const eligibility = await checkBorrowingEligibility(prisma, { spaceId: space.id, userId: user.id, incomingUnits: 0 });
 const blocked = eligibility.ok ? null : eligibility.error;
 const slug = space.slug;
 const minPhotos = space.minEvidencePhotos;
-return viewDto({ items, blocked, slug, minPhotos } as const);
+return viewDto({ items, paymentExcluded, unavailable, blocked, slug, minPhotos } as const);
 }

@@ -71,6 +71,17 @@ hosting harness runs the signed-in journeys with `--external-services --demo`. F
 tables widened the page at phone width, optional field labels read "RemarksOptional" to screen readers,
 and transfer receipt could be submitted before the required label scans.
 
+**Phase I2 (2026-10-23):** independent review and design polish of the desk UI. Security and data fixes:
+members can no longer learn another borrower's loan status (`lockLoan` checks ownership first), the member
+loan page gets a borrower-only view (`lib/desk/memberLoanView.ts`), posting a count no longer writes off
+untouched serialized tools and stores posted variances, count schedules are audited, "My loans" keeps
+every active loan. The desk UI now mirrors the workflow rules (exact tag counts, payment readiness,
+renewal eligibility, label scans on receipt, text limits). Design: a shared step heading for desk flows,
+destructive confirmations for lost units and write-offs, variance words, 44px row links, a mobile
+request bar, filtered empty states, item image fallback, and the inbox badge no longer covers its label.
+Left for later: issue scan catalogues are capped at 500 eligible tags per loan (codes beyond that are
+not resolved on demand).
+
 ## What is left
 
 1. ~~Finish and click-test the WIP pages above against the workflows in `lib/lending`, `lib/transfers`

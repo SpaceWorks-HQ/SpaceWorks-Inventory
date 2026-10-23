@@ -23,7 +23,7 @@ export default async function NewTransferPage({ params, searchParams }: PageProp
 
   return (
     <FormPageLayout header={<PageHeader kicker="Transfers" title="New transfer" description="Moves inside this space may need a manager's approval; the sending space approves transfers between spaces." />}>
-      <NewTransferForm slug={slug} initialMode={initialMode} locations={locations} localItems={localItems} pushTargets={pushTargets} pullSources={pullSources} shared={shared} />
+      <NewTransferForm key={`${initialMode}:${shared?.slug ?? ""}`} slug={slug} initialMode={initialMode} locations={locations} localItems={localItems} pushTargets={pushTargets} pullSources={pullSources} shared={shared} />
     </FormPageLayout>
   );
 }

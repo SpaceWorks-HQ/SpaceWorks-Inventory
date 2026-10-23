@@ -37,5 +37,5 @@ const facts = [
   ];
 const header = { reference: count.reference, name: count.name, status: count.status, blind: count.blind, threshold: count.threshold, blocked: count.fourEyes.blocked, stale: count.totals.stale };
 const lines = count.lines;
-return viewDto({ canCount, canManage, editable, locations, items, slug, groups, showVariances, callout, facts, header, lines } as const);
+return viewDto({ count, canCount, canManage, editable, locations, items, slug, groups, showVariances, callout, facts, header, lines } as const);
 }

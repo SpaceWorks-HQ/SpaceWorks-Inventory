@@ -25,7 +25,8 @@ export default async function CountsPage({ params, searchParams }: PageProps<"/s
   const options = manager ? await countFormOptions(space.id) : { locations: [], categories: [], items: [] };
   const locations = options.locations;
   const categories = options.categories;
-  const emptyText = filter === "open" ? "No counts open. Start one to check a shelf, a room or a category." : `No ${COUNT_FILTER_LABEL[filter].toLowerCase()} counts.`;
+  const filtered = filter !== "open";
+  const emptyText = filtered ? "No counts match these filters." : "No counts open. Start one to check a shelf, a room or a category.";
 
   return (
     <ListLayout
@@ -39,7 +40,7 @@ export default async function CountsPage({ params, searchParams }: PageProps<"/s
       toolbar={<NavTabs label="Count status" items={tabs} />}
     >
       {rows.length ? <CountsTable slug={slug} rows={rows} /> : (
-        <EmptyState patch={filter === "open" ? true : undefined} action={manager && filter === "open" ? <Link href={`/s/${slug}/counts/new`} className={buttonClasses({ variant: "secondary" })}>Start a count</Link> : undefined}>
+        <EmptyState patch={!filtered ? true : undefined} action={filtered ? <Link href={`/s/${slug}/counts`} className={buttonClasses({ variant: "secondary" })}>Clear filters</Link> : manager ? <Link href={`/s/${slug}/counts/new`} className={buttonClasses({ variant: "secondary" })}>Start a count</Link> : undefined}>
           {emptyText}
         </EmptyState>
       )}

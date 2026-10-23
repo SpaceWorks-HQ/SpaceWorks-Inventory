@@ -53,7 +53,7 @@ export default async function CountPage({ params }: PageProps<"/s/[spaceSlug]/co
     >
       <div className="flex flex-col gap-6">
         {callout ? <Callout tone={callout.tone} title={callout.title}>{callout.text}</Callout> : null}
-        <CountActions slug={slug} countId={countId} status={header.status} canCount={canCount} canManage={canManage} blocked={header.blocked} staleLines={header.stale} />
+        <CountActions slug={slug} countId={countId} status={header.status} canCount={canCount} canManage={canManage} blocked={header.blocked} staleLines={header.stale} recordedLines={count.totals.counted} missingTools={count.missingTools} />
         {showVariances ? <VarianceTable lines={lines} threshold={header.threshold} /> : null}
         {editable ? <ScanCountCard slug={slug} countId={countId} locations={locations} /> : null}
         <CountSheet slug={slug} countId={countId} groups={groups} editable={editable} />

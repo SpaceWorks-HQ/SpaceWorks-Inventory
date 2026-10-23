@@ -1,13 +1,14 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import { Plus } from "lucide-react";
 import { useToast } from "@/components/feedback/ToastProvider";
 import { Button } from "@/components/ui/button";
 import { FilterChip } from "@/components/ui/choice";
 import { Card, Chip, EmptyState } from "@/components/ui/display";
 import { SearchInput } from "@/components/ui/field";
-import { addKitToTray, addToTray, TRAY_MAX_LINES } from "@/lib/desk/borrowTray";
+import { addKitToTray, addToTray, trayUnits, TRAY_MAX_LINES } from "@/lib/desk/borrowTray";
+import { cn } from "@/lib/cn";
 import { matchesSearch } from "@/lib/desk/catalogueWords";
 import { ItemCard, type CatalogueItem } from "./ItemCard";
 import { RequestTray } from "./RequestTray";
@@ -23,6 +24,8 @@ export function CatalogueBrowser({ slug, items, kits, categories, blocked, minDa
   const ids = useMemo(() => new Set(items.map((item) => item.id)), [items]);
   const names = useMemo(() => Object.fromEntries(items.map((item) => [item.id, item.name])), [items]);
   const [tray, setTray] = useTray(slug, ids);
+  const trayRef = useRef<HTMLElement>(null);
+  const units = trayUnits(tray);
   const [query, setQuery] = useState("");
   const [category, setCategory] = useState<string | null>(null);
   const shown = items.filter((item) => (!category || item.categoryId === category) && matchesSearch(item, query));
@@ -30,7 +33,7 @@ export function CatalogueBrowser({ slug, items, kits, categories, blocked, minDa
   const full = () => showToast(`A request can hold ${TRAY_MAX_LINES} different items. Send this one first.`, "warning");
 
   return (
-    <div className="grid min-w-0 gap-6 lg:grid-cols-[minmax(0,1fr)_320px]">
+    <div className={cn("grid min-w-0 gap-6 lg:grid-cols-[minmax(0,1fr)_320px]", units > 0 && "pb-[calc(6rem+env(safe-area-inset-bottom))] lg:pb-0")}>
       <div className="flex min-w-0 flex-col gap-5">
         <div className="flex flex-col gap-3">
           <label htmlFor="catalogue-search" className="sr-only">Search the catalogue</label>
@@ -79,9 +82,17 @@ export function CatalogueBrowser({ slug, items, kits, categories, blocked, minDa
           )}
         </section>
       </div>
-      <aside className="min-w-0">
+      <aside ref={trayRef} id="request-tray" tabIndex={-1} aria-label="Review request" className="min-w-0 scroll-mt-4 rounded-xl">
         <RequestTray slug={slug} tray={tray} names={names} onChange={setTray} blocked={blocked} minDate={minDate} />
       </aside>
+      {units > 0 ? (
+        <div className="fixed inset-x-0 bottom-0 z-40 border-t border-line bg-panel px-4 pt-3 pb-[calc(0.75rem+env(safe-area-inset-bottom))] lg:hidden">
+          <Button variant="primary" fullWidth aria-controls="request-tray" onClick={() => {
+            trayRef.current?.focus({ preventScroll: true });
+            trayRef.current?.scrollIntoView({ block: "start" });
+          }}>{units} {units === 1 ? "item" : "items"} · Review request</Button>
+        </div>
+      ) : null}
     </div>
   );
 }

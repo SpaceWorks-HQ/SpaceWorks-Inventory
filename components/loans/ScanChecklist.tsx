@@ -12,7 +12,7 @@ export function ScanChecklist({ lines, extra }: { lines: LineProgress[]; extra?:
             <span className="block text-body-ui text-ink">{line.name}</span>
             <span className="block text-caption text-ink-muted">{line.hint}</span>
           </span>
-          <Chip tone={line.have >= line.need ? "success" : "warning"}>{line.have >= line.need ? "Done" : `${Math.min(line.have, line.need)} of ${line.need}`}</Chip>
+          <Chip tone={line.have === line.need ? "success" : "warning"}>{line.have === line.need ? "Done" : `${line.have} of ${line.need}`}</Chip>
         </li>
       ))}
       {extra ? (

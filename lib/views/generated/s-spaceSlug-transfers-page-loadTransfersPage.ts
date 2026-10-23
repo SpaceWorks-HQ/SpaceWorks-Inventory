@@ -37,6 +37,7 @@ const rows = transfers.map((row) => ({
   }));
 const tabs = TRANSFER_FILTERS.map((value) => ({ href: listHref(slug, direction, value), label: FILTER_LABEL[value], active: value === filter }));
 const directions = TRANSFER_DIRECTIONS.map((value) => ({ href: listHref(slug, value, filter), label: DIRECTION_LABEL[value], active: value === direction }));
-const emptyText = filter === "open" ? "No transfers on the move. Raise one to move stock between shelves or spaces." : `No ${FILTER_LABEL[filter].toLowerCase()} transfers here.`;
-return viewDto({ direction, filter, slug, canRequest, rows, tabs, directions, emptyText } as const);
+const filtered = filter !== "open" || direction !== "all";
+const emptyText = filtered ? "No transfers match these filters." : "No transfers on the move. Raise one to move stock between shelves or spaces.";
+return viewDto({ slug, canRequest, rows, tabs, directions, filtered, emptyText } as const);
 }

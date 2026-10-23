@@ -23,6 +23,9 @@ import { formatDayTime, formatRelativeTime } from "@/lib/format/datetime";
 import { availabilityFor, availabilityOf } from "@/lib/inventory/availability";
 import { checkBorrowingEligibility } from "@/lib/lending/access";
 import { isOverdue } from "@/lib/lending/policy";
+import { renewalRefusal } from "@/lib/lending/renewalPolicy";
+import { renewalFacts } from "@/lib/lending/renewalReadiness";
+import { issuePaymentReady } from "@/lib/payments/readiness";
 import { getLoanPaymentView } from "@/lib/payments/view";
 import { canApproveLoans, canIssueLoans, canResolveIncidents, requireSpace } from "@/lib/permissions";
 
@@ -65,8 +68,10 @@ export default async function LoanPage({ params }: PageProps<"/s/[spaceSlug]/loa
   const timeline = timelineRows.map((row) => ({ id: row.id, title: row.title, detail: row.detail, actorName: row.actorName, whenLabel: formatRelativeTime(row.createdAt, tz, now) }));
   const evidence = evidenceRows.map((row) => ({ ...row, whenLabel: formatDayTime(row.createdAt, tz) }));
   const renewalsLeft = Math.max(0, space.maxRenewals - loan.renewalCount);
+  const renewal = active ? renewalRefusal({ ...await renewalFacts(prisma, space.id, loan.borrower.id, loan.lines.filter((line) => line.outstanding > 0).map((line) => line.itemId)), status, maxRenewals: space.maxRenewals, renewalCount: loan.renewalCount, byBorrower: false }) : null;
   const sideActions = {
-    canRenew: desk && active && renewalsLeft > 0,
+    canRenew: desk && active && !renewal,
+    renewReason: desk && active ? renewal?.reason ?? null : null,
     renewHint: `Adds ${space.renewalDays} days. ${renewalsLeft} ${renewalsLeft === 1 ? "renewal" : "renewals"} left.`,
     canSetDue: desk && (status === "APPROVED" || active),
     dueValue: dateInputValue(loan.dueAt, tz),
@@ -75,6 +80,8 @@ export default async function LoanPage({ params }: PageProps<"/s/[spaceSlug]/loa
   const minPhotos = space.minEvidencePhotos;
   const requireRemarks = space.requireIssueRemarks;
   const requireContainer = space.requireContainer;
+  const paymentReady = payment ? issuePaymentReady(space.paymentBeforeIssue, payment.charges, payment.payments) : !space.paymentBeforeIssue;
+  const returnKey = `${loan.id}:${returnLines.map((line) => `${line.id}:${line.outstanding}`).join(",")}`;
   const closedNote = status === "REJECTED" ? loan.rejectReason : status === "CANCELLED" ? loan.staffNote : null;
 
   return (
@@ -93,9 +100,9 @@ export default async function LoanPage({ params }: PageProps<"/s/[spaceSlug]/loa
         {closedNote ? <Callout tone="info" title={status === "REJECTED" ? "Rejected" : "Cancelled"}>{closedNote}</Callout> : null}
         {status === "REQUESTED" && approver ? <ApproveCard slug={slug} loanId={loan.id} lines={approveLines} eligibility={eligibilityProblem} /> : null}
         {status === "APPROVED" && desk && catalog ? (
-          <IssueFlow slug={slug} loanId={loan.id} lines={issueLines} assets={catalog.assets} containers={catalog.containers} minPhotos={minPhotos} requireRemarks={requireRemarks} requireContainer={requireContainer} blocked={eligibilityProblem} />
+          <IssueFlow slug={slug} loanId={loan.id} lines={issueLines} assets={catalog.assets} containers={catalog.containers} unavailable={catalog.unavailable} paymentReady={paymentReady} minPhotos={minPhotos} requireRemarks={requireRemarks} requireContainer={requireContainer} blocked={eligibilityProblem} />
         ) : null}
-        {active && desk ? <ReturnFlow slug={slug} loanId={loan.id} lines={returnLines} container={container} locations={locations} minPhotos={minPhotos} /> : null}
+        {active && desk ? <ReturnFlow key={returnKey} slug={slug} loanId={loan.id} lines={returnLines} container={container} locations={locations} minPhotos={minPhotos} /> : null}
         <LoanLinesTable lines={lines} />
         <IncidentList slug={slug} incidents={incidents} canResolve={resolver} locations={locations} />
         <EvidenceGallery items={evidence} />

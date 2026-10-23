@@ -3,6 +3,8 @@ import "server-only";
 import { prisma } from "@/lib/db";
 import { availabilityFor, availabilityOf } from "@/lib/inventory/availability";
 import { describeItemFees, type SpaceFeePolicy } from "@/lib/payments/fees";
+import { selfCheckoutPaymentReady } from "@/lib/payments/readiness";
+import { loanDaysFor } from "@/lib/lending/policy";
 import { availabilityWord } from "./catalogueWords";
 
 type CatalogueSpace = SpaceFeePolicy & { id: string; slug: string; timezone: string; currency: string };
@@ -79,17 +81,28 @@ export async function borrowCatalogue(space: CatalogueSpace, now: Date = new Dat
 
 /** Items a member may check out themselves, with the codes they can scan. */
 export async function selfCheckoutCatalog(spaceId: string) {
+  const space = await prisma.space.findUniqueOrThrow({ where: { id: spaceId } });
   const items = await prisma.item.findMany({
     where: { spaceId, lendable: true, selfCheckout: true, archivedAt: null },
     orderBy: { name: "asc" },
     take: 300,
-    select: { id: true, name: true, qrCode: true, tracking: true, assets: { where: { status: "AVAILABLE" }, select: { qrCode: true, assetTag: true }, take: 100 } },
+    select: {
+      id: true, name: true, qrCode: true, tracking: true, consumable: true, loanDays: true,
+      depositMinor: true, rentalMode: true, rentalMinor: true, lateFeePerDayMinor: true,
+      category: { select: { loanDays: true, depositMinor: true, rentalMode: true, rentalMinor: true, lateFeePerDayMinor: true } },
+      assets: { where: { spaceId, status: "AVAILABLE" }, select: { qrCode: true, assetTag: true }, take: 100 },
+    },
   });
-  return items.map((item) => ({
+  const eligible = items.filter((item) => selfCheckoutPaymentReady(space, [{ quantity: 1, item, category: item.category }], loanDaysFor(space, [item])));
+  const eligibleIds = new Set(eligible.map((item) => item.id));
+  const unavailable = Object.fromEntries(items.filter((item) => !eligibleIds.has(item.id)).flatMap((item) => [
+    [item.qrCode, item.name], ...item.assets.map((asset) => [asset.qrCode, asset.assetTag]),
+  ]));
+  return { paymentExcluded: items.length - eligible.length, unavailable, items: eligible.map((item) => ({
     itemId: item.id,
     name: item.name,
     code: item.qrCode,
     tracking: item.tracking,
     assets: item.assets.map((asset) => ({ code: asset.qrCode, label: `${item.name} · ${asset.assetTag}` })),
-  }));
+  })) };
 }

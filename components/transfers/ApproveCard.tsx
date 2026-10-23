@@ -7,6 +7,7 @@ import { useActionRunner } from "@/components/desk/useActionRunner";
 import { Button } from "@/components/ui/button";
 import { Callout, Card, CardHeader } from "@/components/ui/display";
 import { StepDialog } from "./StepDialog";
+import { TRANSFER_REASON_MAX } from "@/lib/desk/transferSchemas";
 import type { TransferLineView } from "./types";
 
 /** The sending space's manager approves some or all of each line (stock is held at the source), or rejects. */
@@ -41,6 +42,7 @@ export function ApproveCard({ slug, transferId, lines }: { slug: string; transfe
           title="Reject this transfer?"
           description="The requesting side sees your reason."
           textLabel="Reason"
+          maxLength={TRANSFER_REASON_MAX}
           textRequired
           confirmLabel="Reject transfer"
           destructive

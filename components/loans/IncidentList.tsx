@@ -10,7 +10,7 @@ import { ResolveIncidentDialog } from "./ResolveIncidentDialog";
 
 export type IncidentView = {
   id: string; kind: "LOST" | "DAMAGED"; quantity: number; description: string; open: boolean; label: string;
-  resolutionLabel: string | null; resolutionNote: string | null; whenLabel: string; lineLocationId: string | null;
+  resolutionLabel: string | null; resolutionNote: string | null; whenLabel: string; lineLocationId?: string | null;
 };
 
 /** Lost or damaged items on a loan; managers resolve them (borrower view is read-only). */

@@ -15,10 +15,10 @@ test("staff submit the seeded blind count and see its variances", async ({ page 
   await expect(page.getByText(/^Expected \d/)).toHaveCount(0);
   // Quantity lines have typed inputs. Serialized tools use the separate tag scanner.
   // Submit for review only: deliberately differing quantities must not alter stock.
-  const labels = await page.getByRole("textbox", { name: /^Counted / }).evaluateAll((inputs) => inputs.map((input) => input.getAttribute("aria-label")!));
+  const labels = await page.getByRole("spinbutton", { name: /^Counted / }).evaluateAll((inputs) => inputs.map((input) => input.getAttribute("aria-label")!));
   expect(labels.length).toBeGreaterThan(0);
   for (const label of labels) {
-    const input = page.getByRole("textbox", { name: label, exact: true });
+    const input = page.getByRole("spinbutton", { name: label, exact: true });
     await input.fill("0");
     await input.press("Enter");
     const line = page.getByRole("listitem").filter({ has: input });

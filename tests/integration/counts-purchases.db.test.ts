@@ -52,7 +52,7 @@ describe("cycle counts", () => {
   });
 
   it("opens one count per due schedule, even after missed runs", async () => {
-    const id = await prisma.$transaction((tx) => saveCountSchedule(tx, { spaceId: ctx.space.id, scheduleId: null, name: "Monthly bins", locationId: ctx.shelfB.id, categoryId: null, everyDays: 30, blind: true, active: true, firstRunAt: new Date(Date.now() - 95 * 86_400_000) }));
+    const id = await prisma.$transaction((tx) => saveCountSchedule(tx, { spaceId: ctx.space.id, actorId: ctx.owner.id, scheduleId: null, name: "Monthly bins", locationId: ctx.shelfB.id, categoryId: null, everyDays: 30, blind: true, active: true, firstRunAt: new Date(Date.now() - 95 * 86_400_000) }));
     await runCountSchedules();
     await runCountSchedules();
     expect(await prisma.stockCount.count({ where: { spaceId: ctx.space.id, name: "Monthly bins (scheduled)" } })).toBe(1);

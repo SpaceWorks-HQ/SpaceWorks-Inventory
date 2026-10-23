@@ -3,6 +3,7 @@ import "server-only";
 import { prisma } from "@/lib/db";
 import { outstanding } from "@/lib/lending/policy";
 import { namesOf } from "./evidence";
+import { issueScanOptions } from "./issueScanOptions";
 
 /**
  * One loan of one space with everything the desk and the borrower see.
@@ -138,17 +139,17 @@ export async function loanTimeline(spaceId: string, loanId: string, incidentIds:
 
 /**
  * Codes the desk can expect at issue: asset tags of the serialized items on
- * the loan that are free or held, and the space's active containers.
+ * the loan that are available, and containers that are not out on a loan.
  */
 export async function issueScanCatalog(spaceId: string, serializedItemIds: string[]) {
-  const [assets, containers] = await Promise.all([
+  const [assets, unavailableAssets, containers] = await Promise.all([
     serializedItemIds.length
-      ? prisma.asset.findMany({ where: { spaceId, itemId: { in: serializedItemIds }, status: { in: ["AVAILABLE", "RESERVED"] } }, select: { qrCode: true, assetTag: true, itemId: true, item: { select: { name: true } } }, take: 500, orderBy: { assetTag: "asc" } })
+      ? prisma.asset.findMany({ where: { spaceId, itemId: { in: serializedItemIds }, status: "AVAILABLE" }, select: { status: true, qrCode: true, assetTag: true, itemId: true, item: { select: { name: true } } }, take: 500, orderBy: { assetTag: "asc" } })
       : [],
-    prisma.container.findMany({ where: { spaceId, archivedAt: null }, select: { code: true, name: true, qrCode: true }, take: 300, orderBy: { code: "asc" } }),
+    serializedItemIds.length
+      ? prisma.asset.findMany({ where: { spaceId, itemId: { in: serializedItemIds }, status: { not: "AVAILABLE" } }, select: { status: true, qrCode: true, assetTag: true, itemId: true, item: { select: { name: true } } }, take: 500, orderBy: { assetTag: "asc" } })
+      : [],
+    prisma.container.findMany({ where: { spaceId, archivedAt: null }, select: { code: true, name: true, qrCode: true, loans: { where: { spaceId, status: { in: ["ISSUED", "PARTIALLY_RETURNED"] } }, select: { id: true }, take: 1 } }, take: 300, orderBy: { code: "asc" } }),
   ]);
-  return {
-    assets: Object.fromEntries(assets.map((a) => [a.qrCode, { itemId: a.itemId, label: `${a.item.name} · ${a.assetTag}` }])),
-    containers: containers.map((c) => ({ code: c.qrCode, label: c.name ? `Container ${c.code} · ${c.name}` : `Container ${c.code}` })),
-  };
+  return issueScanOptions([...assets, ...unavailableAssets], containers);
 }

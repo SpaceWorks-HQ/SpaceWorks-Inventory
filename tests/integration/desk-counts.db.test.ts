@@ -65,7 +65,7 @@ describe("count read model", () => {
     let detail = await countDetail(a.space.id, count.id, a.staff.id);
     const line = detail!.lines.find((l) => l.itemId === solder.id)!;
     expect(line).toMatchObject({ stale: true, expected: 3 });
-    expect(detail!.totals.stale).toBe(1);
+    expect(detail!.totals.stale).toBe(0);
     await refreshCountLineStep(staff(), { countId: count.id, lineId: line.id });
     detail = await countDetail(a.space.id, count.id, a.staff.id);
     expect(detail!.lines.find((l) => l.id === line.id)).toMatchObject({ stale: false, expected: 5 });
@@ -100,11 +100,19 @@ describe("count schedules", () => {
     const id = await saveScheduleStep({ ...owner(), timeZone: "Asia/Kolkata" }, { name: "Weekly shelf A", locationId: a.shelfA.id, categoryId: null, everyDays: 7, blind: true, firstRunDate: "2030-01-15" });
     const before = await prisma.countSchedule.findUniqueOrThrow({ where: { id } });
     expect(before.nextRunAt.toISOString()).toBe("2030-01-15T03:30:00.000Z");
+    expect(await prisma.auditEvent.findFirst({ where: { spaceId: a.space.id, targetId: id, action: "count.schedule_created" } }))
+      .toMatchObject({ actorId: a.owner.id, targetType: "CountSchedule", metadata: { fields: "name,locationId,categoryId,everyDays,blind,active,nextRunAt" } });
     await setScheduleActiveStep(owner(), { scheduleId: id, active: false });
     const paused = await prisma.countSchedule.findUniqueOrThrow({ where: { id } });
     expect(paused).toMatchObject({ active: false, nextRunAt: before.nextRunAt });
+    expect(await prisma.auditEvent.findMany({ where: { spaceId: a.space.id, targetId: id, action: "count.schedule_updated" } }))
+      .toMatchObject([{ actorId: a.owner.id, metadata: { fields: "active" } }]);
     const listed = (await listSchedules(a.space.id)).find((s) => s.id === id);
     expect(listed).toMatchObject({ active: false, everyDays: 7, scope: "Room › Shelf A and below" });
+    await setScheduleActiveStep(owner(), { scheduleId: id, active: true });
+    expect(await prisma.countSchedule.findUniqueOrThrow({ where: { id } })).toMatchObject({ active: true, nextRunAt: before.nextRunAt });
+    expect(await prisma.auditEvent.findMany({ where: { spaceId: a.space.id, targetId: id, action: "count.schedule_updated" } }))
+      .toMatchObject([{ actorId: a.owner.id, metadata: { fields: "active" } }, { actorId: a.owner.id, metadata: { fields: "active" } }]);
     const bSchedule = await saveScheduleStep({ spaceId: b.id, actorId: a.owner.id, timeZone: "UTC" }, { name: "B weekly", locationId: null, categoryId: null, everyDays: 7, blind: false, firstRunDate: "" });
     await expect(setScheduleActiveStep(owner(), { scheduleId: bSchedule, active: false })).rejects.toThrow(/wasn't found/);
     await expect(saveScheduleStep({ ...owner(), timeZone: "UTC" }, { name: "Foreign shelf", locationId: bShelf.id, categoryId: null, everyDays: 7, blind: false, firstRunDate: "" })).rejects.toThrow(/wasn't found/);

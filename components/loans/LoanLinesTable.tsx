@@ -1,7 +1,7 @@
 import { Table, TBody, TD, TH, THead, TR } from "@/components/ui/table";
 
 export type LoanLineRow = {
-  id: string; name: string; sku: string; assetTag: string | null; location: string | null;
+  id: string; name: string; sku: string; assetTag: string | null; location?: string | null;
   requested: number; approved: number; issued: number; returned: number; damaged: number; lost: number; consumed: number; outstanding: number;
 };
 

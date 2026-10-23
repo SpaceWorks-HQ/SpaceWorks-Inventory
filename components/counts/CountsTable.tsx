@@ -23,7 +23,7 @@ export function CountsTable({ slug, rows }: { slug: string; rows: CountRow[] }) 
         {rows.map((row) => (
           <TR key={row.id}>
             <TD>
-              <Link href={`/s/${slug}/counts/${row.id}`} className="font-semibold text-accent-text hover:underline">{row.reference}</Link>
+              <Link href={`/s/${slug}/counts/${row.id}`} className="-my-3 inline-flex min-h-11 items-center align-middle font-semibold text-accent-text hover:underline">{row.reference}</Link>
               <span className="block text-caption text-ink-muted">{row.name}</span>
             </TD>
             <TD className="min-w-48 text-body-ui">

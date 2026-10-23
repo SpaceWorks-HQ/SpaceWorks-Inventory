@@ -3,7 +3,7 @@ import "server-only";
 import type { Tx } from "@/lib/db";
 import { prisma } from "@/lib/db";
 import { DomainError } from "@/lib/domainError";
-import { availabilityFor, availabilityOf } from "@/lib/inventory/availability";
+import { singleShelfAvailability } from "./transferStock";
 import { locationOptions } from "./locations";
 
 /** Other active spaces of the install this space can push to or pull from. */
@@ -44,11 +44,15 @@ export async function sharedStock(otherSlug: string, viewerSpaceId: string) {
   const space = await prisma.space.findFirst({ where: { slug: otherSlug, archivedAt: null, shareStockWithSpaces: true, id: { not: viewerSpaceId } }, select: { id: true, slug: true, name: true } });
   if (!space) return null;
   const items = await prisma.item.findMany({ where: { spaceId: space.id, archivedAt: null }, select: { id: true, name: true, sku: true }, orderBy: { name: "asc" }, take: 2000 });
-  const totals = await availabilityFor(space.id, items.map((item) => item.id));
+  const levels = await prisma.stockLevel.findMany({
+    where: { spaceId: space.id, itemId: { in: items.map((item) => item.id) }, location: { archivedAt: null } },
+    select: { itemId: true, onHand: true, reserved: true, quarantined: true },
+  });
+  const available = singleShelfAvailability(levels);
   return {
     slug: space.slug,
     name: space.name,
-    items: items.map((item) => ({ id: item.id, name: item.name, sku: item.sku, available: availabilityOf(totals, item.id).available })).filter((item) => item.available > 0),
+    items: items.map((item) => ({ id: item.id, name: item.name, sku: item.sku, available: available.get(item.id) ?? 0 })).filter((item) => item.available > 0),
   };
 }
 

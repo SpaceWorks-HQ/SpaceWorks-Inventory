@@ -28,3 +28,9 @@ export function signed(value: number): string {
   if (value < 0) return `−${Math.abs(value)}`;
   return "0";
 }
+
+/** Count differences in words, so their meaning does not depend on colour or a sign. */
+export function varianceLabel(value: number, unit?: string | null): string {
+  if (value === 0) return "Matches";
+  return `${value < 0 ? "Short by" : "Over by"} ${Math.abs(value)}${unit ? ` ${unit}` : ""}`;
+}

@@ -6,6 +6,7 @@ import { handoverFormData } from "@/components/desk/handoverForm";
 import { PhotoCapture } from "@/components/desk/PhotoCapture";
 import { QuantityInput } from "@/components/desk/QuantityInput";
 import { Scanner } from "@/components/desk/Scanner";
+import { StepHeading } from "@/components/desk/StepHeading";
 import { useActionRunner } from "@/components/desk/useActionRunner";
 import { Button } from "@/components/ui/button";
 import { Callout, Card, CardHeader, Chip } from "@/components/ui/display";
@@ -39,13 +40,14 @@ export function DispatchFlow({ slug, transferId, lines, assets, minPhotos }: { s
     return { line, scanned, sending, ready };
   });
   const units = progress.reduce((sum, entry) => sum + entry.sending, 0);
-  const canSend = units > 0 && progress.every((entry) => entry.ready || entry.sending === 0) && photos.length >= Math.max(1, minPhotos);
+  const completed = [units > 0, units > 0 && progress.every((entry) => entry.ready || entry.sending === 0), photos.length >= Math.max(1, minPhotos)];
+  const canSend = completed.every(Boolean);
 
   return (
     <Card as="section" aria-label="Dispatch" className="flex flex-col gap-6">
       <CardHeader title="Pick and dispatch" description="Scan each item label as you pick it, and the asset tag of every tool. Units you don't send are released." className="mb-0" />
       <section className="flex flex-col gap-3">
-        <h3 className="text-label text-ink">1. Pick list</h3>
+        <StepHeading step={1} completed={completed}>Pick list</StepHeading>
         <ul className="divide-y divide-line rounded-lg border border-line">
           {progress.map(({ line, scanned, ready }) => (
             <li key={line.id} className="flex min-h-14 flex-wrap items-center justify-between gap-3 px-4 py-2">
@@ -66,11 +68,11 @@ export function DispatchFlow({ slug, transferId, lines, assets, minPhotos }: { s
         </ul>
       </section>
       <section className="flex flex-col gap-3">
-        <h3 className="text-label text-ink">2. Scan labels</h3>
+        <StepHeading step={2} completed={completed}>Scan labels</StepHeading>
         <Scanner codes={codes} onChange={setCodes} known={known} disabled={pending} />
       </section>
       <section className="flex flex-col gap-4">
-        <h3 className="text-label text-ink">3. Photos and shipping</h3>
+        <StepHeading step={3} completed={completed}>Photos and shipping</StepHeading>
         <PhotoCapture files={photos} onChange={setPhotos} min={minPhotos} disabled={pending} />
         <div className="grid gap-4 sm:grid-cols-2">
           <Field label="Carrier" optional><Input value={carrier} maxLength={80} onChange={(event) => setCarrier(event.target.value)} placeholder="e.g. Hand carry, Blue Dart" /></Field>

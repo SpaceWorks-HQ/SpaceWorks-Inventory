@@ -13,6 +13,7 @@ type Props = {
   description?: ReactNode;
   textLabel: string;
   textRequired?: boolean;
+  maxLength: number;
   confirmLabel: string;
   destructive?: boolean;
   pending: boolean;
@@ -23,7 +24,7 @@ type Props = {
 };
 
 /** A transfer step that needs a reason or note (reject, cancel, missing, send back), confirmed in a dialog. */
-export function StepDialog({ trigger, triggerVariant = "secondary", title, description, textLabel, textRequired = false, confirmLabel, destructive = false, pending, error, children, onConfirm }: Props) {
+export function StepDialog({ trigger, triggerVariant = "secondary", title, description, textLabel, textRequired = false, maxLength, confirmLabel, destructive = false, pending, error, children, onConfirm }: Props) {
   const [open, setOpen] = useState(false);
   const [text, setText] = useState("");
   return (
@@ -36,7 +37,7 @@ export function StepDialog({ trigger, triggerVariant = "secondary", title, descr
         <DialogBody className="flex flex-col gap-4">
           {children}
           <Field label={textLabel} optional={!textRequired}>
-            <Textarea rows={3} maxLength={1000} value={text} onChange={(event) => setText(event.target.value)} />
+            <Textarea rows={3} maxLength={maxLength} value={text} onChange={(event) => setText(event.target.value)} />
           </Field>
           {error && open ? <Callout tone="danger" role="alert">{error}</Callout> : null}
         </DialogBody>
@@ -45,7 +46,7 @@ export function StepDialog({ trigger, triggerVariant = "secondary", title, descr
           <Button
             variant={destructive ? "dangerSolid" : "primary"}
             loading={pending}
-            disabled={textRequired && !text.trim()}
+            disabled={(textRequired && !text.trim()) || text.length > maxLength}
             onClick={async () => {
               if (await onConfirm(text)) {
                 setOpen(false);

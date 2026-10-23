@@ -43,8 +43,9 @@ export default async function LoansPage({ params, searchParams }: PageProps<"/s/
   const tabs = LOAN_TABS.map((t) => ({ href: `/s/${space.slug}/loans?tab=${t}${q ? `&q=${encodeURIComponent(q)}` : ""}`, label: `${LOAN_TAB_LABEL[t]} (${queue.counts[t]})`, active: t === tab }));
   const slug = space.slug;
   const dateHeading = DATE_HEADING[tab];
-  const emptyText = q ? "No loans match that search." : EMPTY[tab];
-  const nothingYet = !q && LOAN_TABS.every((t) => queue.counts[t] === 0);
+  const filtered = Boolean(q.trim()) || tab !== "requests";
+  const emptyText = filtered ? "No loans match these filters." : EMPTY[tab];
+  const nothingYet = !filtered && LOAN_TABS.every((t) => queue.counts[t] === 0);
 
   return (
     <ListLayout
@@ -58,7 +59,7 @@ export default async function LoansPage({ params, searchParams }: PageProps<"/s/
     >
       {rows.length ? <LoanQueueTable slug={slug} rows={rows} dateHeading={dateHeading} /> : nothingYet ? (
         <EmptyState patch title="No loans yet." action={<Link href={`/s/${slug}/catalogue`} className={buttonClasses({ variant: "secondary" })}>Open the borrowing catalogue</Link>}>Members request tools from the catalogue; requests land here.</EmptyState>
-      ) : <EmptyState>{emptyText}</EmptyState>}
+      ) : <EmptyState action={filtered ? <Link href={`/s/${slug}/loans`} className={buttonClasses({ variant: "secondary" })}>Clear filters</Link> : undefined}>{emptyText}</EmptyState>}
     </ListLayout>
   );
 }

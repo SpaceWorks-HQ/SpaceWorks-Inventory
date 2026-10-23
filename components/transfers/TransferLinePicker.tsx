@@ -9,7 +9,7 @@ export type PickableItem = { id: string; name: string; sku: string; available: n
 export type PickedLine = { itemId: string; quantity: number };
 
 /** Search the items that can move, add them as lines and set quantities (never more than are free). */
-export function TransferLinePicker({ items, lines, onChange, disabled }: { items: PickableItem[]; lines: PickedLine[]; onChange: (lines: PickedLine[]) => void; disabled?: boolean }) {
+export function TransferLinePicker({ items, lines, onChange, disabled, onOneShelf = false }: { items: PickableItem[]; lines: PickedLine[]; onChange: (lines: PickedLine[]) => void; disabled?: boolean; onOneShelf?: boolean }) {
   const [query, setQuery] = useState("");
   const byId = new Map(items.map((item) => [item.id, item]));
   const needle = query.trim().toLowerCase();
@@ -25,7 +25,7 @@ export function TransferLinePicker({ items, lines, onChange, disabled }: { items
         <ul className="divide-y divide-line rounded-lg border border-line bg-panel">
           {matches.map((item) => (
             <li key={item.id} className="flex min-h-12 flex-wrap items-center justify-between gap-2 px-4 py-1.5">
-              <span className="min-w-0 text-body-ui text-ink">{item.name} <span className="text-ink-muted">{item.sku} · {item.available} free</span></span>
+              <span className="min-w-0 text-body-ui text-ink">{item.name} <span className="text-ink-muted">{item.sku} · {item.available} {onOneShelf ? "on one shelf" : "free"}</span></span>
               <Button size="sm" variant="ghost" onClick={() => { onChange([...lines, { itemId: item.id, quantity: 1 }]); setQuery(""); }}>Add</Button>
             </li>
           ))}
@@ -42,7 +42,7 @@ export function TransferLinePicker({ items, lines, onChange, disabled }: { items
               <li key={line.itemId} className="flex min-h-14 flex-wrap items-center justify-between gap-3 px-4 py-2">
                 <span className="min-w-0">
                   <span className="block text-body-ui text-ink">{label}</span>
-                  <span className="block text-caption text-ink-muted">{item ? `${item.sku} · ${item.available} free` : "Remove this line"}</span>
+                  <span className="block text-caption text-ink-muted">{item ? `${item.sku} · ${item.available} ${onOneShelf ? "on one shelf" : "free"}` : "Remove this line"}</span>
                 </span>
                 <span className="flex items-center gap-2">
                   <QuantityInput label={`Quantity of ${label}`} value={line.quantity} min={1} max={item?.available ?? 1} disabled={disabled} onChange={(quantity) => onChange(lines.map((l) => (l.itemId === line.itemId ? { ...l, quantity } : l)))} />

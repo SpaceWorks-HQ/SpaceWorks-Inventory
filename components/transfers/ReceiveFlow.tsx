@@ -7,12 +7,14 @@ import { LocationPicker, type LocationOption } from "@/components/desk/LocationP
 import { PhotoCapture } from "@/components/desk/PhotoCapture";
 import { QuantityInput } from "@/components/desk/QuantityInput";
 import { Scanner } from "@/components/desk/Scanner";
+import { StepHeading } from "@/components/desk/StepHeading";
 import { useActionRunner } from "@/components/desk/useActionRunner";
 import { Button } from "@/components/ui/button";
 import { CheckboxField } from "@/components/ui/choice";
 import { Callout, Card, CardHeader } from "@/components/ui/display";
 import { Field, Textarea } from "@/components/ui/field";
 import { scanIndex, type TransferLineView } from "./types";
+import { receiptLabelsMissing } from "@/lib/desk/transferStock";
 
 type Props = { slug: string; transferId: string; lines: TransferLineView[]; locations: LocationOption[]; defaultLocationId: string | null; minPhotos: number };
 
@@ -36,8 +38,9 @@ export function ReceiveFlow({ slug, transferId, lines, locations, defaultLocatio
   const units = quantityUnits + scannedAssets.length;
   const anyDamaged = damagedAssets.length > 0 || Object.values(counts).some((count) => count.damaged > 0);
   // Same rule as lib/transfers/workflow/receive.ts: a quantity line with units needs its label scanned.
-  const labelsMissing = open.some((line) => line.tracking === "QUANTITY" && (counts[line.id]?.received ?? 0) + (counts[line.id]?.damaged ?? 0) > 0 && !codes.includes(line.itemCode));
-  const ready = units > 0 && !labelsMissing && Boolean(locationId) && photos.length >= Math.max(1, minPhotos) && (!anyDamaged || remarks.trim().length > 0);
+  const labelsMissing = receiptLabelsMissing(open.map((line) => ({ ...line, units: (counts[line.id]?.received ?? 0) + (counts[line.id]?.damaged ?? 0) })), codes);
+  const completed = [units > 0 && !labelsMissing, units > 0, Boolean(locationId) && photos.length >= Math.max(1, minPhotos) && (!anyDamaged || remarks.trim().length > 0)];
+  const ready = completed.every(Boolean);
   const setCount = (lineId: string, key: "received" | "damaged", value: number) => setCounts((current) => ({ ...current, [lineId]: { ...(current[lineId] ?? { received: 0, damaged: 0 }), [key]: value } }));
 
   const submit = () => {
@@ -56,11 +59,11 @@ export function ReceiveFlow({ slug, transferId, lines, locations, defaultLocatio
     <Card as="section" aria-label="Receive" className="flex flex-col gap-6">
       <CardHeader title="Receive" description="Scan each item label and every asset tag as you unpack. Receive in parts if not everything arrived; the rest stays in transit." className="mb-0" />
       <section className="flex flex-col gap-3">
-        <h3 className="text-label text-ink">1. Scan what arrived</h3>
+        <StepHeading step={1} completed={completed}>Scan what arrived</StepHeading>
         <Scanner codes={codes} onChange={setCodes} known={known} disabled={pending} />
       </section>
       <section className="flex flex-col gap-3">
-        <h3 className="text-label text-ink">2. Check the quantities</h3>
+        <StepHeading step={2} completed={completed}>Check the quantities</StepHeading>
         <ul className="divide-y divide-line rounded-lg border border-line">
           {open.map((line) => (
             <li key={line.id} className="flex flex-col gap-2 px-4 py-3">
@@ -87,7 +90,7 @@ export function ReceiveFlow({ slug, transferId, lines, locations, defaultLocatio
         ) : null}
       </section>
       <section className="flex flex-col gap-4">
-        <h3 className="text-label text-ink">3. Shelf, photos and remarks</h3>
+        <StepHeading step={3} completed={completed}>Shelf, photos and remarks</StepHeading>
         <LocationPicker label="Put it on" locations={locations} value={locationId} onChange={setLocationId} helper="Damaged units go to this shelf's repair hold." />
         <PhotoCapture files={photos} onChange={setPhotos} min={minPhotos} disabled={pending} />
         <Field label="Remarks" optional={!anyDamaged} helperText={anyDamaged ? "Describe the damage." : undefined}>

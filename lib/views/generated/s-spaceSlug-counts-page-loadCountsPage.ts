@@ -20,6 +20,7 @@ const schedules = manager ? (await listSchedules(space.id)).map((schedule) => ({
 const options = manager ? await countFormOptions(space.id) : { locations: [], categories: [], items: [] };
 const locations = options.locations;
 const categories = options.categories;
-const emptyText = filter === "open" ? "No counts open. Start one to check a shelf, a room or a category." : `No ${COUNT_FILTER_LABEL[filter].toLowerCase()} counts.`;
-return viewDto({ filter, manager, slug, rows, tabs, schedules, locations, categories, emptyText } as const);
+const filtered = filter !== "open";
+const emptyText = filtered ? "No counts match these filters." : "No counts open. Start one to check a shelf, a room or a category.";
+return viewDto({ manager, slug, rows, tabs, schedules, locations, categories, filtered, emptyText } as const);
 }

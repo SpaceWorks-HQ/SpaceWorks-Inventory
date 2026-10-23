@@ -3,8 +3,9 @@ import { z } from "zod";
 /** Input schemas for the cycle-count Server Actions (pure, unit tested). */
 
 const id = z.string().trim().min(1).max(64);
+export const COUNT_QUANTITY_MAX = 1_000_000;
 const optionalId = z.string().trim().max(64).nullish().transform((value) => value || null);
-const counted = z.number({ message: "Enter a whole number of zero or more." }).int("Enter a whole number of zero or more.").min(0, "Enter a whole number of zero or more.").max(1_000_000, "That number is too large.");
+const counted = z.number({ message: "Enter a whole number of zero or more." }).int("Enter a whole number of zero or more.").min(0, "Enter a whole number of zero or more.").max(COUNT_QUANTITY_MAX, "That number is too large.");
 
 export const startCountSchema = z.object({
   name: z.string().trim().min(1, "Name the count, e.g. \"Electronics lab, October\".").max(120),
