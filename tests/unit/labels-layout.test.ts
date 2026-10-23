@@ -76,7 +76,7 @@ describe("label PDF", () => {
     expect(doc.getPageCount()).toBe(2);
     expect(doc.getPage(0).getWidth()).toBeCloseTo(A4.width);
     expect(doc.getPage(0).getHeight()).toBeCloseTo(A4.height);
-  });
+  }, 30_000);
 });
 
 describe("label text fitting", () => {

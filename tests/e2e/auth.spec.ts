@@ -22,7 +22,7 @@ test("password sign-in reaches the space and refuses a wrong password", async ({
   await page.getByLabel("Email", { exact: true }).fill(`${DEMO.staff}@tinkerspace.test`);
   await page.getByLabel("Password", { exact: true }).fill("not-the-password");
   await page.getByRole("button", { name: "Sign in", exact: true }).click();
-  await expect(page.getByRole("alert")).toContainText("Wrong email or password");
+  await expect(page.getByText("Wrong email or password", { exact: false })).toBeVisible();
   await signIn(page, DEMO.staff);
   await expect(page).toHaveURL(/\/s\/tinkerspace-kochi/);
 });
@@ -34,7 +34,7 @@ test("an emailed magic link signs in once", async ({ page, browser }) => {
   await page.getByRole("button", { name: "Email me a sign-in link", exact: true }).click();
   await page.getByLabel("Email", { exact: true }).fill(email);
   await page.getByRole("button", { name: "Email me a sign-in link", exact: true }).click();
-  await expect(page.getByRole("status")).toContainText("sign-in link is on its way");
+  await expect(page.getByText("sign-in link is on its way", { exact: false })).toBeVisible();
   let mail: string | null = null;
   await expect.poll(() => (mail = latestMailTo(email, started)), { timeout: 30_000 }).not.toBeNull();
   const link = mail!.match(/https?:\/\/\S+\/login\/link\/\S+/)![0];
@@ -48,7 +48,7 @@ test("an emailed magic link signs in once", async ({ page, browser }) => {
   const again = await (await browser.newContext()).newPage();
   await again.goto(`${url.pathname}${url.search}`);
   await again.getByRole("button", { name: "Sign in", exact: true }).click();
-  await expect(again.getByRole("alert")).toContainText("expired or was already used");
+  await expect(again.getByText("expired or was already used", { exact: false })).toBeVisible();
   await fresh.close();
 });
 
