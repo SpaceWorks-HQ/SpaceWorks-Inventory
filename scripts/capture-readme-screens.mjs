@@ -3,7 +3,7 @@
 //
 //   DEMO_PASSWORD=... node scripts/capture-readme-screens.mjs http://localhost:3300
 //
-// Every screen is captured in light and dark mode as WebP under docs/readme/screens/.
+// Every screen is captured in light and dark mode as WebP under docs/screenshots/.
 import { chromium } from "@playwright/test";
 import sharp from "sharp";
 import { mkdir } from "node:fs/promises";
@@ -13,7 +13,7 @@ const base = new URL(process.argv[2] || "http://localhost:3300");
 if (!["http:", "https:"].includes(base.protocol) || base.username || base.password) throw new Error("Use an HTTP(S) base URL without credentials.");
 const password = process.env.DEMO_PASSWORD;
 if (!password) throw new Error("Set DEMO_PASSWORD to the seeded demo password.");
-const out = path.resolve(import.meta.dirname, "../docs/readme/screens");
+const out = path.resolve(import.meta.dirname, "../docs/screenshots");
 await mkdir(out, { recursive: true });
 const space = "/s/tinkerspace-kochi";
 
@@ -46,16 +46,19 @@ async function firstLink(page, listRoute, prefix) {
 }
 
 const browser = await chromium.launch();
+// One sign-in per demo account, reused for its later screens (stays under the sign-in rate limit).
+const sessions = new Map();
 try {
   for (const [name, who, target, viewport] of SCREENS) {
-    const context = await browser.newContext({ viewport: viewport ?? { width: 1440, height: 900 }, deviceScaleFactor: viewport ? 2 : 1, reducedMotion: "reduce" });
+    const context = await browser.newContext({ viewport: viewport ?? { width: 1440, height: 900 }, deviceScaleFactor: viewport ? 2 : 1, reducedMotion: "reduce", storageState: who ? sessions.get(who) : undefined });
     const page = await context.newPage();
-    if (who) {
+    if (who && !sessions.has(who)) {
       await page.goto(new URL("/login", base).href);
       await page.getByLabel("Email", { exact: true }).fill(`${who}@tinkerspace.test`);
       await page.getByLabel("Password", { exact: true }).fill(password);
       await page.getByRole("button", { name: "Sign in", exact: true }).click();
       await page.waitForURL(/\/s\//);
+      sessions.set(who, await context.storageState());
     }
     const route = typeof target === "function" ? await target(page) : target;
     for (const mode of ["light", "dark"]) {

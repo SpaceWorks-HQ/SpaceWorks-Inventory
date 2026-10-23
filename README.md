@@ -98,9 +98,22 @@ anything else, whenever you want.
 
 ## A look around
 
-Captured from the seeded demo with `npm run readme:screens`, in light and dark mode.
+Captured from the seeded demo with `npm run readme:screens`, in light and dark mode
+(GitHub shows the one that matches your theme; every screen is in
+[`docs/screenshots/`](docs/screenshots/)).
 
-<!-- screenshots -->
+| | |
+| --- | --- |
+| <picture><source media="(prefers-color-scheme: dark)" srcset="docs/screenshots/home-dark.webp"><img src="docs/screenshots/home.webp" alt="Space home with the desk queue, transfers and recent stock movements"></picture><br>**Space home**: the desk queue, transfers in and out, low stock | <picture><source media="(prefers-color-scheme: dark)" srcset="docs/screenshots/loan-issue-dark.webp"><img src="docs/screenshots/loan-issue.webp" alt="Handing over a loan: scan each label, check the lines, add photos and remarks"></picture><br>**Hand over a loan**: scan, check the lines, photos and remarks |
+| <picture><source media="(prefers-color-scheme: dark)" srcset="docs/screenshots/catalogue-dark.webp"><img src="docs/screenshots/catalogue.webp" alt="Member catalogue with availability and a request tray"></picture><br>**Borrow**: members browse and send a request | <picture><source media="(prefers-color-scheme: dark)" srcset="docs/screenshots/loans-dark.webp"><img src="docs/screenshots/loans.webp" alt="Loans queue for the lending desk"></picture><br>**Loans**: requests, ready to collect, on loan and overdue |
+| <picture><source media="(prefers-color-scheme: dark)" srcset="docs/screenshots/stock-dark.webp"><img src="docs/screenshots/stock.webp" alt="Stock by location with on hand, held and on loan"></picture><br>**Stock**: on hand, held and on loan per shelf | <picture><source media="(prefers-color-scheme: dark)" srcset="docs/screenshots/transfer-dark.webp"><img src="docs/screenshots/transfer.webp" alt="A transfer between spaces in transit with its timeline"></picture><br>**Transfers** between shelves and between spaces |
+| <picture><source media="(prefers-color-scheme: dark)" srcset="docs/screenshots/counts-dark.webp"><img src="docs/screenshots/counts.webp" alt="Cycle counts list"></picture><br>**Cycle counts** with blind counting and variances | <picture><source media="(prefers-color-scheme: dark)" srcset="docs/screenshots/reports-dark.webp"><img src="docs/screenshots/reports.webp" alt="Reports with valuation, lending and exports"></picture><br>**Reports** with CSV and Excel exports |
+| <picture><source media="(prefers-color-scheme: dark)" srcset="docs/screenshots/item-dark.webp"><img src="docs/screenshots/item.webp" alt="Item page with stock per location and QR code"></picture><br>**Item**: stock per shelf, assets and its QR label | <picture><source media="(prefers-color-scheme: dark)" srcset="docs/screenshots/scan-phone-dark.webp"><img src="docs/screenshots/scan-phone.webp" alt="Scanning a label on a phone" width="260"></picture><br>**Scan** any label from a phone |
+
+More: [items](docs/screenshots/items.webp), [locations](docs/screenshots/locations.webp),
+[my loans](docs/screenshots/my-loans.webp), [members](docs/screenshots/members.webp),
+[lending fees](docs/screenshots/settings-fees.webp), [payments](docs/screenshots/settings-payments.webp)
+and the [public catalogue](docs/screenshots/public-catalogue.webp).
 
 ## Host it on a VPS in one line
 
