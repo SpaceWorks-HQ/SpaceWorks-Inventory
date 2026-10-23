@@ -298,7 +298,7 @@ a dialog.
 ### 4.4 Tabs & navigation
 
 - Underline tabs: rest `text-ink-muted`, hover `text-ink`, active `text-ink` + **2px underline** (teal). Rows scroll sideways with faded arrow hints.
-- Space sidebar: Citron field (256px) (`bg-sidebar`), text-only items 44px tall in labelled groups (People, Work, Chat, Operations, Assistant, Settings), hover `bg-sidebar-hover`,
+- Space sidebar: Citron field (256px) (`bg-sidebar`), text-only items 44px tall in labelled groups (Desk, Inventory, Space), hover `bg-sidebar-hover`,
   current item `bg-sidebar-active text-on-sidebar-active font-semibold` with `aria-current="page"`.
   Dark mode uses the Deep Ink sidebar.
 - Back link: `← Back to space`, quiet, 14px 600.
@@ -311,8 +311,11 @@ dark), `danger` (panel + `danger-border` + red word), `accent` (accent-soft + ac
 (orange + ink; for "2 left"-style attention), `neutral` (surface + hairline + ink), `ink` (inverse),
 `outline`.
 
-Common words: Active / Suspended (members), Pending / Accepted / Expired / Revoked (invitations),
-To do / In progress / Review / Done (board columns), Urgent / High / Medium / Low (priority).
+Common words: Active / Suspended (members), Can borrow / Restricted / Suspended (borrowing),
+Requested / Ready to collect / On loan / Overdue / Returned / Closed with an issue (loans),
+Requested / Approved, to pick / In transit / Partly received / Received / Returning to sender (transfers),
+Available / Held / Under repair / Lost / Retired (assets), Paid / Due / Payment pending / Waived (charges).
+`components/inventory/StatusChips.tsx` maps every status to its word and tone.
 
 ### 4.6 Date block
 
@@ -470,7 +473,7 @@ The refreshed `tokens/tokens.css` and `tokens.json` values win over the older A.
 
 Dark selected teal fills retain the canonical colour and add a readable boundary where needed. Status chart solids use `*-ink` values in light mode; their matching labels are cream. This is distinct from the pastel status pills, which carry Deep Ink words.
 
-Shared page geometry is in `components/ui/layouts.tsx`: dashboard (260px activity rail), list, detail (280px aside), settings and form (300px preview). AuthFrame also provides the centred task card. These components accept already-authorised content; loaders and tenant checks remain in pages.
+Shared page geometry is in `components/ui/layouts.tsx`: dashboard (260px activity rail), list, detail (280px aside), settings and form (300px preview). AuthFrame also provides the centred card. These components accept already-authorised content; loaders and tenant checks remain in pages.
 
-Patch is the main page state's one bold moment. Keep nested empty panels plain. Use the original adaptive assets, a quarter-height clear space, and the reduced-motion still. Closed polls with quorum use `pose="sneeze"`; other idle states stay still.
+Patch is the main page state's one bold moment. Keep nested empty panels plain. Use the original adaptive assets, a quarter-height clear space, and the reduced-motion still. A fully received transfer or a count posted with no variance may use `pose="sneeze"`; other idle states stay still.
 
