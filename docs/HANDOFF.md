@@ -82,6 +82,29 @@ request bar, filtered empty states, item image fallback, and the inbox badge no 
 Left for later: issue scan catalogues are capped at 500 eligible tags per loan (codes beyond that are
 not resolved on demand).
 
+**Phase I3 (2026-10-23): install and deploy checks, what was actually run.**
+
+| Check | How | Result |
+| --- | --- | --- |
+| Shell and manifest syntax, shellcheck | `npm run deployment:check` in a Linux container with shellcheck | 65 scripts and manifests pass |
+| Installer help and unit tests | `bash install.sh --help`; `tests/unit/vps-installer*.test.ts`, `docker-entrypoint.test.ts` on Linux | Pass (they fail on a Windows host only: POSIX paths and bash timing) |
+| Render Blueprint, static | `tests/unit/ops-render.test.ts` (new): services, health checks, production env sources, generated secrets, worker/beat builds, references, documented keys | Pass; no `render.yaml` change needed |
+| Two-image installer smoke | `CI=true bash scripts/test-vps-install.sh` inside a privileged `docker:27-dind` container (no Linux host here) | Pass: backend and frontend images built, both layouts (split and single) healthy with PostgreSQL TLS, Redis TLS/auth, private Silo bucket, worker and beat; `check.mjs` and `smoke.mjs` pass |
+| Production browser suites | `npm run test:e2e:vps` / `test:e2e:split -- --external-services --demo` in a Linux container | 19 and 20 journeys pass |
+
+Found on the way: the frontend contract hash covered raw bytes, so a CRLF checkout produced a hash that a
+clean LF checkout (Docker, CI) rejected as stale. `scripts/frontend-source-hash.mjs` now normalises line
+endings.
+
+**Deferred checks (cannot be run from a development machine; owner: Shaan-Shoukath)**
+
+| Check | Accepted when |
+| --- | --- |
+| A real Render deploy from `render.yaml` (Deploy to Render button) | The Blueprint creates every service, web, worker and beat report healthy, sign-in and the setup wizard work, an uploaded photo survives a redeploy |
+| A real VPS run of `curl -fsSL …/main/install.sh \| bash` (release path) and `--ref dev` | A fresh Ubuntu server installs, the menu's check passes, update, backup and restore work, HTTPS is issued |
+| GHCR publish and release install | The first tagged release publishes both images and the installer pulls them instead of building |
+| Live Razorpay and Stripe test-mode payments | One paid and refunded loan per gateway in test mode, webhooks applied once |
+
 ## What is left
 
 1. ~~Finish and click-test the WIP pages above against the workflows in `lib/lending`, `lib/transfers`
