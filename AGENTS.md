@@ -10,6 +10,8 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 
 # Space Works Inventory agent guide
 
+> **Start here:** `docs/HANDOFF.md` explains what this repo is (a standalone app split out of SpaceWorks, part of the SpaceWorks-HQ family), the decisions already made, what is done, the work in progress and what is left.
+
 `CLAUDE.md` is a byte-identical copy of this file so every coding agent reads
 the same rules. Edit `AGENTS.md`, then copy it over `CLAUDE.md`
 (`tests/unit/agent-guidance.test.ts` fails when they differ).

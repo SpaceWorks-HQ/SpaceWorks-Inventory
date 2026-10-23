@@ -235,3 +235,7 @@ Made by **Space Works**, a maker community that started inside TinkerSpace
 Kochi, and ported from the original Space Works makerspace manager. Licensed
 [AGPL-3.0-or-later](LICENSE): if you modify and host it, offer the matching
 source to the people using your version.
+
+## Project status
+
+In active development: a standalone app split out of [SpaceWorks](https://github.com/SpaceWorks-HQ/SpaceWorks), part of the [SpaceWorks-HQ](https://github.com/SpaceWorks-HQ) family. See [`docs/HANDOFF.md`](docs/HANDOFF.md) for what is done, what is in progress and how to continue.

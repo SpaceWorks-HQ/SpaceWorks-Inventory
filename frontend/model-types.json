@@ -10,5 +10,47 @@
     "name": "ShellData",
     "id": "Shared1",
     "value": false
+  },
+  {
+    "module": "lib/desk/countsDetail",
+    "name": "CountLineView",
+    "id": "Shared2",
+    "value": false
+  },
+  {
+    "module": "lib/desk/scan",
+    "name": "ScanTarget",
+    "id": "Shared3",
+    "value": false
+  },
+  {
+    "module": "lib/setup/home",
+    "name": "MemberHome",
+    "id": "Shared4",
+    "value": false
+  },
+  {
+    "module": "lib/setup/home",
+    "name": "StaffHome",
+    "id": "Shared5",
+    "value": false
+  },
+  {
+    "module": "lib/payments/config",
+    "name": "PaymentConfigView",
+    "id": "Shared6",
+    "value": false
+  },
+  {
+    "module": "lib/setup/publicCatalogue",
+    "name": "PublicItem",
+    "id": "Shared7",
+    "value": false
+  },
+  {
+    "module": "lib/desk/loansQueue",
+    "name": "LoanTab",
+    "id": "Shared8",
+    "value": false
   }
 ]

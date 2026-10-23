@@ -46,6 +46,11 @@
       "id": "admin-users-page:loadAdminUsersPage"
     },
     {
+      "module": "lib/views/generated/c-spaceSlug-page-loadPublicCataloguePage",
+      "name": "loadPublicCataloguePage",
+      "id": "c-spaceSlug-page:loadPublicCataloguePage"
+    },
+    {
       "module": "lib/views/generated/invite-token-page-loadInvitePage",
       "name": "loadInvitePage",
       "id": "invite-token-page:loadInvitePage"
@@ -66,9 +71,89 @@
       "id": "page:loadHomeRedirect"
     },
     {
+      "module": "lib/views/generated/q-code-page-loadQrLandingPage",
+      "name": "loadQrLandingPage",
+      "id": "q-code-page:loadQrLandingPage"
+    },
+    {
       "module": "lib/views/generated/reset-password-token-page-loadResetPasswordPage",
       "name": "loadResetPasswordPage",
       "id": "reset-password-token-page:loadResetPasswordPage"
+    },
+    {
+      "module": "lib/views/generated/s-spaceSlug-assets-assetId-page-loadAssetPage",
+      "name": "loadAssetPage",
+      "id": "s-spaceSlug-assets-assetId-page:loadAssetPage"
+    },
+    {
+      "module": "lib/views/generated/s-spaceSlug-assets-page-loadAssetsPage",
+      "name": "loadAssetsPage",
+      "id": "s-spaceSlug-assets-page:loadAssetsPage"
+    },
+    {
+      "module": "lib/views/generated/s-spaceSlug-audit-page-loadAuditLogPage",
+      "name": "loadAuditLogPage",
+      "id": "s-spaceSlug-audit-page:loadAuditLogPage"
+    },
+    {
+      "module": "lib/views/generated/s-spaceSlug-catalogue-page-loadCataloguePage",
+      "name": "loadCataloguePage",
+      "id": "s-spaceSlug-catalogue-page:loadCataloguePage"
+    },
+    {
+      "module": "lib/views/generated/s-spaceSlug-catalogue-self-checkout-page-loadSelfCheckoutPage",
+      "name": "loadSelfCheckoutPage",
+      "id": "s-spaceSlug-catalogue-self-checkout-page:loadSelfCheckoutPage"
+    },
+    {
+      "module": "lib/views/generated/s-spaceSlug-counts-countId-page-loadCountPage",
+      "name": "loadCountPage",
+      "id": "s-spaceSlug-counts-countId-page:loadCountPage"
+    },
+    {
+      "module": "lib/views/generated/s-spaceSlug-counts-new-page-loadNewCountPage",
+      "name": "loadNewCountPage",
+      "id": "s-spaceSlug-counts-new-page:loadNewCountPage"
+    },
+    {
+      "module": "lib/views/generated/s-spaceSlug-counts-page-loadCountsPage",
+      "name": "loadCountsPage",
+      "id": "s-spaceSlug-counts-page:loadCountsPage"
+    },
+    {
+      "module": "lib/views/generated/s-spaceSlug-import-page-loadImportPage",
+      "name": "loadImportPage",
+      "id": "s-spaceSlug-import-page:loadImportPage"
+    },
+    {
+      "module": "lib/views/generated/s-spaceSlug-items-itemId-edit-page-loadEditItemPage",
+      "name": "loadEditItemPage",
+      "id": "s-spaceSlug-items-itemId-edit-page:loadEditItemPage"
+    },
+    {
+      "module": "lib/views/generated/s-spaceSlug-items-itemId-page-loadItemPage",
+      "name": "loadItemPage",
+      "id": "s-spaceSlug-items-itemId-page:loadItemPage"
+    },
+    {
+      "module": "lib/views/generated/s-spaceSlug-items-new-page-loadNewItemPage",
+      "name": "loadNewItemPage",
+      "id": "s-spaceSlug-items-new-page:loadNewItemPage"
+    },
+    {
+      "module": "lib/views/generated/s-spaceSlug-items-page-loadItemsPage",
+      "name": "loadItemsPage",
+      "id": "s-spaceSlug-items-page:loadItemsPage"
+    },
+    {
+      "module": "lib/views/generated/s-spaceSlug-kits-page-loadKitsPage",
+      "name": "loadKitsPage",
+      "id": "s-spaceSlug-kits-page:loadKitsPage"
+    },
+    {
+      "module": "lib/views/generated/s-spaceSlug-labels-page-loadLabelsPage",
+      "name": "loadLabelsPage",
+      "id": "s-spaceSlug-labels-page:loadLabelsPage"
     },
     {
       "module": "lib/views/generated/s-spaceSlug-layout-loadgenerateMetadata",
@@ -81,9 +166,119 @@
       "id": "s-spaceSlug-layout:loadSpaceLayout"
     },
     {
+      "module": "lib/views/generated/s-spaceSlug-loans-loanId-page-loadLoanPage",
+      "name": "loadLoanPage",
+      "id": "s-spaceSlug-loans-loanId-page:loadLoanPage"
+    },
+    {
+      "module": "lib/views/generated/s-spaceSlug-loans-page-loadLoansPage",
+      "name": "loadLoansPage",
+      "id": "s-spaceSlug-loans-page:loadLoansPage"
+    },
+    {
+      "module": "lib/views/generated/s-spaceSlug-locations-page-loadLocationsPage",
+      "name": "loadLocationsPage",
+      "id": "s-spaceSlug-locations-page:loadLocationsPage"
+    },
+    {
+      "module": "lib/views/generated/s-spaceSlug-members-page-loadMembersPage",
+      "name": "loadMembersPage",
+      "id": "s-spaceSlug-members-page:loadMembersPage"
+    },
+    {
+      "module": "lib/views/generated/s-spaceSlug-my-loans-loanId-page-loadMyLoanPage",
+      "name": "loadMyLoanPage",
+      "id": "s-spaceSlug-my-loans-loanId-page:loadMyLoanPage"
+    },
+    {
+      "module": "lib/views/generated/s-spaceSlug-my-loans-page-loadMyLoansPage",
+      "name": "loadMyLoansPage",
+      "id": "s-spaceSlug-my-loans-page:loadMyLoansPage"
+    },
+    {
+      "module": "lib/views/generated/s-spaceSlug-notifications-page-loadNotificationsPage",
+      "name": "loadNotificationsPage",
+      "id": "s-spaceSlug-notifications-page:loadNotificationsPage"
+    },
+    {
       "module": "lib/views/generated/s-spaceSlug-page-loadSpaceHomePage",
       "name": "loadSpaceHomePage",
       "id": "s-spaceSlug-page:loadSpaceHomePage"
+    },
+    {
+      "module": "lib/views/generated/s-spaceSlug-pay-paymentId-page-loadPayPage",
+      "name": "loadPayPage",
+      "id": "s-spaceSlug-pay-paymentId-page:loadPayPage"
+    },
+    {
+      "module": "lib/views/generated/s-spaceSlug-purchases-page-loadPurchasesPage",
+      "name": "loadPurchasesPage",
+      "id": "s-spaceSlug-purchases-page:loadPurchasesPage"
+    },
+    {
+      "module": "lib/views/generated/s-spaceSlug-reports-page-loadReportsPage",
+      "name": "loadReportsPage",
+      "id": "s-spaceSlug-reports-page:loadReportsPage"
+    },
+    {
+      "module": "lib/views/generated/s-spaceSlug-scan-page-loadScanPage",
+      "name": "loadScanPage",
+      "id": "s-spaceSlug-scan-page:loadScanPage"
+    },
+    {
+      "module": "lib/views/generated/s-spaceSlug-settings-integrations-page-loadIntegrationsSettingsPage",
+      "name": "loadIntegrationsSettingsPage",
+      "id": "s-spaceSlug-settings-integrations-page:loadIntegrationsSettingsPage"
+    },
+    {
+      "module": "lib/views/generated/s-spaceSlug-settings-inventory-page-loadInventorySettingsPage",
+      "name": "loadInventorySettingsPage",
+      "id": "s-spaceSlug-settings-inventory-page:loadInventorySettingsPage"
+    },
+    {
+      "module": "lib/views/generated/s-spaceSlug-settings-page-loadSpaceSettingsPage",
+      "name": "loadSpaceSettingsPage",
+      "id": "s-spaceSlug-settings-page:loadSpaceSettingsPage"
+    },
+    {
+      "module": "lib/views/generated/s-spaceSlug-settings-payments-page-loadPaymentSettingsPage",
+      "name": "loadPaymentSettingsPage",
+      "id": "s-spaceSlug-settings-payments-page:loadPaymentSettingsPage"
+    },
+    {
+      "module": "lib/views/generated/s-spaceSlug-settings-roles-page-loadRolesPage",
+      "name": "loadRolesPage",
+      "id": "s-spaceSlug-settings-roles-page:loadRolesPage"
+    },
+    {
+      "module": "lib/views/generated/s-spaceSlug-setup-page-loadSpaceSetupPage",
+      "name": "loadSpaceSetupPage",
+      "id": "s-spaceSlug-setup-page:loadSpaceSetupPage"
+    },
+    {
+      "module": "lib/views/generated/s-spaceSlug-stock-movements-page-loadStockMovementsPage",
+      "name": "loadStockMovementsPage",
+      "id": "s-spaceSlug-stock-movements-page:loadStockMovementsPage"
+    },
+    {
+      "module": "lib/views/generated/s-spaceSlug-stock-page-loadStockPage",
+      "name": "loadStockPage",
+      "id": "s-spaceSlug-stock-page:loadStockPage"
+    },
+    {
+      "module": "lib/views/generated/s-spaceSlug-transfers-transferId-page-loadTransferPage",
+      "name": "loadTransferPage",
+      "id": "s-spaceSlug-transfers-transferId-page:loadTransferPage"
+    },
+    {
+      "module": "lib/views/generated/s-spaceSlug-transfers-new-page-loadNewTransferPage",
+      "name": "loadNewTransferPage",
+      "id": "s-spaceSlug-transfers-new-page:loadNewTransferPage"
+    },
+    {
+      "module": "lib/views/generated/s-spaceSlug-transfers-page-loadTransfersPage",
+      "name": "loadTransfersPage",
+      "id": "s-spaceSlug-transfers-page:loadTransfersPage"
     },
     {
       "module": "lib/views/generated/setup-page-loadSetupPage",
@@ -148,16 +343,6 @@
       "id": "admin:adminSetSpaceArchived"
     },
     {
-      "module": "app/actions/apiTokens",
-      "name": "createApiTokenAction",
-      "id": "apiTokens:createApiTokenAction"
-    },
-    {
-      "module": "app/actions/apiTokens",
-      "name": "revokeApiTokenAction",
-      "id": "apiTokens:revokeApiTokenAction"
-    },
-    {
       "module": "app/actions/auth",
       "name": "completeSetup",
       "id": "auth:completeSetup"
@@ -188,9 +373,284 @@
       "id": "auth:acceptInviteAsCurrentUser"
     },
     {
+      "module": "app/actions/catalogue",
+      "name": "createItemAction",
+      "id": "catalogue:createItemAction"
+    },
+    {
+      "module": "app/actions/catalogue",
+      "name": "updateItemAction",
+      "id": "catalogue:updateItemAction"
+    },
+    {
+      "module": "app/actions/catalogue",
+      "name": "setItemArchivedAction",
+      "id": "catalogue:setItemArchivedAction"
+    },
+    {
+      "module": "app/actions/catalogue",
+      "name": "uploadItemImagesAction",
+      "id": "catalogue:uploadItemImagesAction"
+    },
+    {
+      "module": "app/actions/catalogue",
+      "name": "removeItemImageAction",
+      "id": "catalogue:removeItemImageAction"
+    },
+    {
+      "module": "app/actions/catalogue",
+      "name": "reorderItemImagesAction",
+      "id": "catalogue:reorderItemImagesAction"
+    },
+    {
+      "module": "app/actions/catalogue",
+      "name": "quickAddCategoryAction",
+      "id": "catalogue:quickAddCategoryAction"
+    },
+    {
+      "module": "app/actions/catalogue",
+      "name": "quickAddUnitAction",
+      "id": "catalogue:quickAddUnitAction"
+    },
+    {
+      "module": "app/actions/catalogue",
+      "name": "createAssetsAction",
+      "id": "catalogue:createAssetsAction"
+    },
+    {
+      "module": "app/actions/catalogue",
+      "name": "updateAssetAction",
+      "id": "catalogue:updateAssetAction"
+    },
+    {
+      "module": "app/actions/catalogue",
+      "name": "saveLocationAction",
+      "id": "catalogue:saveLocationAction"
+    },
+    {
+      "module": "app/actions/catalogue",
+      "name": "setLocationArchivedAction",
+      "id": "catalogue:setLocationArchivedAction"
+    },
+    {
+      "module": "app/actions/catalogue",
+      "name": "buildLocationsAction",
+      "id": "catalogue:buildLocationsAction"
+    },
+    {
+      "module": "app/actions/catalogue",
+      "name": "saveKitAction",
+      "id": "catalogue:saveKitAction"
+    },
+    {
+      "module": "app/actions/catalogue",
+      "name": "setKitArchivedAction",
+      "id": "catalogue:setKitArchivedAction"
+    },
+    {
+      "module": "app/actions/catalogue",
+      "name": "createContainersAction",
+      "id": "catalogue:createContainersAction"
+    },
+    {
+      "module": "app/actions/catalogue",
+      "name": "setContainerArchivedAction",
+      "id": "catalogue:setContainerArchivedAction"
+    },
+    {
+      "module": "app/actions/catalogue",
+      "name": "qrCodeAction",
+      "id": "catalogue:qrCodeAction"
+    },
+    {
+      "module": "app/actions/counts",
+      "name": "startCountAction",
+      "id": "counts:startCountAction"
+    },
+    {
+      "module": "app/actions/counts",
+      "name": "recordCountAction",
+      "id": "counts:recordCountAction"
+    },
+    {
+      "module": "app/actions/counts",
+      "name": "addCountLineAction",
+      "id": "counts:addCountLineAction"
+    },
+    {
+      "module": "app/actions/counts",
+      "name": "scanCountAssetAction",
+      "id": "counts:scanCountAssetAction"
+    },
+    {
+      "module": "app/actions/counts",
+      "name": "refreshCountLineAction",
+      "id": "counts:refreshCountLineAction"
+    },
+    {
+      "module": "app/actions/counts",
+      "name": "submitCountAction",
+      "id": "counts:submitCountAction"
+    },
+    {
+      "module": "app/actions/counts",
+      "name": "reopenCountAction",
+      "id": "counts:reopenCountAction"
+    },
+    {
+      "module": "app/actions/counts",
+      "name": "postCountAction",
+      "id": "counts:postCountAction"
+    },
+    {
+      "module": "app/actions/counts",
+      "name": "cancelCountAction",
+      "id": "counts:cancelCountAction"
+    },
+    {
+      "module": "app/actions/counts",
+      "name": "saveCountScheduleAction",
+      "id": "counts:saveCountScheduleAction"
+    },
+    {
+      "module": "app/actions/counts",
+      "name": "setCountScheduleActiveAction",
+      "id": "counts:setCountScheduleActiveAction"
+    },
+    {
+      "module": "app/actions/import",
+      "name": "previewImportAction",
+      "id": "import:previewImportAction"
+    },
+    {
+      "module": "app/actions/import",
+      "name": "recheckImportAction",
+      "id": "import:recheckImportAction"
+    },
+    {
+      "module": "app/actions/import",
+      "name": "applyImportAction",
+      "id": "import:applyImportAction"
+    },
+    {
+      "module": "app/actions/import",
+      "name": "loadSampleDataAction",
+      "id": "import:loadSampleDataAction"
+    },
+    {
+      "module": "app/actions/integrations",
+      "name": "createApiKeyAction",
+      "id": "integrations:createApiKeyAction"
+    },
+    {
+      "module": "app/actions/integrations",
+      "name": "revokeApiKeyAction",
+      "id": "integrations:revokeApiKeyAction"
+    },
+    {
+      "module": "app/actions/integrations",
+      "name": "createWebhookAction",
+      "id": "integrations:createWebhookAction"
+    },
+    {
+      "module": "app/actions/integrations",
+      "name": "updateWebhookAction",
+      "id": "integrations:updateWebhookAction"
+    },
+    {
+      "module": "app/actions/integrations",
+      "name": "setWebhookEnabledAction",
+      "id": "integrations:setWebhookEnabledAction"
+    },
+    {
+      "module": "app/actions/integrations",
+      "name": "rotateWebhookSecretAction",
+      "id": "integrations:rotateWebhookSecretAction"
+    },
+    {
+      "module": "app/actions/integrations",
+      "name": "deleteWebhookAction",
+      "id": "integrations:deleteWebhookAction"
+    },
+    {
+      "module": "app/actions/integrations",
+      "name": "sendWebhookTestAction",
+      "id": "integrations:sendWebhookTestAction"
+    },
+    {
+      "module": "app/actions/integrations",
+      "name": "retryWebhookDeliveryAction",
+      "id": "integrations:retryWebhookDeliveryAction"
+    },
+    {
       "module": "app/actions/jobs",
       "name": "manageJobsAction",
       "id": "jobs:manageJobsAction"
+    },
+    {
+      "module": "app/actions/loans",
+      "name": "approveLoanAction",
+      "id": "loans:approveLoanAction"
+    },
+    {
+      "module": "app/actions/loans",
+      "name": "rejectLoanAction",
+      "id": "loans:rejectLoanAction"
+    },
+    {
+      "module": "app/actions/loans",
+      "name": "cancelLoanAction",
+      "id": "loans:cancelLoanAction"
+    },
+    {
+      "module": "app/actions/loans",
+      "name": "issueLoanAction",
+      "id": "loans:issueLoanAction"
+    },
+    {
+      "module": "app/actions/loans",
+      "name": "returnLoanAction",
+      "id": "loans:returnLoanAction"
+    },
+    {
+      "module": "app/actions/loans",
+      "name": "renewLoanAction",
+      "id": "loans:renewLoanAction"
+    },
+    {
+      "module": "app/actions/loans",
+      "name": "setDueDateAction",
+      "id": "loans:setDueDateAction"
+    },
+    {
+      "module": "app/actions/loans",
+      "name": "resolveIncidentAction",
+      "id": "loans:resolveIncidentAction"
+    },
+    {
+      "module": "app/actions/loans",
+      "name": "requestLoanAction",
+      "id": "loans:requestLoanAction"
+    },
+    {
+      "module": "app/actions/loans",
+      "name": "selfCheckoutAction",
+      "id": "loans:selfCheckoutAction"
+    },
+    {
+      "module": "app/actions/loans",
+      "name": "renewMyLoanAction",
+      "id": "loans:renewMyLoanAction"
+    },
+    {
+      "module": "app/actions/loans",
+      "name": "cancelMyLoanAction",
+      "id": "loans:cancelMyLoanAction"
+    },
+    {
+      "module": "app/actions/loans",
+      "name": "selfReturnAction",
+      "id": "loans:selfReturnAction"
     },
     {
       "module": "app/actions/members",
@@ -238,9 +698,254 @@
       "id": "notifications:markNotificationsReadAction"
     },
     {
+      "module": "app/actions/notifications",
+      "name": "markSpaceNotificationsReadAction",
+      "id": "notifications:markSpaceNotificationsReadAction"
+    },
+    {
+      "module": "app/actions/payments",
+      "name": "savePaymentSettingsAction",
+      "id": "payments:savePaymentSettingsAction"
+    },
+    {
+      "module": "app/actions/payments",
+      "name": "testPaymentConnectionAction",
+      "id": "payments:testPaymentConnectionAction"
+    },
+    {
+      "module": "app/actions/payments",
+      "name": "payNowAction",
+      "id": "payments:payNowAction"
+    },
+    {
+      "module": "app/actions/payments",
+      "name": "confirmRazorpayPaymentAction",
+      "id": "payments:confirmRazorpayPaymentAction"
+    },
+    {
+      "module": "app/actions/payments",
+      "name": "payLaterAction",
+      "id": "payments:payLaterAction"
+    },
+    {
+      "module": "app/actions/payments",
+      "name": "submitOfflinePaymentAction",
+      "id": "payments:submitOfflinePaymentAction"
+    },
+    {
+      "module": "app/actions/payments",
+      "name": "markPayLaterAction",
+      "id": "payments:markPayLaterAction"
+    },
+    {
+      "module": "app/actions/payments",
+      "name": "recordOfflinePaymentAction",
+      "id": "payments:recordOfflinePaymentAction"
+    },
+    {
+      "module": "app/actions/payments",
+      "name": "reviewOfflinePaymentAction",
+      "id": "payments:reviewOfflinePaymentAction"
+    },
+    {
+      "module": "app/actions/payments",
+      "name": "waiveChargeAction",
+      "id": "payments:waiveChargeAction"
+    },
+    {
+      "module": "app/actions/payments",
+      "name": "returnDepositAction",
+      "id": "payments:returnDepositAction"
+    },
+    {
+      "module": "app/actions/payments",
+      "name": "refundPaymentAction",
+      "id": "payments:refundPaymentAction"
+    },
+    {
+      "module": "app/actions/payments",
+      "name": "retryRefundAction",
+      "id": "payments:retryRefundAction"
+    },
+    {
+      "module": "app/actions/purchases",
+      "name": "createPurchaseAction",
+      "id": "purchases:createPurchaseAction"
+    },
+    {
+      "module": "app/actions/purchases",
+      "name": "addSuggestionAction",
+      "id": "purchases:addSuggestionAction"
+    },
+    {
+      "module": "app/actions/purchases",
+      "name": "movePurchaseAction",
+      "id": "purchases:movePurchaseAction"
+    },
+    {
+      "module": "app/actions/purchases",
+      "name": "receivePurchaseAction",
+      "id": "purchases:receivePurchaseAction"
+    },
+    {
+      "module": "app/actions/scan",
+      "name": "resolveScanAction",
+      "id": "scan:resolveScanAction"
+    },
+    {
       "module": "app/actions/settings",
       "name": "updateSettingsSection",
       "id": "settings:updateSettingsSection"
+    },
+    {
+      "module": "app/actions/settings",
+      "name": "uploadSpaceLogoAction",
+      "id": "settings:uploadSpaceLogoAction"
+    },
+    {
+      "module": "app/actions/settings",
+      "name": "removeSpaceLogoAction",
+      "id": "settings:removeSpaceLogoAction"
+    },
+    {
+      "module": "app/actions/settings",
+      "name": "deleteSpaceAction",
+      "id": "settings:deleteSpaceAction"
+    },
+    {
+      "module": "app/actions/settings",
+      "name": "saveCategoryAction",
+      "id": "settings:saveCategoryAction"
+    },
+    {
+      "module": "app/actions/settings",
+      "name": "deleteCategoryAction",
+      "id": "settings:deleteCategoryAction"
+    },
+    {
+      "module": "app/actions/settings",
+      "name": "saveUnitAction",
+      "id": "settings:saveUnitAction"
+    },
+    {
+      "module": "app/actions/settings",
+      "name": "deleteUnitAction",
+      "id": "settings:deleteUnitAction"
+    },
+    {
+      "module": "app/actions/settings",
+      "name": "saveSupplierAction",
+      "id": "settings:saveSupplierAction"
+    },
+    {
+      "module": "app/actions/settings",
+      "name": "setSupplierArchivedAction",
+      "id": "settings:setSupplierArchivedAction"
+    },
+    {
+      "module": "app/actions/setup",
+      "name": "saveLocationPlanAction",
+      "id": "setup:saveLocationPlanAction"
+    },
+    {
+      "module": "app/actions/setup",
+      "name": "addCategoriesAction",
+      "id": "setup:addCategoriesAction"
+    },
+    {
+      "module": "app/actions/setup",
+      "name": "addUnitAction",
+      "id": "setup:addUnitAction"
+    },
+    {
+      "module": "app/actions/setup",
+      "name": "finishSetupAction",
+      "id": "setup:finishSetupAction"
+    },
+    {
+      "module": "app/actions/spaces",
+      "name": "joinSpaceAction",
+      "id": "spaces:joinSpaceAction"
+    },
+    {
+      "module": "app/actions/stock",
+      "name": "receiveStockAction",
+      "id": "stock:receiveStockAction"
+    },
+    {
+      "module": "app/actions/stock",
+      "name": "adjustStockAction",
+      "id": "stock:adjustStockAction"
+    },
+    {
+      "module": "app/actions/stock",
+      "name": "moveStockAction",
+      "id": "stock:moveStockAction"
+    },
+    {
+      "module": "app/actions/stock",
+      "name": "quarantineStockAction",
+      "id": "stock:quarantineStockAction"
+    },
+    {
+      "module": "app/actions/stock",
+      "name": "resolveQuarantineAction",
+      "id": "stock:resolveQuarantineAction"
+    },
+    {
+      "module": "app/actions/stock",
+      "name": "changeAssetStateAction",
+      "id": "stock:changeAssetStateAction"
+    },
+    {
+      "module": "app/actions/stock",
+      "name": "moveAssetAction",
+      "id": "stock:moveAssetAction"
+    },
+    {
+      "module": "app/actions/transfers",
+      "name": "requestTransferAction",
+      "id": "transfers:requestTransferAction"
+    },
+    {
+      "module": "app/actions/transfers",
+      "name": "approveTransferAction",
+      "id": "transfers:approveTransferAction"
+    },
+    {
+      "module": "app/actions/transfers",
+      "name": "rejectTransferAction",
+      "id": "transfers:rejectTransferAction"
+    },
+    {
+      "module": "app/actions/transfers",
+      "name": "cancelTransferAction",
+      "id": "transfers:cancelTransferAction"
+    },
+    {
+      "module": "app/actions/transfers",
+      "name": "dispatchTransferAction",
+      "id": "transfers:dispatchTransferAction"
+    },
+    {
+      "module": "app/actions/transfers",
+      "name": "receiveTransferAction",
+      "id": "transfers:receiveTransferAction"
+    },
+    {
+      "module": "app/actions/transfers",
+      "name": "declareMissingAction",
+      "id": "transfers:declareMissingAction"
+    },
+    {
+      "module": "app/actions/transfers",
+      "name": "sendBackAction",
+      "id": "transfers:sendBackAction"
+    },
+    {
+      "module": "app/actions/transfers",
+      "name": "receiveReturnAction",
+      "id": "transfers:receiveReturnAction"
     }
   ]
 }

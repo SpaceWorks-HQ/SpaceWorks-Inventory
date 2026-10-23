@@ -10,7 +10,7 @@ await requireSuperAdminMfa();
 const spaces = await prisma.space.findMany({
     orderBy: { createdAt: "desc" },
     take: 500,
-    select: { id: true, name: true, slug: true, createdAt: true, archivedAt: true, _count: { select: { memberships: true } } },
+    select: { id: true, name: true, slug: true, createdAt: true, archivedAt: true, setupCompletedAt: true, publicCatalogue: true, _count: { select: { memberships: true } } },
   });
 const tz = viewerTimeZone();
 return viewDto({ spaces, tz } as const);
