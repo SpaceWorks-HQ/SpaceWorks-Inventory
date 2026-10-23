@@ -55,11 +55,11 @@ function staffUrl(slug: string, target: QrTarget): string {
     case "asset":
       return `${base}/assets/${target.id}`;
     case "location":
-      return `${base}/locations/${target.id}`;
+      // A shelf scan shows what is on that shelf (and inside it).
+      return `${base}/stock?location=${target.id}`;
     case "kit":
-      return `${base}/kits/${target.id}`;
     case "container":
-      return `${base}/kits?container=${target.id}`;
+      return `${base}/kits`;
   }
 }
 

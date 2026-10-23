@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Automatic deploys, for this space (explicit opt-in): installs GitHub's
+# Automatic deploys, for this installation (explicit opt-in): installs GitHub's
 # official Actions runner as a systemd service with the label
 # spaceworks-inventory-prod. When a release is published, the Release workflow's
 # deploy job runs `sudo /usr/local/sbin/swi-deploy v<version>` here; nothing

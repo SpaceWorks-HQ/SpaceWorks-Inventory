@@ -103,7 +103,7 @@ if [[ $assume_yes = 0 ]]; then
   {
     printf '\nRestore %s\n' "$source_backup"
     printf '  Backed up from: %s\n' "$(cat "$backup/version" 2>/dev/null || echo 'unknown release')"
-    printf '  Database:       replaced with the backup (accounts, spaces, tasks and messages)\n'
+    printf '  Database:       replaced with the backup (accounts, spaces, stock, loans and transfers)\n'
     if [[ $has_objects = 1 ]]; then printf '  Uploads:        files from the backup are put back; newer files stay\n'
     else printf '  Uploads:        not in this backup; left as they are\n'; fi
     printf 'The site is offline during the restore. A backup of the current database is taken first.\n\n'
@@ -126,4 +126,4 @@ fi
 compose up -d --wait --wait-timeout 300
 compose run --rm --no-deps ops node docker/vps/check.mjs
 stopped=0
-say 'Restore finished. Sign in and check spaces, tasks and uploads.'
+say 'Restore finished. Sign in and check spaces, stock levels and item photos.'

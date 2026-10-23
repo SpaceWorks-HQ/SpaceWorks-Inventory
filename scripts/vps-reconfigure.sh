@@ -127,6 +127,6 @@ case $choice in
     say "Done. The site is at https://$site_host."
     [[ $layout != netlify ]] || say "Set the same values in your Netlify site's environment (see $SWI_CONFIG_DIR/frontend.env) and redeploy it."
     ;;
-  2) say 'Done. Send a test email from Super admin → Email to confirm delivery.' ;;
+  2) say 'Done. Request a magic sign-in link on the sign-in page to confirm delivery.' ;;
   3) say 'Done. The new bucket key is in use.' ;;
 esac

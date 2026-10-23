@@ -25,8 +25,8 @@ redact() {
     -e 's#(://)[^/@[:space:]]+@#\1REDACTED@#g' \
     -e 's#((password|passwd|secret|token|key|authorization|cookie)[^=:[:space:]]*[=:][[:space:]]*)[^[:space:],"&]+#\1REDACTED#Ig' \
     -e 's#((password|passwd|secret|token|key|authorization|cookie)[^"]*"[[:space:]]*:[[:space:]]*")[^"]*#\1REDACTED#Ig' \
-    -e 's#(/(invite|reset-password|ics)/|/api/hb/)[A-Za-z0-9_-]+#\1REDACTED#g' \
-    -e 's#([?&]ticket=)[A-Za-z0-9_-]+#\1REDACTED#g' \
+    -e 's#(/(invite|reset-password|login/link)/)[A-Za-z0-9_-]+#\1REDACTED#g' \
+    -e 's#(/api/payments/(razorpay|stripe)/)[A-Za-z0-9_-]+#\1REDACTED#g' \
     -e 's#AGE-SECRET-KEY-[A-Z0-9]+#REDACTED#g' \
     -e 's#[A-Za-z0-9+/]{43}=|[a-f0-9]{64,}#REDACTED#g'
 }

@@ -117,8 +117,7 @@ services:
     logging: *logging
 
   # The backend: the whole application in the single layout, the API otherwise.
-  # It reads the installer's
-  # backup status (no secrets) for the super-admin Operations page.
+  # It can read the installer's backup status (no secrets).
   app:
     <<: *backend
     restart: unless-stopped

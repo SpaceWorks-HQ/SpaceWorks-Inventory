@@ -474,4 +474,3 @@ Shared page geometry is in `components/ui/layouts.tsx`: dashboard (260px activit
 
 Patch is the main page state's one bold moment. Keep nested empty panels plain. Use the original adaptive assets, a quarter-height clear space, and the reduced-motion still. Closed polls with quorum use `pose="sneeze"`; other idle states stay still.
 
-See [design-audit.md](design-audit.md) for rule and area coverage, verification results and open owner items. Browser verification is intentionally excluded from this pass.

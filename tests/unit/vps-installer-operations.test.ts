@@ -10,10 +10,10 @@ describe("VPS installer operations", () => {
     const source = readFileSync(path.join(root, "scripts/vps-support.sh"), "utf8");
     const fn = source.slice(source.indexOf("redact() {"), source.indexOf("\nsection()"));
     const result = spawnSync("bash", ["-c", `${fn}\nredact`], {
-      encoding: "utf8", input: 'password=plain-value {"smtpPassword":"json-value","apiKey": "json-key"} Authorization: Bearer bearer-value https://u:url-pass@example.test /reset-password/reset-value ?ticket=ticket-value',
+      encoding: "utf8", input: 'password=plain-value {"smtpPassword":"json-value","apiKey": "json-key"} Authorization: Bearer bearer-value https://u:url-pass@example.test /reset-password/reset-value /login/link/link-value /api/payments/stripe/hook-value',
     });
     expect(result.status).toBe(0);
-    for (const secret of ["plain-value", "json-value", "json-key", "bearer-value", "url-pass", "reset-value", "ticket-value"]) expect(result.stdout).not.toContain(secret);
+    for (const secret of ["plain-value", "json-value", "json-key", "bearer-value", "url-pass", "reset-value", "link-value", "hook-value"]) expect(result.stdout).not.toContain(secret);
     expect(result.stdout).toContain("REDACTED");
   });
   it("offers every operator tool from the installer menu, each shipped with the release", () => {

@@ -10,7 +10,7 @@
 #   OFFSITE_*               copy each backup to an S3 bucket (needs encryption)
 # A systemd timer (swi-backup.timer) runs it nightly when scheduled. Each
 # run records its outcome in $SWI_CONFIG_DIR/status/backup.json, which the
-# super-admin Operations page shows and alerts on.
+# installer's status command (scripts/vps-status.sh) reports.
 set -euo pipefail
 set +x
 source_dir=$(CDPATH='' cd -- "$(dirname -- "$0")/.." && pwd)

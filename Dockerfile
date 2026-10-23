@@ -14,7 +14,7 @@ COPY frontend/package.json ./frontend/package.json
 COPY prisma/schema.prisma ./prisma/schema.prisma
 RUN npm ci
 
-# A small migration-only target, used by the staging Compose file. Releases
+# A small migration-only target for platforms with a separate migration job. Releases
 # migrate with the backend image's `migrate` role instead.
 # scripts/prisma.mjs defaults DIRECT_URL to DATABASE_URL when it is unset.
 FROM deps AS migrator
@@ -82,7 +82,7 @@ RUN --mount=type=secret,id=NEXT_SERVER_ACTIONS_ENCRYPTION_KEY \
     export NEXT_SERVER_ACTIONS_ENCRYPTION_KEY; \
     npm run build
 
-# The separately deployable rendering frontend (the frontend/ space),
+# The separately deployable rendering frontend (the frontend/ npm workspace),
 # published as spaceworks-inventory-frontend. It holds no database, mail, Redis or
 # storage client and reaches the backend only through the authenticated gateway.
 FROM node:22-alpine AS frontend-builder

@@ -277,12 +277,6 @@ jobs:
           - \`ghcr.io/$OWNER/spaceworks-inventory-backend:$VERSION\`: application and API; also runs migrations (\`migrate\`) and the VPS tools
           - \`ghcr.io/$OWNER/spaceworks-inventory-frontend:$VERSION\`: the website, for the split layout
 
-          Secrets CLI and Node SDK (\`swi\`), same version:
-
-          \`\`\`bash
-          npm install -g @spaceworks-hq/space-cli@$BASE
-          \`\`\`
-
           Built from \`$SHA\`.
           EOF
           )

@@ -11,7 +11,7 @@ services:
   - type: web
     name: spaceworks-inventory
     runtime: docker
-    plan: 0.5c-512mb
+    plan: starter
     # Closest to your Supabase/Upstash region; cannot change after creation
     # (oregon, ohio, virginia, frankfurt, singapore).
     region: singapore
@@ -113,7 +113,7 @@ services:
   - type: worker
     name: spaceworks-inventory-worker
     runtime: docker
-    plan: 0.5c-512mb
+    plan: starter
     region: singapore
     dockerfilePath: ./Dockerfile
     dockerContext: .
@@ -254,7 +254,7 @@ services:
   - type: worker
     name: spaceworks-inventory-beat
     runtime: docker
-    plan: 0.5c-512mb
+    plan: starter
     region: singapore
     dockerfilePath: ./Dockerfile
     dockerContext: .

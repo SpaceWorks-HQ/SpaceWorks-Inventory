@@ -27,13 +27,15 @@ describe("frontend API proxy", () => {
       expect(forwarded.has("x-forwarded-for")).toBe(false); expect(forwarded.get("x-swi-frontend-key")).toBe("test-peer");
     } finally { vi.unstubAllGlobals(); }
   });
-  it("preserves provider signatures and MCP challenges without browser Origin", async () => {
+  it("forwards payment webhooks with their signatures and no cookies, without a browser Origin", async () => {
     const fetchMock = vi.fn().mockResolvedValue(new Response(null, { status: 401, headers: { "www-authenticate": "Bearer realm=space-works" } }));
     vi.stubGlobal("fetch", fetchMock);
     try {
-      const response = await proxyBackendApi(new Request("https://space.example.test/api/integrations/github/webhook", { method: "POST", headers: { "x-hub-signature-256": "sha256=fixture", "x-github-event": "issues", "x-github-delivery": "delivery-1" }, body: "{}" }));
+      const response = await proxyBackendApi(new Request("https://space.example.test/api/payments/stripe/abcdefghijklmnopqrstuvwx", { method: "POST", headers: { "stripe-signature": "t=1,v1=fixture", cookie: "session=value" }, body: "{}" }));
       expect(response.status).toBe(401);
-      expect((fetchMock.mock.calls[0][1].headers as Headers).get("x-hub-signature-256")).toBe("sha256=fixture");
+      const forwarded = fetchMock.mock.calls[0][1].headers as Headers;
+      expect(forwarded.get("stripe-signature")).toBe("t=1,v1=fixture");
+      expect(forwarded.has("cookie")).toBe(false);
       expect(response.headers.get("www-authenticate")).toBe("Bearer realm=space-works");
     } finally { vi.unstubAllGlobals(); }
   });

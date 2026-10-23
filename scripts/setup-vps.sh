@@ -62,7 +62,7 @@ Space Works Inventory $version is running.
 Next steps
   1. Open $origin/setup to create the first account using the super-admin email,
      enable authenticator MFA, then open /admin.
-  2. Send a test email, create a space, invite a member and upload a private file.
+  2. Finish the space setup wizard, request a magic sign-in link, invite a member and upload an item photo.
   3. Check backups: run the installer again and choose Backups (schedule,
      encryption, off-site copies), or back up now with
      sudo bash $scripts_dir/vps-backup.sh
@@ -206,7 +206,7 @@ acme_email=''
 [[ $https_mode != 2 ]] || ask acme_email 'Certificate email (Let'"'"'s Encrypt expiry notices)' "$admin_email" is_plain_email 'Enter a plain address such as you@example.com.'
 cat >/dev/tty <<'EOF'
 
-File storage (private documents, receipts and uploads)
+File storage (item photos and handover evidence)
   1 = bundled Silo object storage on this server
   2 = an external S3-compatible bucket (Cloudflare R2, Amazon S3...): create a private
       bucket and an access key limited to it first

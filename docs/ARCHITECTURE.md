@@ -101,8 +101,10 @@ transaction that caused it. The BullMQ worker delivers them with retries;
 the beat schedules periodic jobs (`lib/scheduled/index.ts`): outbox relay,
 loan reminders and escalations, count schedules, payment reconciliation and
 retention. Without Redis in development, `JOBS_INPROCESS=true` runs the same
-jobs in the web process. `POST /api/internal/outbox` (with `CRON_SECRET`)
-runs everything once for hosts without a worker.
+jobs in the web process. `POST /api/internal/outbox?run=inline` (with `CRON_SECRET`)
+runs everything once inside the web process, for hosts without a worker (the
+free-plan cron Worker calls it every minute); without `run=inline` it only
+queues due outbox rows for the worker.
 
 ## Integrations
 

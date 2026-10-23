@@ -19,7 +19,7 @@
 #
 # With MIGRATE_ON_START=1 the web server applies pending migrations first, for
 # platforms without a separate release step (the Render free plan). Elsewhere
-# run the `migrate` role (or the Helm migration Job) once per release.
+# run the `migrate` role (or a platform pre-deploy job) once per release.
 # Migrations use DIRECT_URL (a direct or session-mode connection), falling back
 # to DATABASE_URL. A failed migration exits non-zero.
 set -eu

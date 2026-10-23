@@ -1,22 +1,25 @@
 /**
  * Space Works Inventory scheduler (Cloudflare Worker, Cron Trigger every minute).
  *
- * Free hosting plans (Render free) put an idle instance to sleep, which also
- * stops the app's in-process outbox worker. Each run:
- *   1. GET  {APP_URL}/api/health            wakes the app (cold start ~30-60 s)
- *   2. POST {APP_URL}/api/internal/outbox   delivers queued email + retention cleanup
- *   3. POST {APP_URL}/api/internal/jobs     periodic jobs (assistant schedules,
- *                                           monitor checks); 204 when idle
+ * Free hosting plans (Render free) have no background worker and put an idle
+ * web instance to sleep. Each run:
+ *   1. GET  {APP_URL}/api/health                       wakes the app (cold start ~30-60 s)
+ *   2. POST {APP_URL}/api/internal/outbox?run=inline   the web instance itself delivers
+ *      queued email and webhooks, runs loan reminders, count schedules, payment
+ *      reconciliation and retention, once.
+ * With INLINE=false (a worker runs elsewhere) step 2 only queues the work for it
+ * and step 3 POST {APP_URL}/api/internal/jobs queues the periodic jobs.
  * Steps 2 and 3 send `Authorization: Bearer {CRON_SECRET}`. Because step 2
  * queries the database every minute, it also keeps a free Supabase project awake.
  *
- * Secrets (set with `wrangler secret put`): APP_URL, CRON_SECRET.
+ * Secrets (set with `wrangler secret put`): APP_URL, CRON_SECRET. Optional var: INLINE ("false" with a worker).
  * Never log the secret or response bodies; only status codes are logged.
  */
 
 interface Env {
   APP_URL: string;
   CRON_SECRET: string;
+  INLINE?: string;
 }
 
 // Minimal local shapes so this folder needs no type packages beyond wrangler.
@@ -45,9 +48,9 @@ async function call(url: string, init: RequestInit, timeoutMs: number): Promise<
   return response.status;
 }
 
-async function trigger(origin: string, secret: string, name: "outbox" | "jobs"): Promise<boolean> {
+async function trigger(origin: string, secret: string, name: "outbox" | "jobs", inline = false): Promise<boolean> {
   try {
-    const status = await call(`${origin}/api/internal/${name}`, {
+    const status = await call(`${origin}/api/internal/${name}${inline ? "?run=inline" : ""}`, {
       method: "POST",
       headers: { Authorization: `Bearer ${secret}`, "User-Agent": USER_AGENT },
     }, CALL_TIMEOUT_MS);
@@ -72,7 +75,10 @@ async function run(env: Env): Promise<void> {
     console.warn(`health failed: ${error instanceof Error ? error.name : "error"}`);
   }
 
-  const results = await Promise.all([trigger(origin, env.CRON_SECRET, "outbox"), trigger(origin, env.CRON_SECRET, "jobs")]);
+  const inline = env.INLINE !== "false";
+  const results = inline
+    ? [await trigger(origin, env.CRON_SECRET, "outbox", true)]
+    : await Promise.all([trigger(origin, env.CRON_SECRET, "outbox"), trigger(origin, env.CRON_SECRET, "jobs")]);
   if (!results.every(Boolean)) throw new Error("a scheduled call failed");
 }
 

@@ -25,9 +25,9 @@ describe("QR landing", () => {
     const staff = viewer({ role: "STAFF" });
     expect(qrLandingDecision(target(), staff)).toEqual({ type: "redirect", url: "/s/tinker/items/item1" });
     expect(qrLandingDecision(target({ kind: "asset", id: "a1" }), staff)).toEqual({ type: "redirect", url: "/s/tinker/assets/a1" });
-    expect(qrLandingDecision(target({ kind: "location", id: "l1", itemId: null }), viewer({ role: "OWNER" }))).toEqual({ type: "redirect", url: "/s/tinker/locations/l1" });
-    expect(qrLandingDecision(target({ kind: "kit", id: "k1", itemId: null }), staff)).toEqual({ type: "redirect", url: "/s/tinker/kits/k1" });
-    expect(qrLandingDecision(target({ kind: "container", id: "c1", itemId: null }), staff)).toEqual({ type: "redirect", url: "/s/tinker/kits?container=c1" });
+    expect(qrLandingDecision(target({ kind: "location", id: "l1", itemId: null }), viewer({ role: "OWNER" }))).toEqual({ type: "redirect", url: "/s/tinker/stock?location=l1" });
+    expect(qrLandingDecision(target({ kind: "kit", id: "k1", itemId: null }), staff)).toEqual({ type: "redirect", url: "/s/tinker/kits" });
+    expect(qrLandingDecision(target({ kind: "container", id: "c1", itemId: null }), staff)).toEqual({ type: "redirect", url: "/s/tinker/kits" });
   });
 
   it("sends members to their own loan, else the catalogue item, else the space home", () => {

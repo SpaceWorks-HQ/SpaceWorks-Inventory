@@ -81,7 +81,7 @@ write("app.env", envText({
   NEXT_SERVER_ACTIONS_ENCRYPTION_KEY: actionsKey, MFA_ENCRYPTION_KEY: key(), INTEGRATION_ENCRYPTION_KEY: key(), SUPER_ADMIN_EMAIL: email,
   TRUSTED_PROXY_IP_HEADER: "x-real-ip", S3_BUCKET: "spaceworks-inventory", S3_REGION: "us-east-1",
   S3_ENDPOINT: "https://storage:9000", S3_ACCESS_KEY_ID: "swi-app", S3_SECRET_ACCESS_KEY: storageApp, S3_FORCE_PATH_STYLE: "1",
-  EMAIL_FROM: `Space Works Inventory <events@${host}>`, SMTP_HOST: "CHANGE_ME", SMTP_PORT: "587",
+  EMAIL_FROM: `Space Works Inventory <inventory@${host}>`, SMTP_HOST: "CHANGE_ME", SMTP_PORT: "587",
   SMTP_SECURE: "false", SMTP_USER: "CHANGE_ME", SMTP_PASSWORD: "CHANGE_ME",
 }));
 write("redis.conf", `port 0\ntls-port 6379\ntls-cert-file /data/tls/public.crt\ntls-key-file /data/tls/private.key\ntls-ca-cert-file /tls/ca.crt\ntls-auth-clients no\nrequirepass ${redisPassword}\nappendonly yes\nmaxmemory-policy noeviction\n`);

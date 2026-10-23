@@ -28,3 +28,17 @@ describe("outbox enqueue endpoint", () => {
     expect(JSON.stringify(await response.json())).not.toContain("private Redis");
   });
 });
+
+vi.mock("@/lib/outboxWorker", () => ({ runOutboxScheduler: vi.fn(async () => ({ sent: 3, failed: 0, purged: {}, scheduled: { ran: 5, failed: [] } })) }));
+describe("inline run for hosts without a worker", () => {
+  it("delivers and runs the periodic jobs in-process once the secret matches", async () => {
+    vi.stubEnv("CRON_SECRET", secret);
+    const { runOutboxScheduler } = await import("@/lib/outboxWorker");
+    const denied = await POST(new Request("http://localhost/api/internal/outbox?run=inline", { method: "POST" }));
+    expect(denied.status).toBe(404);
+    const response = await POST(new Request("http://localhost/api/internal/outbox?run=inline", { method: "POST", headers: { authorization: `Bearer ${secret}` } }));
+    expect(await response.json()).toEqual({ ok: true, sent: 3, failed: 0, jobsFailed: 0 });
+    expect(runOutboxScheduler).toHaveBeenCalledTimes(1);
+    expect(enqueueDueOutbox).not.toHaveBeenCalled();
+  });
+});
