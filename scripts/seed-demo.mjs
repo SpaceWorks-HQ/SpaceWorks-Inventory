@@ -40,7 +40,8 @@ try {
   const { seedDemo } = await import(pathToFileURL(path.join(out, "demo.mjs")).href);
   const result = await seedDemo(password);
   console.log(`Seeded ${result.spaces.join(", ")}. Sign in as:\n  ${result.users.join("\n  ")}\nwith DEMO_PASSWORD.`);
-  process.exit(0);
 } finally {
   rmSync(out, { recursive: true, force: true });
 }
+// Prisma keeps the process alive otherwise.
+process.exit(0);
