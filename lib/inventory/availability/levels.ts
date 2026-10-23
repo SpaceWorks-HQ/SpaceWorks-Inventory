@@ -28,6 +28,14 @@ export async function lockItems(tx: Tx, itemIds: string[]) {
 export async function lockLevels(tx: Tx, spaceId: string, keys: LevelKey[]): Promise<Map<string, LockedLevel>> {
   const unique = [...new Map(keys.map((key) => [`${key.itemId}:${key.locationId}`, key])).values()]
     .sort((a, b) => (a.itemId === b.itemId ? a.locationId.localeCompare(b.locationId) : a.itemId.localeCompare(b.itemId)));
+  // Tenancy: never open a balance for an item or a location of another space.
+  const itemIds = [...new Set(unique.map((key) => key.itemId))];
+  const locationIds = [...new Set(unique.map((key) => key.locationId))];
+  const [items, locations] = await Promise.all([
+    tx.item.count({ where: { id: { in: itemIds }, spaceId } }),
+    tx.location.count({ where: { id: { in: locationIds }, spaceId } }),
+  ]);
+  if (items !== itemIds.length || locations !== locationIds.length) throw new StockError("That item or location isn't in this space.", "invalid_quantity");
   for (const key of unique) {
     await tx.$executeRaw`
       INSERT INTO "StockLevel" ("id", "spaceId", "itemId", "locationId", "updatedAt")

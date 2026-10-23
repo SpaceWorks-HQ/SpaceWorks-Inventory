@@ -2,8 +2,8 @@ import { z } from "zod";
 
 /** Shared, client-safe input schemas for the catalogue. Money is minor units. */
 
-const optionalText = (max: number) => z.string().trim().max(max).optional().transform((v) => v || null);
-const optionalId = z.string().trim().max(64).optional().transform((v) => v || null);
+const optionalText = (max: number) => z.string().trim().max(max).nullish().transform((v) => v || null);
+const optionalId = z.string().trim().max(64).nullish().transform((v) => v || null);
 const optionalInt = (min: number, max: number) => z.number().int().min(min).max(max).nullable().optional().transform((v) => v ?? null);
 const optionalMoney = optionalInt(0, 100_000_000);
 
@@ -11,7 +11,7 @@ export const SKU_PATTERN = /^[A-Za-z0-9][A-Za-z0-9._-]{0,39}$/;
 
 export const itemSchema = z.object({
   name: z.string().trim().min(1, "Enter a name.").max(120),
-  sku: z.string().trim().max(40).optional().transform((v) => v || null).refine((v) => v === null || SKU_PATTERN.test(v), "Use letters, digits, dots, dashes or underscores."),
+  sku: z.string().trim().max(40).nullish().transform((v) => v || null).refine((v) => v === null || SKU_PATTERN.test(v), "Use letters, digits, dots, dashes or underscores."),
   description: optionalText(2000),
   categoryId: optionalId,
   unitId: optionalId,
@@ -67,9 +67,9 @@ export const unitSchema = z.object({
 
 export const supplierSchema = z.object({
   name: z.string().trim().min(1, "Enter a name.").max(80),
-  email: z.union([z.literal(""), z.string().trim().toLowerCase().email("Enter a valid email address.")]).optional().transform((v) => v || null),
+  email: z.union([z.literal(""), z.string().trim().toLowerCase().email("Enter a valid email address.")]).nullish().transform((v) => v || null),
   phone: optionalText(32),
-  website: z.union([z.literal(""), z.string().trim().url("Enter a full URL.")]).optional().transform((v) => v || null),
+  website: z.union([z.literal(""), z.string().trim().url("Enter a full URL.")]).nullish().transform((v) => v || null),
   notes: optionalText(1000),
 });
 

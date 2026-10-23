@@ -18,7 +18,7 @@ export function CreateSpaceForm() {
   const [pending, startTransition] = useTransition();
   return (
     <Card>
-      <CardHeader title="New space" description="For another community or chapter. The owner gets an invitation if they don't have an account yet." />
+      <CardHeader title="New space" description="For another makerspace on this instance. Its owner finishes setup inside the space; they get an invitation if they don't have an account yet." />
       <form
         className="grid gap-4 md:grid-cols-3 md:items-end"
         onSubmit={(event) => {

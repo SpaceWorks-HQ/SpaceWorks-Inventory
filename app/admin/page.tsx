@@ -32,7 +32,7 @@ export default async function AdminOverviewPage() {
           <li>Redis: {redisConfigured ? "configured" : "not configured (rate limits and realtime use this process only)"}</li>
           <li>Object storage: {filesConfigured ? "configured" : "not configured (development disk fallback)"}</li>
           <li>
-            Email, Google sign-in and the assistant key: <Link href="/admin/settings" className="font-semibold underline underline-offset-4">instance settings</Link>
+            Email and account sign-up: <Link href="/admin/settings" className="font-semibold underline underline-offset-4">instance settings</Link>
           </li>
         </ul>
       </Card>

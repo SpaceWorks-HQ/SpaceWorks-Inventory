@@ -180,7 +180,7 @@ describe("design source guards across every area", () => {
     for (const file of files.filter(f => f.endsWith(".tsx"))) {
       const source = ts.createSourceFile(file, read(file), ts.ScriptTarget.Latest, true, ts.ScriptKind.TSX);
       const icons = new Set<string>();
-      const approved = new Set(["Archive", "Cpu", "MapPin", "Search", "Plus", "ArrowLeft", "ArrowUpRight", "ChevronsUpDown", "Info", "TriangleAlert", "CircleCheck", "Ellipsis", "Sun", "Moon", "LogOut"]);
+      const approved = new Set(["Archive", "Cpu", "MapPin", "Search", "Plus", "ArrowLeft", "ArrowUpRight", "ChevronsUpDown", "Info", "TriangleAlert", "CircleCheck", "Ellipsis", "Sun", "Moon", "LogOut", "Package", "Boxes", "QrCode", "ScanLine", "Camera", "Warehouse", "ArrowLeftRight", "Truck", "Wrench", "ClipboardCheck", "Tag", "Printer", "Upload", "Download", "CreditCard", "Undo2"]);
       for (const statement of source.statements) if (ts.isImportDeclaration(statement) && ts.isStringLiteral(statement.moduleSpecifier) && statement.moduleSpecifier.text === "lucide-react") {
         const bindings = statement.importClause?.namedBindings;
         if (bindings && ts.isNamedImports(bindings)) for (const icon of bindings.elements) {

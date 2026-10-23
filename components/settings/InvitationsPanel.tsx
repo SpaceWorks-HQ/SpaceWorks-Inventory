@@ -48,7 +48,7 @@ export function InvitationsPanel({ slug, roles, invitations }: { slug: string; r
   return (
     <div className="flex flex-col gap-6">
       <Card>
-        <CardHeader title="Invite someone" description="They get an email with a link that works for 7 days." />
+        <CardHeader title="Invite someone" description="They get an email with a link that works for 7 days. Members can borrow; staff and above also run the desk." />
         <form
           className="grid gap-3 sm:grid-cols-[minmax(0,1fr)_180px_auto] sm:items-end"
           onSubmit={(event) => {
@@ -79,9 +79,9 @@ export function InvitationsPanel({ slug, roles, invitations }: { slug: string; r
       </Card>
 
       {invitations.length === 0 ? (
-        <EmptyState title="No invitations yet.">Invite the crew to get started.</EmptyState>
+        <EmptyState title="No invitations waiting.">People you invite show here until they join.</EmptyState>
       ) : (
-        <Table label="Invitations">
+        <Table label="Invitations waiting">
           <THead>
             <tr>
               <TH>Email</TH>

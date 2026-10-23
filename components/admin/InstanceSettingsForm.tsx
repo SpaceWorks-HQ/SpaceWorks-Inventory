@@ -5,38 +5,41 @@ import { useRouter } from "next/navigation";
 import { updateInstanceSettingsAction } from "@/app/actions/admin";
 import { Button } from "@/components/ui/button";
 import { Card, Chip, SettingsRow } from "@/components/ui/display";
-import { Field, Input, PasswordInput } from "@/components/ui/field";
+import { Dropdown, Field, Input, PasswordInput } from "@/components/ui/field";
 import { useToast } from "@/components/feedback/ToastProvider";
 
 export type SettingView = { key: string; secret: boolean; value: string | null; isSet: boolean; source: "database" | "environment" | "unset" };
 
-const GROUPS: Array<{ title: string; description: string; fields: Array<{ key: string; label: string; help?: string }> }> = [
+type FieldSpec = { key: string; label: string; help?: string; options?: Array<{ value: string; label: string }> };
+
+const GROUPS: Array<{ title: string; description: string; fields: FieldSpec[] }> = [
   {
     title: "Email (SMTP)",
-    description: "Used for invitations and password resets. Brevo on port 2525 works on most hosts.",
+    description: "Used for invitations, loan reminders and password resets. Brevo on port 2525 works on most hosts.",
     fields: [
       { key: "smtp.from", label: "From address", help: "e.g. Space Works <hello@example.org>" },
+      { key: "smtp.service", label: "Service name", help: "Optional shortcut such as \"gmail\"; leave empty to use host and port." },
       { key: "smtp.host", label: "SMTP host" },
       { key: "smtp.port", label: "SMTP port" },
       { key: "smtp.secure", label: "Implicit TLS", help: "\"true\" for port 465, otherwise \"false\"." },
       { key: "smtp.user", label: "SMTP user" },
       { key: "smtp.password", label: "SMTP password" },
+      { key: "smtp.allowUnauthenticated", label: "Allow sending without a login", help: "\"true\" only for a local relay that needs no user." },
     ],
   },
   {
-    title: "Google sign-in",
-    description: "Lets invited members sign in with the same Google email. Never creates accounts.",
+    title: "Accounts",
+    description: "Who can create an account on this instance. Joining a space still needs an invitation, or self-join from a public catalogue.",
     fields: [
-      { key: "google.clientId", label: "OAuth client ID" },
-      { key: "google.clientSecret", label: "OAuth client secret" },
-    ],
-  },
-  {
-    title: "Assistant",
-    description: "Anthropic API key and model for the Space Works Assistant.",
-    fields: [
-      { key: "ai.anthropicApiKey", label: "Anthropic API key" },
-      { key: "ai.model", label: "Model", help: "Defaults to claude-opus-5-5." },
+      {
+        key: "accounts.signup",
+        label: "Sign-up",
+        options: [
+          { value: "", label: "Use the environment setting" },
+          { value: "invite", label: "Invitation only" },
+          { value: "open", label: "Anyone can create an account" },
+        ],
+      },
     ],
   },
 ];
@@ -88,7 +91,11 @@ export function InstanceSettingsForm({ settings }: { settings: SettingView[] }) 
                 const label = <span className="inline-flex items-center gap-2">{field.label} <SourceChip setting={setting} /></span>;
                 return (
                   <Field key={field.key} label={label} helperText={setting?.secret ? "Write-only. Leave empty to keep the saved value." : field.help}>
-                    {setting?.secret ? (
+                    {field.options ? (
+                      <Dropdown value={values[field.key] ?? ""} onChange={(e) => setValues((v) => ({ ...v, [field.key]: e.target.value }))}>
+                        {field.options.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}
+                      </Dropdown>
+                    ) : setting?.secret ? (
                       <PasswordInput value={values[field.key] ?? ""} onChange={(e) => setValues((v) => ({ ...v, [field.key]: e.target.value }))} autoComplete="off" />
                     ) : (
                       <Input value={values[field.key] ?? ""} onChange={(e) => setValues((v) => ({ ...v, [field.key]: e.target.value }))} autoComplete="off" />

@@ -76,7 +76,7 @@ export async function approveLoan(tx: Tx, input: { spaceId: string; loanId: stri
   if (total === 0) throw new DomainError("Approve at least one item, or reject the request instead.", "invalid");
   await tx.loan.update({ where: { id: loan.id }, data: { status: "APPROVED", approvedById: actor.userId, approvedAt: new Date() } });
   await createLoanCharges(tx, { loanId: loan.id });
-  await recordAuditEvent({ client: tx, action: "loan.approved", spaceId: input.spaceId, actorId: actor.userId, targetType: "Loan", targetId: loan.id, metadata: { units: total, automatic: actor.userId === null } });
+  await recordAuditEvent({ client: tx, action: "loan.approved", spaceId: input.spaceId, actorId: actor.userId, actorApiTokenId: actor.apiTokenId ?? null, targetType: "Loan", targetId: loan.id, metadata: { units: total, automatic: actor.userId === null } });
   await emitEvent(tx, { spaceId: input.spaceId, type: "loan.approved", data: { loanId: loan.id, reference: loanRef(loan.number), units: total } });
   await notifyUsers(tx, input.spaceId, [loan.borrowerId], { kind: "loan.approved", title: `${loanRef(loan.number)} is ready to collect`, body: "Bring it to the desk; staff will scan and photograph the items as they hand them over.", url: loanUrl(loan.space.slug, loan.id, "borrower"), email: true });
 }
@@ -86,7 +86,7 @@ export async function rejectLoan(tx: Tx, input: { spaceId: string; loanId: strin
   if (!reason) throw new DomainError("Give the member a short reason.", "invalid");
   const loan = await lockLoan(tx, input.spaceId, input.loanId, "reject");
   await tx.loan.update({ where: { id: loan.id }, data: { status: "REJECTED", rejectedById: actor.userId, rejectedAt: new Date(), rejectReason: reason.slice(0, 500) } });
-  await recordAuditEvent({ client: tx, action: "loan.rejected", spaceId: input.spaceId, actorId: actor.userId, targetType: "Loan", targetId: loan.id });
+  await recordAuditEvent({ client: tx, action: "loan.rejected", spaceId: input.spaceId, actorId: actor.userId, actorApiTokenId: actor.apiTokenId ?? null, targetType: "Loan", targetId: loan.id });
   await emitEvent(tx, { spaceId: input.spaceId, type: "loan.rejected", data: { loanId: loan.id, reference: loanRef(loan.number) } });
   await notifyUsers(tx, input.spaceId, [loan.borrowerId], { kind: "loan.rejected", title: `${loanRef(loan.number)} wasn't approved`, body: reason, url: loanUrl(loan.space.slug, loan.id, "borrower"), email: true });
 }
@@ -103,7 +103,7 @@ export async function cancelLoan(tx: Tx, input: { spaceId: string; loanId: strin
   }
   await tx.loan.update({ where: { id: loan.id }, data: { status: "CANCELLED", cancelledAt: new Date(), staffNote: input.reason?.slice(0, 500) ?? loan.staffNote } });
   const { refundIds } = await cancelOpenCharges(tx, { loanId: loan.id, reason: input.reason ?? "Loan cancelled", actorId: actor.userId });
-  await recordAuditEvent({ client: tx, action: "loan.cancelled", spaceId: input.spaceId, actorId: actor.userId, targetType: "Loan", targetId: loan.id, metadata: { byBorrower: Boolean(input.byBorrowerId) } });
+  await recordAuditEvent({ client: tx, action: "loan.cancelled", spaceId: input.spaceId, actorId: actor.userId, actorApiTokenId: actor.apiTokenId ?? null, targetType: "Loan", targetId: loan.id, metadata: { byBorrower: Boolean(input.byBorrowerId) } });
   await emitEvent(tx, { spaceId: input.spaceId, type: "loan.cancelled", data: { loanId: loan.id, reference: loanRef(loan.number) } });
   if (!input.byBorrowerId) {
     await notifyUsers(tx, input.spaceId, [loan.borrowerId], { kind: "loan.cancelled", title: `${loanRef(loan.number)} was cancelled`, body: input.reason, url: loanUrl(loan.space.slug, loan.id, "borrower"), email: true });

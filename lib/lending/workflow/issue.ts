@@ -84,7 +84,7 @@ export async function issueLoan(tx: Tx, input: { spaceId: string; loanId: string
     where: { id: loan.id },
     data: { status: allConsumed ? "RETURNED" : "ISSUED", issuedAt: now, issuedById: actor.userId, containerId: container?.id ?? null, dueAt, ...(allConsumed ? { returnedAt: now } : {}) },
   });
-  await recordAuditEvent({ client: tx, action: "loan.issued", spaceId: input.spaceId, actorId: actor.userId, targetType: "Loan", targetId: loan.id, metadata: { units, evidenceId: evidence.id, container: container?.code ?? null } });
+  await recordAuditEvent({ client: tx, action: "loan.issued", spaceId: input.spaceId, actorId: actor.userId, actorApiTokenId: actor.apiTokenId ?? null, targetType: "Loan", targetId: loan.id, metadata: { units, evidenceId: evidence.id, container: container?.code ?? null } });
   await emitEvent(tx, { spaceId: input.spaceId, type: "loan.issued", data: { loanId: loan.id, reference: loanRef(loan.number), units, dueAt: dueAt.toISOString() } });
   await notifyUsers(tx, input.spaceId, [loan.borrowerId], { kind: "loan.issued", title: `${loanRef(loan.number)} is yours until ${formatDayLong(dueAt, loan.space.timezone)}`, body: "Bring everything back to the desk by the due date.", url: loanUrl(loan.space.slug, loan.id, "borrower"), email: true });
   return { dueAt };

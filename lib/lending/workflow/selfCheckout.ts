@@ -67,7 +67,7 @@ export async function selfCheckout(tx: Tx, input: { spaceId: string; borrowerId:
   const evidence = await recordEvidence(tx, { ...input.evidence, spaceId: input.spaceId, kind: "ISSUE", loanId: loan.id, actorId: actor.userId, minPhotos: space.minEvidencePhotos, remarksRequired: false });
   const allConsumed = items.every((item) => item.consumable);
   await tx.loan.update({ where: { id: loan.id }, data: { status: allConsumed ? "RETURNED" : "ISSUED", issuedAt: now, issuedById: actor.userId, ...(allConsumed ? { returnedAt: now } : {}) } });
-  await recordAuditEvent({ client: tx, action: "loan.self_checkout", spaceId: input.spaceId, actorId: actor.userId, targetType: "Loan", targetId: loan.id, metadata: { units, evidenceId: evidence.id } });
+  await recordAuditEvent({ client: tx, action: "loan.self_checkout", spaceId: input.spaceId, actorId: actor.userId, actorApiTokenId: actor.apiTokenId ?? null, targetType: "Loan", targetId: loan.id, metadata: { units, evidenceId: evidence.id } });
   await emitEvent(tx, { spaceId: input.spaceId, type: "loan.issued", data: { loanId: loan.id, reference: loanRef(loan.number), units, dueAt: loan.dueAt.toISOString(), selfCheckout: true } });
   await notifyUsers(tx, input.spaceId, await staffIds(tx, input.spaceId), { kind: "loan.self_checkout", title: `Self-checkout ${loanRef(loan.number)}`, body: items.map((i) => i.name).slice(0, 3).join(", "), url: loanUrl(space.slug, loan.id, "staff") }, { excludeUserId: input.borrowerId });
   return loan;

@@ -47,6 +47,6 @@ export async function resolveIncident(tx: Tx, input: { spaceId: string; incident
   }
   await tx.loanIncident.update({ where: { id: incident.id }, data: { status: "RESOLVED", resolution: input.resolution, resolutionNote: note.slice(0, 1000), resolvedById: actor.userId, resolvedAt: new Date() } });
   await syncAutomaticRestriction(tx, { spaceId: input.spaceId, userId: incident.borrowerId });
-  await recordAuditEvent({ client: tx, action: "incident.resolved", spaceId: input.spaceId, actorId: actor.userId, targetType: "LoanIncident", targetId: incident.id, metadata: { resolution: input.resolution } });
+  await recordAuditEvent({ client: tx, action: "incident.resolved", spaceId: input.spaceId, actorId: actor.userId, actorApiTokenId: actor.apiTokenId ?? null, targetType: "LoanIncident", targetId: incident.id, metadata: { resolution: input.resolution } });
   await emitEvent(tx, { spaceId: input.spaceId, type: "incident.resolved", data: { incidentId: incident.id, loanId: incident.loanId, resolution: input.resolution } });
 }

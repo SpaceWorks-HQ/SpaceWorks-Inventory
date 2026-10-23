@@ -3,16 +3,18 @@
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { Ellipsis } from "lucide-react";
-import type { MembershipStatus, SpaceRole } from "@prisma/client";
+import type { BorrowingStatus, MembershipStatus, SpaceRole } from "@prisma/client";
 import { changeMemberRoleAction, removeMemberAction, setMemberStatusAction } from "@/app/actions/members";
 import { IconButton } from "@/components/ui/button";
 import { ConfirmDialog } from "@/components/ui/dialog";
-import { Avatar, Chip } from "@/components/ui/display";
+import { Avatar, Chip, EmptyState } from "@/components/ui/display";
 import { Dropdown } from "@/components/ui/field";
 import { Menu, MenuContent, MenuItem, MenuTrigger } from "@/components/ui/menu";
 import { Table, TBody, TD, TH, THead, TR } from "@/components/ui/table";
+import { BorrowingChip } from "@/components/inventory/StatusChips";
 import { useToast } from "@/components/feedback/ToastProvider";
-import { assignableRoles, canActOnMember, roleLabel } from "@/lib/roles";
+import { assignableRoles, canActOnMember, canManageMembers, roleLabel } from "@/lib/roles";
+import { BorrowingAccessDialog, type BorrowingTarget } from "./BorrowingAccessDialog";
 
 export type MemberRow = {
   membershipId: string;
@@ -21,18 +23,26 @@ export type MemberRow = {
   image: string | null;
   role: SpaceRole;
   status: MembershipStatus;
-  title: string | null;
+  borrowingStatus: BorrowingStatus;
+  borrowingNote: string | null;
+  borrowingAuto: boolean;
+  memberNumber: string | null;
+  activeLoans: number;
+  openIncidents: number;
   joined: string;
   isSelf: boolean;
 };
 
+/** Members list: admins change roles and access; managers set borrowing standing. */
 export function MembersTable({ slug, actorRole, members }: { slug: string; actorRole: SpaceRole; members: MemberRow[] }) {
   const router = useRouter();
   const { showToast } = useToast();
   const [pending, startTransition] = useTransition();
   const [removing, setRemoving] = useState<MemberRow | null>(null);
+  const [borrowing, setBorrowing] = useState<BorrowingTarget | null>(null);
   const actor = { role: actorRole };
   const roles = assignableRoles(actor);
+  const admin = canManageMembers(actor);
 
   const run = (action: () => Promise<{ ok: boolean; error?: string }>, success: string) =>
     startTransition(async () => {
@@ -44,6 +54,8 @@ export function MembersTable({ slug, actorRole, members }: { slug: string; actor
       }
     });
 
+  if (members.length === 0) return <EmptyState title="No members match.">Try another name, or clear the filters.</EmptyState>;
+
   return (
     <>
       <Table label="Members">
@@ -51,29 +63,34 @@ export function MembersTable({ slug, actorRole, members }: { slug: string; actor
           <tr>
             <TH>Member</TH>
             <TH>Role</TH>
-            <TH>Status</TH>
+            <TH>Access</TH>
+            <TH>Borrowing</TH>
+            <TH>Member no.</TH>
+            <TH>On loan</TH>
+            <TH>Open incidents</TH>
             <TH>Joined</TH>
             <TH><span className="sr-only">Actions</span></TH>
           </tr>
         </THead>
         <TBody>
           {members.map((member) => {
-            const editable = !member.isSelf && canActOnMember(actor, member.role);
+            const name = member.name ?? member.email;
+            const editable = admin && !member.isSelf && canActOnMember(actor, member.role);
             return (
               <TR key={member.membershipId}>
                 <TD>
                   <span className="flex items-center gap-3">
-                    <Avatar name={member.name ?? member.email} src={member.image} size="sm" />
+                    <Avatar name={name} src={member.image} size="sm" />
                     <span className="min-w-0">
-                      <span className="block truncate font-semibold">{member.name ?? member.email}{member.isSelf ? " (you)" : ""}</span>
-                      <span className="block truncate text-caption text-ink-muted">{member.title ? `${member.title} · ` : ""}{member.email}</span>
+                      <span className="block truncate font-semibold">{name}{member.isSelf ? " (you)" : ""}</span>
+                      {member.name ? <span className="block truncate text-caption text-ink-muted">{member.email}</span> : null}
                     </span>
                   </span>
                 </TD>
-                <TD className="min-w-[150px]">
+                <TD className="min-w-[170px]">
                   {editable ? (
                     <Dropdown
-                      aria-label={`Role for ${member.name ?? member.email}`}
+                      aria-label={`Role for ${name}`}
                       value={member.role}
                       disabled={pending}
                       onChange={(event) => run(() => changeMemberRoleAction(slug, { membershipId: member.membershipId, role: event.target.value }), "Role updated.")}
@@ -87,33 +104,43 @@ export function MembersTable({ slug, actorRole, members }: { slug: string; actor
                   )}
                 </TD>
                 <TD>{member.status === "ACTIVE" ? <Chip tone="success" size="sm">Active</Chip> : <Chip tone="warning" size="sm">Suspended</Chip>}</TD>
+                <TD>
+                  <BorrowingChip status={member.borrowingStatus} />
+                  {member.borrowingStatus !== "GOOD" && member.borrowingAuto ? <span className="mt-0.5 block text-caption text-ink-muted">Automatic</span> : null}
+                </TD>
+                <TD className="tabular-nums">{member.memberNumber ?? <span className="text-ink-muted">None</span>}</TD>
+                <TD className="tabular-nums">{member.activeLoans}</TD>
+                <TD className="tabular-nums">{member.openIncidents > 0 ? <Chip tone="danger" size="sm">{`${member.openIncidents} open`}</Chip> : 0}</TD>
                 <TD className="whitespace-nowrap tabular-nums text-ink-muted">{member.joined}</TD>
                 <TD className="w-12 text-right">
-                  {editable ? (
-                    <Menu>
-                      <MenuTrigger asChild>
-                        <IconButton label={`Actions for ${member.name ?? member.email}`} size="sm" variant="quiet"><Ellipsis /></IconButton>
-                      </MenuTrigger>
-                      <MenuContent align="end">
-                        {member.status === "ACTIVE" ? (
-                          <MenuItem onSelect={() => run(() => setMemberStatusAction(slug, { membershipId: member.membershipId, status: "SUSPENDED" }), "Member suspended.")}>Suspend access</MenuItem>
-                        ) : (
-                          <MenuItem onSelect={() => run(() => setMemberStatusAction(slug, { membershipId: member.membershipId, status: "ACTIVE" }), "Access restored.")}>Restore access</MenuItem>
-                        )}
-                        <MenuItem onSelect={() => setRemoving(member)}>Remove from space…</MenuItem>
-                      </MenuContent>
-                    </Menu>
-                  ) : null}
+                  <Menu>
+                    <MenuTrigger asChild>
+                      <IconButton label={`Actions for ${name}`} size="sm" variant="quiet"><Ellipsis /></IconButton>
+                    </MenuTrigger>
+                    <MenuContent align="end">
+                      <MenuItem onSelect={() => setBorrowing({ membershipId: member.membershipId, name, borrowingStatus: member.borrowingStatus, borrowingNote: member.borrowingNote, borrowingAuto: member.borrowingAuto, memberNumber: member.memberNumber })}>
+                        Borrowing access
+                      </MenuItem>
+                      {editable && member.status === "ACTIVE" ? (
+                        <MenuItem onSelect={() => run(() => setMemberStatusAction(slug, { membershipId: member.membershipId, status: "SUSPENDED" }), "Member suspended.")}>Suspend access to the space</MenuItem>
+                      ) : null}
+                      {editable && member.status !== "ACTIVE" ? (
+                        <MenuItem onSelect={() => run(() => setMemberStatusAction(slug, { membershipId: member.membershipId, status: "ACTIVE" }), "Access restored.")}>Restore access</MenuItem>
+                      ) : null}
+                      {editable ? <MenuItem danger onSelect={() => setRemoving(member)}>Remove from space</MenuItem> : null}
+                    </MenuContent>
+                  </Menu>
                 </TD>
               </TR>
             );
           })}
         </TBody>
       </Table>
+      {borrowing ? <BorrowingAccessDialog key={borrowing.membershipId} slug={slug} member={borrowing} onClose={() => setBorrowing(null)} /> : null}
       <ConfirmDialog
         open={removing !== null}
         title={`Remove ${removing?.name ?? removing?.email ?? "this member"}?`}
-        message="They lose access to every channel, project and doc in this space. Their messages and tasks stay."
+        message="They lose access to this space at once. Their loans, incidents and payments stay on record; items they still hold must come back to the desk."
         confirmLabel="Remove member"
         loading={pending}
         onCancel={() => setRemoving(null)}

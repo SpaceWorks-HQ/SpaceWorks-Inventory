@@ -21,7 +21,7 @@ async function openIncident(tx: Tx, loan: LockedLoan, line: LockedLoan["lines"][
     data: { spaceId: loan.spaceId, loanId: loan.id, lineId: line.id, borrowerId: loan.borrowerId, assetId: line.assetId, kind, quantity, description: description.slice(0, 1000) || (kind === "LOST" ? "Not returned" : "Returned damaged") },
   });
   await addIncidentCharge(tx, { incidentId: incident.id });
-  await recordAuditEvent({ client: tx, action: "incident.opened", spaceId: loan.spaceId, actorId: actor.userId, targetType: "LoanIncident", targetId: incident.id, metadata: { kind, quantity } });
+  await recordAuditEvent({ client: tx, action: "incident.opened", spaceId: loan.spaceId, actorId: actor.userId, actorApiTokenId: actor.apiTokenId ?? null, targetType: "LoanIncident", targetId: incident.id, metadata: { kind, quantity } });
   await emitEvent(tx, { spaceId: loan.spaceId, type: "incident.opened", data: { incidentId: incident.id, loanId: loan.id, kind, quantity, itemId: line.itemId } });
 }
 
@@ -75,7 +75,7 @@ export async function returnLoan(tx: Tx, input: { spaceId: string; loanId: strin
   await tx.loan.update({ where: { id: loan.id }, data: { status, ...(done ? { returnedAt: now, closedAt: now } : {}) } });
   if (done) await addLateFee(tx, { loanId: loan.id, returnedAt: now });
   await syncAutomaticRestriction(tx, { spaceId: input.spaceId, userId: loan.borrowerId, now });
-  await recordAuditEvent({ client: tx, action: `loan.${status === "PARTIALLY_RETURNED" ? "partially_returned" : status === "RETURNED" ? "returned" : "closed_with_issue"}`, spaceId: input.spaceId, actorId: actor.userId, targetType: "Loan", targetId: loan.id, metadata: { evidenceId: evidence.id, selfReturn: Boolean(input.byBorrowerId) } });
+  await recordAuditEvent({ client: tx, action: `loan.${status === "PARTIALLY_RETURNED" ? "partially_returned" : status === "RETURNED" ? "returned" : "closed_with_issue"}`, spaceId: input.spaceId, actorId: actor.userId, actorApiTokenId: actor.apiTokenId ?? null, targetType: "Loan", targetId: loan.id, metadata: { evidenceId: evidence.id, selfReturn: Boolean(input.byBorrowerId) } });
   await emitEvent(tx, { spaceId: input.spaceId, type: "loan.returned", data: { loanId: loan.id, reference: loanRef(loan.number), status, complete: done } });
   const borrowerUrl = loanUrl(loan.space.slug, loan.id, "borrower");
   await notifyUsers(tx, input.spaceId, [loan.borrowerId], { kind: "loan.returned", title: done ? `${loanRef(loan.number)} is closed` : `Part of ${loanRef(loan.number)} is back`, body: hadIssue ? "Some items came back damaged or missing; staff will be in touch." : "Thanks for bringing things back.", url: borrowerUrl, email: done }, { excludeUserId: input.byBorrowerId ? null : undefined });

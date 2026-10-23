@@ -39,7 +39,7 @@ export async function renewLoan(tx: Tx, input: { spaceId: string; loanId: string
   await tx.loan.update({ where: { id: loan.id }, data: { dueAt, renewalCount: { increment: 1 }, dueReminderAt: null, overdueAt: null, escalatedAt: null } });
   await addRenewalCharge(tx, { loanId: loan.id, extraDays: space.renewalDays });
   await syncAutomaticRestriction(tx, { spaceId: input.spaceId, userId: loan.borrowerId });
-  await recordAuditEvent({ client: tx, action: "loan.renewed", spaceId: input.spaceId, actorId: actor.userId, targetType: "Loan", targetId: loan.id, metadata: { renewalCount: loan.renewalCount + 1, byBorrower: Boolean(input.byBorrowerId) } });
+  await recordAuditEvent({ client: tx, action: "loan.renewed", spaceId: input.spaceId, actorId: actor.userId, actorApiTokenId: actor.apiTokenId ?? null, targetType: "Loan", targetId: loan.id, metadata: { renewalCount: loan.renewalCount + 1, byBorrower: Boolean(input.byBorrowerId) } });
   await emitEvent(tx, { spaceId: input.spaceId, type: "loan.renewed", data: { loanId: loan.id, reference: loanRef(loan.number), dueAt: dueAt.toISOString() } });
   if (!input.byBorrowerId) {
     await notifyUsers(tx, input.spaceId, [loan.borrowerId], { kind: "loan.renewed", title: `${loanRef(loan.number)} is now due ${formatDayLong(dueAt, space.timezone)}`, url: loanUrl(space.slug, loan.id, "borrower"), email: true });
@@ -55,6 +55,6 @@ export async function setDueDate(tx: Tx, input: { spaceId: string; loanId: strin
   if (input.dueAt > addDays(now, Math.max(loan.space.maxLoanDays, 1) * 2)) throw new DomainError("That due date is too far away.", "invalid");
   await tx.loan.update({ where: { id: loan.id }, data: { dueAt: input.dueAt, dueReminderAt: null, overdueAt: null, escalatedAt: null } });
   await syncAutomaticRestriction(tx, { spaceId: input.spaceId, userId: loan.borrowerId, now });
-  await recordAuditEvent({ client: tx, action: "loan.due_changed", spaceId: input.spaceId, actorId: actor.userId, targetType: "Loan", targetId: loan.id, metadata: { from: loan.dueAt.toISOString(), to: input.dueAt.toISOString() } });
+  await recordAuditEvent({ client: tx, action: "loan.due_changed", spaceId: input.spaceId, actorId: actor.userId, actorApiTokenId: actor.apiTokenId ?? null, targetType: "Loan", targetId: loan.id, metadata: { from: loan.dueAt.toISOString(), to: input.dueAt.toISOString() } });
   await notifyUsers(tx, input.spaceId, [loan.borrowerId], { kind: "loan.due_changed", title: `${loanRef(loan.number)} is now due ${formatDayLong(input.dueAt, loan.space.timezone)}`, url: loanUrl(loan.space.slug, loan.id, "borrower"), email: true });
 }
