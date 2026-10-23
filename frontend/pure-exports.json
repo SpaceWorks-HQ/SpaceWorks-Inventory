@@ -1,0 +1,4 @@
+{
+  "lib/spaces": ["SUGGESTED_CATEGORIES"],
+  "lib/webhooks": ["MAX_ENDPOINTS_PER_SPACE"]
+}

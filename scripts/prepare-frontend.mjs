@@ -1,5 +1,6 @@
 // Build a rendering-only space from the shared UI and fixed API contracts.
 import ts from "typescript";
+import { unusedRenderDeclarations } from "./frontend-render-declarations.mjs";
 import { Prisma } from "@prisma/client";
 import { cpSync, existsSync, mkdirSync, readFileSync, readdirSync, rmSync, writeFileSync } from "node:fs";
 import path from "node:path";
@@ -39,6 +40,7 @@ writeFileSync(path.join(target, "lib/db.ts"), `import type { PrismaClient } from
 // Only named pure exports and their local dependencies are copied. The build
 // trace check remains a separate defence against introducing persistence here.
 const pureExports = JSON.parse(readFileSync(path.join(target, 'pure-exports.json'), 'utf8'));
+mkdirSync(path.join(target, 'lib/frontend/pure'), { recursive: true });
 const moduleFile = (modulePath) => existsSync(path.join(root, modulePath + '.ts')) ? modulePath + '.ts' : modulePath + '/index.ts';
 const pureFacade = (modulePath) => `@/lib/frontend/pure/${modulePath.replaceAll('/','-')}`;
 // Split modules re-export helpers from sibling files (AGENTS.md 300-line limit).
@@ -51,7 +53,7 @@ for (const queue = Object.keys(pureExports); queue.length;) {
     if (!ts.isExportDeclaration(statement) || !statement.moduleSpecifier || !statement.exportClause || !ts.isNamedExports(statement.exportClause)) continue;
     const specifier = statement.moduleSpecifier.text;
     if (!specifier.startsWith('.') && !specifier.startsWith('@/')) continue;
-    const resolved = specifier.startsWith('@/') ? specifier.slice(2) : path.posix.normalize(path.posix.join(path.posix.dirname(modulePath), specifier)).replace(/\.tsx?$/, '');
+    const resolved = specifier.startsWith('@/') ? specifier.slice(2) : path.posix.normalize(path.posix.join(path.posix.dirname(moduleFile(modulePath)), specifier)).replace(/\.tsx?$/, '');
     for (const element of statement.exportClause.elements) {
       if (!pureExports[modulePath].includes(element.name.text)) continue;
       const original = element.propertyName?.text ?? element.name.text;
@@ -92,7 +94,7 @@ for (const [module, names] of Object.entries(pureExports)) {
     if(bindings && ts.isNamespaceImport(bindings) && needed.has(bindings.name.text))parts.push(bindings.getText(syntax));
     if (!parts.length) continue;
     let imported = statement.moduleSpecifier.text;
-    if (imported.startsWith('.')) imported = '@/'+path.posix.normalize(path.posix.join(path.posix.dirname(module),imported));
+    if (imported.startsWith('.')) imported = '@/'+path.posix.normalize(path.posix.join(path.posix.dirname(moduleFile(module)),imported));
     imports.push(`import ${clause.isTypeOnly?'type ':''}${parts.join(', ')} from ${JSON.stringify(imported)};`);
   }
   const directory=path.join(target,'lib/frontend/pure'); mkdirSync(directory,{recursive:true});
@@ -138,17 +140,11 @@ for (const page of JSON.parse(readFileSync(path.join(target, "pages.json"), "utf
   for (const modulePath of Object.keys(pureExports)) source = source.replaceAll(`from "@/${modulePath}"`, `from "@/lib/frontend/pure/${modulePath.replaceAll('/','-')}"`);
   const syntax = ts.createSourceFile(file, source, ts.ScriptTarget.Latest, true, ts.ScriptKind.TSX);
   // Helpers used only by extracted loaders must not retain backend imports.
-  const helpers = syntax.statements.filter(node => ts.isFunctionDeclaration(node) && !node.modifiers?.some(m => m.kind === ts.SyntaxKind.ExportKeyword));
-  const removedHelpers = helpers.filter(fn => {
-    const names = new Set();
-    const scan = node => { if (ts.isIdentifier(node)) names.add(node.text); ts.forEachChild(node, scan); };
-    syntax.statements.filter(node => node !== fn && !ts.isImportDeclaration(node)).forEach(scan);
-    return fn.name && !names.has(fn.name.text);
-  });
+  const removedHelpers = unusedRenderDeclarations(syntax);
   const used = new Set();
   const visit = node => { if (ts.isIdentifier(node)) used.add(node.text); ts.forEachChild(node, visit); };
-  syntax.statements.filter(node => !ts.isImportDeclaration(node) && !removedHelpers.includes(node)).forEach(visit);
-  const edits = removedHelpers.map(node => ({ start: node.getStart(syntax), end: node.end, text: "" }));
+  syntax.statements.filter(node => !ts.isImportDeclaration(node) && !removedHelpers.has(node)).forEach(visit);
+  const edits = [...removedHelpers].map(node => ({ start: node.getStart(syntax), end: node.end, text: "" }));
   for (const node of syntax.statements.filter(ts.isImportDeclaration)) {
     const clause = node.importClause;
     if (!clause) continue;
@@ -167,7 +163,7 @@ for (const page of JSON.parse(readFileSync(path.join(target, "pages.json"), "utf
   writeFileSync(file, output);
 }
 
-for (const file of walk(path.join(root, "app")).filter(file => file.endsWith("/route.ts") && !file.startsWith(path.join(root, "app/api") + path.sep))) {
+for (const file of walk(path.join(root, "app")).filter(file => path.basename(file) === "route.ts" && !file.startsWith(path.join(root, "app/api") + path.sep))) {
   const relative = path.relative(root, file);
   writeFileSync(path.join(target, relative), `import { proxyBackendResource } from "@/lib/frontend/httpProxy";\nexport const dynamic = "force-dynamic";\nexport const GET = proxyBackendResource;\nexport const HEAD = proxyBackendResource;\nexport const POST = proxyBackendResource;\nexport const PUT = proxyBackendResource;\nexport const PATCH = proxyBackendResource;\nexport const DELETE = proxyBackendResource;\nexport const OPTIONS = proxyBackendResource;\n`);
 }

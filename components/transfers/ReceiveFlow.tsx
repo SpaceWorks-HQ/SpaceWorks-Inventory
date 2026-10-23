@@ -35,7 +35,9 @@ export function ReceiveFlow({ slug, transferId, lines, locations, defaultLocatio
   const quantityUnits = open.filter((line) => line.tracking === "QUANTITY").reduce((sum, line) => sum + (counts[line.id]?.received ?? 0) + (counts[line.id]?.damaged ?? 0), 0);
   const units = quantityUnits + scannedAssets.length;
   const anyDamaged = damagedAssets.length > 0 || Object.values(counts).some((count) => count.damaged > 0);
-  const ready = units > 0 && Boolean(locationId) && photos.length >= Math.max(1, minPhotos) && (!anyDamaged || remarks.trim().length > 0);
+  // Same rule as lib/transfers/workflow/receive.ts: a quantity line with units needs its label scanned.
+  const labelsMissing = open.some((line) => line.tracking === "QUANTITY" && (counts[line.id]?.received ?? 0) + (counts[line.id]?.damaged ?? 0) > 0 && !codes.includes(line.itemCode));
+  const ready = units > 0 && !labelsMissing && Boolean(locationId) && photos.length >= Math.max(1, minPhotos) && (!anyDamaged || remarks.trim().length > 0);
   const setCount = (lineId: string, key: "received" | "damaged", value: number) => setCounts((current) => ({ ...current, [lineId]: { ...(current[lineId] ?? { received: 0, damaged: 0 }), [key]: value } }));
 
   const submit = () => {

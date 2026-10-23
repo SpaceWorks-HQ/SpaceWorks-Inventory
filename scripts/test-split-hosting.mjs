@@ -23,8 +23,15 @@ if (process.argv[2] === "serve-frontend") {
   const monolith = process.argv.includes("--monolith");
   // Explicit opt-in for pre-provisioned, disposable local test services.
   const externalServices = process.argv.includes("--external-services");
+  const demo = process.argv.includes("--demo");
+  if (demo && !externalServices) throw new Error("--demo requires --external-services.");
   if (externalServices && (!process.env.DATABASE_URL || !process.env.REDIS_URL)) {
     throw new Error("External test services require DATABASE_URL and REDIS_URL.");
+  }
+  const storageKeys = ["S3_ENDPOINT", "S3_BUCKET", "S3_ACCESS_KEY_ID", "S3_SECRET_ACCESS_KEY"];
+  if (demo) {
+    const missing = storageKeys.filter((name) => !process.env[name]);
+    if (missing.length) throw new Error(`--demo requires storage environment variables: ${missing.join(", ")}.`);
   }
   const freePort = () => new Promise((resolve, reject) => {
     const server = createServer(); server.on("error", reject);
@@ -45,10 +52,11 @@ if (process.argv[2] === "serve-frontend") {
     HEALTHCHECK_SECRET: hex(), CRON_SECRET: hex(), SUPER_ADMIN_EMAIL: "admin@example.test",
     TRUSTED_PROXY_IP_HEADER: "x-real-ip", FRONTEND_TRUSTED_IP_HEADER: "x-real-ip",
     EMAIL_FROM: "Test <test@example.test>", SMTP_HOST: "127.0.0.1", SMTP_PORT: "9", SMTP_USER: "disposable", SMTP_PASSWORD: hex(),
-    S3_BUCKET: "disposable-test", S3_REGION: "us-east-1",
-    // Prisma's test client can load a local .env. These suites need a demo
-    // seed that this disposable harness deliberately does not provision.
-    DEMO_PASSWORD: "", PLATFORM_SHELL_E2E_PASSWORD: "",
+    ...(demo ? { ...Object.fromEntries(storageKeys.map((name) => [name, process.env[name]])),
+      S3_REGION: process.env.S3_REGION || "us-east-1", S3_FORCE_PATH_STYLE: process.env.S3_FORCE_PATH_STYLE,
+    } : { S3_BUCKET: "disposable-test", S3_REGION: "us-east-1" }),
+    // Override any local .env demo password unless the harness seeds the demo.
+    DEMO_PASSWORD: demo ? hex() : "", PLATFORM_SHELL_E2E_PASSWORD: "",
     PLAYWRIGHT_SPLIT: monolith ? "0" : "1", PLAYWRIGHT_PORT: "3100", PLAYWRIGHT_TRUSTED_IP_HEADER: "x-real-ip",
     PLAYWRIGHT_SERVER_COMMAND: monolith ? "PORT=3100 HOSTNAME=127.0.0.1 node .next/standalone/server.js" : "node scripts/test-split-hosting.mjs serve-frontend",
   };
@@ -71,6 +79,7 @@ if (process.argv[2] === "serve-frontend") {
       if (!ready) throw new Error("Disposable PostgreSQL did not become ready.");
     }
     await run(process.execPath, ["scripts/prisma.mjs", "migrate", "deploy"], env);
+    if (demo) await run(process.execPath, ["scripts/seed-demo.mjs"], { ...env, NODE_ENV: "test" });
     await run("npm", ["run", "build"], env);
     await run(process.execPath, ["scripts/prepare-standalone.mjs"], env);
     for (const name of [".env", ".env.local", ".env.production", ".env.production.local", ".env.development"]) await rm(`.next/standalone/${name}`, { force: true });

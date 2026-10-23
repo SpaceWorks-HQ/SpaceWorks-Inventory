@@ -9,8 +9,17 @@
 | Unit | `npm run test:unit` | Pure rules: roles, fees, transfer and loan policy, QR codes, importer parsing, label layout, signatures, environment checks, installer scripts, design guards, page guards |
 | Integration | `npm run db:test:prepare && npm run test:integration` | The domain modules against PostgreSQL: availability (including concurrency), loans, transfers, counts, purchases, payments and webhooks, import, labels, reports, API, settings |
 | End to end | `npm run test:e2e` | Playwright against `npm run dev`: setup, sign-in, catalogue, lending desk, transfers, counts, settings in light and dark mode |
-| Hosting | `npm run test:e2e:split`, `npm run test:e2e:vps` | Production builds of the two images, as CI does |
+| Hosting | `npm run test:e2e:split`, `npm run test:e2e:vps` | Production builds as in CI; opt into seeded signed-in journeys with `--external-services --demo` |
 | Deployment | `npm run deployment:check` | Shell and Node syntax, shellcheck, YAML manifests |
+
+For signed-in hosting journeys, use disposable external PostgreSQL, Redis and
+S3-compatible storage: `DATABASE_URL=... REDIS_URL=... S3_ENDPOINT=... S3_BUCKET=... S3_ACCESS_KEY_ID=... S3_SECRET_ACCESS_KEY=... npm run test:e2e:vps -- --external-services --demo`
+(or `test:e2e:split`). `--demo` requires `--external-services`, seeds the demo
+after migrations with a fresh random password, and passes that password to
+Playwright. `S3_REGION` defaults to `us-east-1`; `S3_FORCE_PATH_STYLE` is passed
+through (set it to `1` for path-style storage). The magic-link email test skips
+because the harness uses SMTP rather than `.data/mail`. Without `--demo`, the
+CI behaviour is unchanged.
 
 ## Integration database
 

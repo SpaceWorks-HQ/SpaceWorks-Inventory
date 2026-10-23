@@ -50,7 +50,8 @@ export function Field({ label, optional, helperText, error, hideLabel, className
     <div className={cn("flex flex-col gap-1.5", className)}>
       <label htmlFor={controlId} className={cn("text-label text-ink", hideLabel && "sr-only")}>
         {label}
-        {optional ? <span className="ml-1.5 font-normal text-ink-muted">Optional</span> : null}
+        {/* The space keeps the accessible name "Remarks Optional", not "RemarksOptional". */}
+        {optional ? <>{" "}<span className="ml-1 font-normal text-ink-muted">Optional</span></> : null}
       </label>
       {control}
       {error ? (

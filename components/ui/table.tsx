@@ -4,7 +4,8 @@ import { cn } from "@/lib/cn";
 /** Rounded (16px), bordered table with 48px rows that scrolls inside its own box on small screens (docs/DESIGN.md §4.8). */
 export function Table({ className, children, label, ...props }: HTMLAttributes<HTMLTableElement> & { label?: string }) {
   return (
-    <div className="w-full min-w-0 overflow-x-auto rounded-lg border border-line bg-panel" role="region" aria-label={label ?? "Data table"} tabIndex={0}>
+    // `relative` keeps absolutely positioned cell content (sr-only labels) inside the scroll area, so a wide table never widens the page.
+    <div className="relative w-full min-w-0 overflow-x-auto rounded-lg border border-line bg-panel" role="region" aria-label={label ?? "Data table"} tabIndex={0}>
       <table className={cn("w-full border-collapse text-left text-sm tabular-nums", className)} {...props}>
         {children}
       </table>

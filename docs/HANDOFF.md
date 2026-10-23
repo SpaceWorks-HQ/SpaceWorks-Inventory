@@ -63,10 +63,18 @@ scanning. That covers `app/s/[spaceSlug]/{loans,my-loans,transfers,counts,scan,c
 `lib/views/generated/*` and `frontend/*.json` are regenerated outputs. When it was committed, typecheck
 was clean and all 1050 unit tests passed. Integration and e2e tests were not re-run on it.
 
+**Phase I1 (2026-10-23, Claude Code driving Codex):** the lending, transfer, count and scan UI is
+finished and covered by e2e journeys (`tests/e2e/{lending-desk,member-loans,transfers,counts,scan}.spec.ts`;
+label codes come from `tests/e2e/labels.ts`). The split frontend gate (`typecheck:frontend`,
+`build:frontend`) passes for the first time (`frontend/pure-exports.json` was never committed). The
+hosting harness runs the signed-in journeys with `--external-services --demo`. Fixed on the way: wide
+tables widened the page at phone width, optional field labels read "RemarksOptional" to screen readers,
+and transfer receipt could be submitted before the required label scans.
+
 ## What is left
 
-1. Finish and click-test the WIP pages above against the workflows in `lib/lending`, `lib/transfers`
-   and `lib/counts`, then run `npm run test:integration` and `npm run test:e2e`.
+1. ~~Finish and click-test the WIP pages above against the workflows in `lib/lending`, `lib/transfers`
+   and `lib/counts`, then run `npm run test:integration` and `npm run test:e2e`.~~ Done in I1.
 2. Capture the real README screenshots (light and dark) into `docs/screenshots/` with the existing
    capture script, and link them in `README.md`.
 3. Verify the one-line VPS install and the Render deploy end to end, and fix anything they surface.
