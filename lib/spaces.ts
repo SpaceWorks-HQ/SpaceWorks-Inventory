@@ -41,6 +41,29 @@ export function tagPrefixFor(name: string): string {
 }
 
 /**
+ * Asset tags are unique across the install (assets can move between spaces),
+ * so each space's tag prefix must be too. Returns the first free variant
+ * ("TSK", "TSK2", "TSK3"…).
+ */
+export async function uniqueTagPrefix(tx: DbClient, wanted: string, exceptSpaceId?: string) {
+  for (let n = 1; n < 100; n += 1) {
+    const candidate = n === 1 ? wanted : `${wanted.slice(0, 5)}${n}`.slice(0, 6);
+    if (!(await tagPrefixTaken(tx, candidate, exceptSpaceId))) return candidate;
+  }
+  throw new Error("No free asset tag prefix.");
+}
+
+/** Another space uses this prefix, or holds assets tagged with it. */
+export async function tagPrefixTaken(tx: DbClient, prefix: string, exceptSpaceId?: string) {
+  const other = exceptSpaceId ? { NOT: { id: exceptSpaceId } } : {};
+  const [spaces, assets] = await Promise.all([
+    tx.space.count({ where: { tagPrefix: prefix, ...other } }),
+    tx.asset.count({ where: { assetTag: { startsWith: `${prefix}-` }, ...(exceptSpaceId ? { NOT: { spaceId: exceptSpaceId } } : {}) } }),
+  ]);
+  return spaces + assets > 0;
+}
+
+/**
  * Create a space with its owner membership and default units. Run inside a
  * transaction so a failed setup leaves nothing behind.
  */
@@ -50,7 +73,7 @@ export async function createSpaceWithDefaults(tx: DbClient, input: CreateSpaceIn
       name: input.name,
       slug: input.slug,
       tagline: input.tagline ?? null,
-      tagPrefix: input.tagPrefix ?? tagPrefixFor(input.name),
+      tagPrefix: await uniqueTagPrefix(tx, input.tagPrefix ?? tagPrefixFor(input.name)),
       ...(input.timezone ? { timezone: input.timezone } : {}),
       ...(input.currency ? { currency: input.currency } : {}),
       memberships: { create: { userId: input.ownerId, role: "OWNER" } },
