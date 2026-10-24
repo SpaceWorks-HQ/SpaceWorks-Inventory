@@ -8,6 +8,15 @@ build is tagged `v<version>-main.<run>.<commit>`; see
 
 ## [Unreleased]
 
+- Add a staff project mentor backed by the space's actual catalogue capability
+  tags and current availability, with read-only local Codex planning and native
+  item/lending handoffs.
+- Add a host-authenticated, tenant-scoped SpaceWorks Agents adapter for confirmed
+  manager stock receipts/adjustments and native loan requests/approvals. Durable
+  PostgreSQL command receipts prevent duplicate effects; merge/deployment checks
+  keep unreviewed integration writes inactive. Physical scans and photographs
+  remain on the existing lending desk.
+
 ## [0.5.0] - Unreleased
 
 The first public release: everything since the split from SpaceWorks

@@ -39,189 +39,190 @@ import { loadLoanPage as endpoint35 } from "@/lib/views/generated/s-spaceSlug-lo
 import { loadLoansPage as endpoint36 } from "@/lib/views/generated/s-spaceSlug-loans-page-loadLoansPage";
 import { loadLocationsPage as endpoint37 } from "@/lib/views/generated/s-spaceSlug-locations-page-loadLocationsPage";
 import { loadMembersPage as endpoint38 } from "@/lib/views/generated/s-spaceSlug-members-page-loadMembersPage";
-import { loadMyLoanPage as endpoint39 } from "@/lib/views/generated/s-spaceSlug-my-loans-loanId-page-loadMyLoanPage";
-import { loadMyLoansPage as endpoint40 } from "@/lib/views/generated/s-spaceSlug-my-loans-page-loadMyLoansPage";
-import { loadNotificationsPage as endpoint41 } from "@/lib/views/generated/s-spaceSlug-notifications-page-loadNotificationsPage";
-import { loadSpaceHomePage as endpoint42 } from "@/lib/views/generated/s-spaceSlug-page-loadSpaceHomePage";
-import { loadPayPage as endpoint43 } from "@/lib/views/generated/s-spaceSlug-pay-paymentId-page-loadPayPage";
-import { loadPurchasesPage as endpoint44 } from "@/lib/views/generated/s-spaceSlug-purchases-page-loadPurchasesPage";
-import { loadRepairPage as endpoint45 } from "@/lib/views/generated/s-spaceSlug-repairs-issueId-page-loadRepairPage";
-import { loadReportRepairPage as endpoint46 } from "@/lib/views/generated/s-spaceSlug-repairs-new-page-loadReportRepairPage";
-import { loadRepairsPage as endpoint47 } from "@/lib/views/generated/s-spaceSlug-repairs-page-loadRepairsPage";
-import { loadRepairPayoutsPage as endpoint48 } from "@/lib/views/generated/s-spaceSlug-repairs-payouts-page-loadRepairPayoutsPage";
-import { loadTechniciansPage as endpoint49 } from "@/lib/views/generated/s-spaceSlug-repairs-technicians-page-loadTechniciansPage";
-import { loadReportsPage as endpoint50 } from "@/lib/views/generated/s-spaceSlug-reports-page-loadReportsPage";
-import { loadScanPage as endpoint51 } from "@/lib/views/generated/s-spaceSlug-scan-page-loadScanPage";
-import { loadIntegrationsSettingsPage as endpoint52 } from "@/lib/views/generated/s-spaceSlug-settings-integrations-page-loadIntegrationsSettingsPage";
-import { loadInventorySettingsPage as endpoint53 } from "@/lib/views/generated/s-spaceSlug-settings-inventory-page-loadInventorySettingsPage";
-import { loadSpaceSettingsPage as endpoint54 } from "@/lib/views/generated/s-spaceSlug-settings-page-loadSpaceSettingsPage";
-import { loadPaymentSettingsPage as endpoint55 } from "@/lib/views/generated/s-spaceSlug-settings-payments-page-loadPaymentSettingsPage";
-import { loadRolesPage as endpoint56 } from "@/lib/views/generated/s-spaceSlug-settings-roles-page-loadRolesPage";
-import { loadSpaceSetupPage as endpoint57 } from "@/lib/views/generated/s-spaceSlug-setup-page-loadSpaceSetupPage";
-import { loadStockMovementsPage as endpoint58 } from "@/lib/views/generated/s-spaceSlug-stock-movements-page-loadStockMovementsPage";
-import { loadStockPage as endpoint59 } from "@/lib/views/generated/s-spaceSlug-stock-page-loadStockPage";
-import { loadTransferPage as endpoint60 } from "@/lib/views/generated/s-spaceSlug-transfers-transferId-page-loadTransferPage";
-import { loadNewTransferPage as endpoint61 } from "@/lib/views/generated/s-spaceSlug-transfers-new-page-loadNewTransferPage";
-import { loadTransfersPage as endpoint62 } from "@/lib/views/generated/s-spaceSlug-transfers-page-loadTransfersPage";
-import { loadSetupPage as endpoint63 } from "@/lib/views/generated/setup-page-loadSetupPage";
-import { updateProfile as endpoint64 } from "@/app/actions/account";
-import { changePassword as endpoint65 } from "@/app/actions/account";
-import { beginMfaEnrollment as endpoint66 } from "@/app/actions/account";
-import { confirmMfaEnrollment as endpoint67 } from "@/app/actions/account";
-import { disableMfa as endpoint68 } from "@/app/actions/account";
-import { signOutEverywhere as endpoint69 } from "@/app/actions/account";
-import { verifyAdminMfa as endpoint70 } from "@/app/actions/admin";
-import { updateInstanceSettingsAction as endpoint71 } from "@/app/actions/admin";
-import { adminCreateSpace as endpoint72 } from "@/app/actions/admin";
-import { adminSetUserDisabled as endpoint73 } from "@/app/actions/admin";
-import { adminSetSpaceArchived as endpoint74 } from "@/app/actions/admin";
-import { completeSetup as endpoint75 } from "@/app/actions/auth";
-import { requestPasswordReset as endpoint76 } from "@/app/actions/auth";
-import { requestMagicLink as endpoint77 } from "@/app/actions/auth";
-import { resetPassword as endpoint78 } from "@/app/actions/auth";
-import { acceptInviteWithNewAccount as endpoint79 } from "@/app/actions/auth";
-import { acceptInviteAsCurrentUser as endpoint80 } from "@/app/actions/auth";
-import { createItemAction as endpoint81 } from "@/app/actions/catalogue";
-import { updateItemAction as endpoint82 } from "@/app/actions/catalogue";
-import { setItemArchivedAction as endpoint83 } from "@/app/actions/catalogue";
-import { uploadItemImagesAction as endpoint84 } from "@/app/actions/catalogue";
-import { removeItemImageAction as endpoint85 } from "@/app/actions/catalogue";
-import { reorderItemImagesAction as endpoint86 } from "@/app/actions/catalogue";
-import { quickAddCategoryAction as endpoint87 } from "@/app/actions/catalogue";
-import { quickAddUnitAction as endpoint88 } from "@/app/actions/catalogue";
-import { createAssetsAction as endpoint89 } from "@/app/actions/catalogue";
-import { updateAssetAction as endpoint90 } from "@/app/actions/catalogue";
-import { saveLocationAction as endpoint91 } from "@/app/actions/catalogue";
-import { setLocationArchivedAction as endpoint92 } from "@/app/actions/catalogue";
-import { buildLocationsAction as endpoint93 } from "@/app/actions/catalogue";
-import { saveKitAction as endpoint94 } from "@/app/actions/catalogue";
-import { setKitArchivedAction as endpoint95 } from "@/app/actions/catalogue";
-import { createContainersAction as endpoint96 } from "@/app/actions/catalogue";
-import { setContainerArchivedAction as endpoint97 } from "@/app/actions/catalogue";
-import { qrCodeAction as endpoint98 } from "@/app/actions/catalogue";
-import { startCountAction as endpoint99 } from "@/app/actions/counts";
-import { recordCountAction as endpoint100 } from "@/app/actions/counts";
-import { addCountLineAction as endpoint101 } from "@/app/actions/counts";
-import { scanCountAssetAction as endpoint102 } from "@/app/actions/counts";
-import { refreshCountLineAction as endpoint103 } from "@/app/actions/counts";
-import { submitCountAction as endpoint104 } from "@/app/actions/counts";
-import { reopenCountAction as endpoint105 } from "@/app/actions/counts";
-import { postCountAction as endpoint106 } from "@/app/actions/counts";
-import { cancelCountAction as endpoint107 } from "@/app/actions/counts";
-import { saveCountScheduleAction as endpoint108 } from "@/app/actions/counts";
-import { setCountScheduleActiveAction as endpoint109 } from "@/app/actions/counts";
-import { createFinanceEntryAction as endpoint110 } from "@/app/actions/finance";
-import { reverseFinanceEntryAction as endpoint111 } from "@/app/actions/finance";
-import { previewImportAction as endpoint112 } from "@/app/actions/import";
-import { recheckImportAction as endpoint113 } from "@/app/actions/import";
-import { applyImportAction as endpoint114 } from "@/app/actions/import";
-import { loadSampleDataAction as endpoint115 } from "@/app/actions/import";
-import { createApiKeyAction as endpoint116 } from "@/app/actions/integrations";
-import { revokeApiKeyAction as endpoint117 } from "@/app/actions/integrations";
-import { createWebhookAction as endpoint118 } from "@/app/actions/integrations";
-import { updateWebhookAction as endpoint119 } from "@/app/actions/integrations";
-import { setWebhookEnabledAction as endpoint120 } from "@/app/actions/integrations";
-import { rotateWebhookSecretAction as endpoint121 } from "@/app/actions/integrations";
-import { deleteWebhookAction as endpoint122 } from "@/app/actions/integrations";
-import { sendWebhookTestAction as endpoint123 } from "@/app/actions/integrations";
-import { retryWebhookDeliveryAction as endpoint124 } from "@/app/actions/integrations";
-import { manageJobsAction as endpoint125 } from "@/app/actions/jobs";
-import { approveLoanAction as endpoint126 } from "@/app/actions/loans";
-import { rejectLoanAction as endpoint127 } from "@/app/actions/loans";
-import { cancelLoanAction as endpoint128 } from "@/app/actions/loans";
-import { issueLoanAction as endpoint129 } from "@/app/actions/loans";
-import { returnLoanAction as endpoint130 } from "@/app/actions/loans";
-import { renewLoanAction as endpoint131 } from "@/app/actions/loans";
-import { setDueDateAction as endpoint132 } from "@/app/actions/loans";
-import { resolveIncidentAction as endpoint133 } from "@/app/actions/loans";
-import { requestLoanAction as endpoint134 } from "@/app/actions/loans";
-import { selfCheckoutAction as endpoint135 } from "@/app/actions/loans";
-import { renewMyLoanAction as endpoint136 } from "@/app/actions/loans";
-import { cancelMyLoanAction as endpoint137 } from "@/app/actions/loans";
-import { selfReturnAction as endpoint138 } from "@/app/actions/loans";
-import { createInvitationAction as endpoint139 } from "@/app/actions/members";
-import { resendInvitationAction as endpoint140 } from "@/app/actions/members";
-import { revokeInvitationAction as endpoint141 } from "@/app/actions/members";
-import { changeMemberRoleAction as endpoint142 } from "@/app/actions/members";
-import { setMemberStatusAction as endpoint143 } from "@/app/actions/members";
-import { removeMemberAction as endpoint144 } from "@/app/actions/members";
-import { leaveSpaceAction as endpoint145 } from "@/app/actions/members";
-import { setBorrowingAccessAction as endpoint146 } from "@/app/actions/members";
-import { markNotificationsReadAction as endpoint147 } from "@/app/actions/notifications";
-import { markSpaceNotificationsReadAction as endpoint148 } from "@/app/actions/notifications";
-import { savePaymentSettingsAction as endpoint149 } from "@/app/actions/payments";
-import { testPaymentConnectionAction as endpoint150 } from "@/app/actions/payments";
-import { payNowAction as endpoint151 } from "@/app/actions/payments";
-import { confirmRazorpayPaymentAction as endpoint152 } from "@/app/actions/payments";
-import { payLaterAction as endpoint153 } from "@/app/actions/payments";
-import { submitOfflinePaymentAction as endpoint154 } from "@/app/actions/payments";
-import { markPayLaterAction as endpoint155 } from "@/app/actions/payments";
-import { recordOfflinePaymentAction as endpoint156 } from "@/app/actions/payments";
-import { reviewOfflinePaymentAction as endpoint157 } from "@/app/actions/payments";
-import { waiveChargeAction as endpoint158 } from "@/app/actions/payments";
-import { returnDepositAction as endpoint159 } from "@/app/actions/payments";
-import { refundPaymentAction as endpoint160 } from "@/app/actions/payments";
-import { retryRefundAction as endpoint161 } from "@/app/actions/payments";
-import { createPurchaseAction as endpoint162 } from "@/app/actions/purchases";
-import { addSuggestionAction as endpoint163 } from "@/app/actions/purchases";
-import { movePurchaseAction as endpoint164 } from "@/app/actions/purchases";
-import { receivePurchaseAction as endpoint165 } from "@/app/actions/purchases";
-import { respondByLinkAction as endpoint166 } from "@/app/actions/repairLink";
-import { saveWorkByLinkAction as endpoint167 } from "@/app/actions/repairLink";
-import { reportRepairAction as endpoint168 } from "@/app/actions/repairs";
-import { reportFromIncidentAction as endpoint169 } from "@/app/actions/repairs";
-import { sendRepairRequestsAction as endpoint170 } from "@/app/actions/repairs";
-import { assignTechnicianAction as endpoint171 } from "@/app/actions/repairs";
-import { unassignTechnicianAction as endpoint172 } from "@/app/actions/repairs";
-import { withdrawRepairRequestAction as endpoint173 } from "@/app/actions/repairs";
-import { respondRepairRequestAction as endpoint174 } from "@/app/actions/repairs";
-import { saveRepairWorkAction as endpoint175 } from "@/app/actions/repairs";
-import { closeRepairAction as endpoint176 } from "@/app/actions/repairs";
-import { reopenRepairAction as endpoint177 } from "@/app/actions/repairs";
-import { cancelRepairAction as endpoint178 } from "@/app/actions/repairs";
-import { approveRepairAmountAction as endpoint179 } from "@/app/actions/repairs";
-import { recordRepairPayoutAction as endpoint180 } from "@/app/actions/repairs";
-import { requestRepairPartsAction as endpoint181 } from "@/app/actions/repairs";
-import { resolveScanAction as endpoint182 } from "@/app/actions/scan";
-import { resolveIssueScanAction as endpoint183 } from "@/app/actions/scan";
-import { resolveDispatchScanAction as endpoint184 } from "@/app/actions/scan";
-import { resolveSelfCheckoutScanAction as endpoint185 } from "@/app/actions/scan";
-import { updateSettingsSection as endpoint186 } from "@/app/actions/settings";
-import { uploadSpaceLogoAction as endpoint187 } from "@/app/actions/settings";
-import { removeSpaceLogoAction as endpoint188 } from "@/app/actions/settings";
-import { deleteSpaceAction as endpoint189 } from "@/app/actions/settings";
-import { saveCategoryAction as endpoint190 } from "@/app/actions/settings";
-import { deleteCategoryAction as endpoint191 } from "@/app/actions/settings";
-import { saveUnitAction as endpoint192 } from "@/app/actions/settings";
-import { deleteUnitAction as endpoint193 } from "@/app/actions/settings";
-import { saveSupplierAction as endpoint194 } from "@/app/actions/settings";
-import { setSupplierArchivedAction as endpoint195 } from "@/app/actions/settings";
-import { saveLocationPlanAction as endpoint196 } from "@/app/actions/setup";
-import { addCategoriesAction as endpoint197 } from "@/app/actions/setup";
-import { addUnitAction as endpoint198 } from "@/app/actions/setup";
-import { finishSetupAction as endpoint199 } from "@/app/actions/setup";
-import { joinSpaceAction as endpoint200 } from "@/app/actions/spaces";
-import { receiveStockAction as endpoint201 } from "@/app/actions/stock";
-import { adjustStockAction as endpoint202 } from "@/app/actions/stock";
-import { moveStockAction as endpoint203 } from "@/app/actions/stock";
-import { quarantineStockAction as endpoint204 } from "@/app/actions/stock";
-import { resolveQuarantineAction as endpoint205 } from "@/app/actions/stock";
-import { changeAssetStateAction as endpoint206 } from "@/app/actions/stock";
-import { moveAssetAction as endpoint207 } from "@/app/actions/stock";
-import { addExternalTechnicianAction as endpoint208 } from "@/app/actions/technicians";
-import { addStaffTechnicianAction as endpoint209 } from "@/app/actions/technicians";
-import { updateTechnicianAction as endpoint210 } from "@/app/actions/technicians";
-import { setTechnicianActiveAction as endpoint211 } from "@/app/actions/technicians";
-import { saveTechnicianMessagingAction as endpoint212 } from "@/app/actions/technicians";
-import { requestTransferAction as endpoint213 } from "@/app/actions/transfers";
-import { approveTransferAction as endpoint214 } from "@/app/actions/transfers";
-import { rejectTransferAction as endpoint215 } from "@/app/actions/transfers";
-import { cancelTransferAction as endpoint216 } from "@/app/actions/transfers";
-import { dispatchTransferAction as endpoint217 } from "@/app/actions/transfers";
-import { receiveTransferAction as endpoint218 } from "@/app/actions/transfers";
-import { declareMissingAction as endpoint219 } from "@/app/actions/transfers";
-import { sendBackAction as endpoint220 } from "@/app/actions/transfers";
-import { receiveReturnAction as endpoint221 } from "@/app/actions/transfers";
+import { loadMentorPage as endpoint39 } from "@/lib/views/generated/s-spaceSlug-mentor-page-loadMentorPage";
+import { loadMyLoanPage as endpoint40 } from "@/lib/views/generated/s-spaceSlug-my-loans-loanId-page-loadMyLoanPage";
+import { loadMyLoansPage as endpoint41 } from "@/lib/views/generated/s-spaceSlug-my-loans-page-loadMyLoansPage";
+import { loadNotificationsPage as endpoint42 } from "@/lib/views/generated/s-spaceSlug-notifications-page-loadNotificationsPage";
+import { loadSpaceHomePage as endpoint43 } from "@/lib/views/generated/s-spaceSlug-page-loadSpaceHomePage";
+import { loadPayPage as endpoint44 } from "@/lib/views/generated/s-spaceSlug-pay-paymentId-page-loadPayPage";
+import { loadPurchasesPage as endpoint45 } from "@/lib/views/generated/s-spaceSlug-purchases-page-loadPurchasesPage";
+import { loadRepairPage as endpoint46 } from "@/lib/views/generated/s-spaceSlug-repairs-issueId-page-loadRepairPage";
+import { loadReportRepairPage as endpoint47 } from "@/lib/views/generated/s-spaceSlug-repairs-new-page-loadReportRepairPage";
+import { loadRepairsPage as endpoint48 } from "@/lib/views/generated/s-spaceSlug-repairs-page-loadRepairsPage";
+import { loadRepairPayoutsPage as endpoint49 } from "@/lib/views/generated/s-spaceSlug-repairs-payouts-page-loadRepairPayoutsPage";
+import { loadTechniciansPage as endpoint50 } from "@/lib/views/generated/s-spaceSlug-repairs-technicians-page-loadTechniciansPage";
+import { loadReportsPage as endpoint51 } from "@/lib/views/generated/s-spaceSlug-reports-page-loadReportsPage";
+import { loadScanPage as endpoint52 } from "@/lib/views/generated/s-spaceSlug-scan-page-loadScanPage";
+import { loadIntegrationsSettingsPage as endpoint53 } from "@/lib/views/generated/s-spaceSlug-settings-integrations-page-loadIntegrationsSettingsPage";
+import { loadInventorySettingsPage as endpoint54 } from "@/lib/views/generated/s-spaceSlug-settings-inventory-page-loadInventorySettingsPage";
+import { loadSpaceSettingsPage as endpoint55 } from "@/lib/views/generated/s-spaceSlug-settings-page-loadSpaceSettingsPage";
+import { loadPaymentSettingsPage as endpoint56 } from "@/lib/views/generated/s-spaceSlug-settings-payments-page-loadPaymentSettingsPage";
+import { loadRolesPage as endpoint57 } from "@/lib/views/generated/s-spaceSlug-settings-roles-page-loadRolesPage";
+import { loadSpaceSetupPage as endpoint58 } from "@/lib/views/generated/s-spaceSlug-setup-page-loadSpaceSetupPage";
+import { loadStockMovementsPage as endpoint59 } from "@/lib/views/generated/s-spaceSlug-stock-movements-page-loadStockMovementsPage";
+import { loadStockPage as endpoint60 } from "@/lib/views/generated/s-spaceSlug-stock-page-loadStockPage";
+import { loadTransferPage as endpoint61 } from "@/lib/views/generated/s-spaceSlug-transfers-transferId-page-loadTransferPage";
+import { loadNewTransferPage as endpoint62 } from "@/lib/views/generated/s-spaceSlug-transfers-new-page-loadNewTransferPage";
+import { loadTransfersPage as endpoint63 } from "@/lib/views/generated/s-spaceSlug-transfers-page-loadTransfersPage";
+import { loadSetupPage as endpoint64 } from "@/lib/views/generated/setup-page-loadSetupPage";
+import { updateProfile as endpoint65 } from "@/app/actions/account";
+import { changePassword as endpoint66 } from "@/app/actions/account";
+import { beginMfaEnrollment as endpoint67 } from "@/app/actions/account";
+import { confirmMfaEnrollment as endpoint68 } from "@/app/actions/account";
+import { disableMfa as endpoint69 } from "@/app/actions/account";
+import { signOutEverywhere as endpoint70 } from "@/app/actions/account";
+import { verifyAdminMfa as endpoint71 } from "@/app/actions/admin";
+import { updateInstanceSettingsAction as endpoint72 } from "@/app/actions/admin";
+import { adminCreateSpace as endpoint73 } from "@/app/actions/admin";
+import { adminSetUserDisabled as endpoint74 } from "@/app/actions/admin";
+import { adminSetSpaceArchived as endpoint75 } from "@/app/actions/admin";
+import { completeSetup as endpoint76 } from "@/app/actions/auth";
+import { requestPasswordReset as endpoint77 } from "@/app/actions/auth";
+import { requestMagicLink as endpoint78 } from "@/app/actions/auth";
+import { resetPassword as endpoint79 } from "@/app/actions/auth";
+import { acceptInviteWithNewAccount as endpoint80 } from "@/app/actions/auth";
+import { acceptInviteAsCurrentUser as endpoint81 } from "@/app/actions/auth";
+import { createItemAction as endpoint82 } from "@/app/actions/catalogue";
+import { updateItemAction as endpoint83 } from "@/app/actions/catalogue";
+import { setItemArchivedAction as endpoint84 } from "@/app/actions/catalogue";
+import { uploadItemImagesAction as endpoint85 } from "@/app/actions/catalogue";
+import { removeItemImageAction as endpoint86 } from "@/app/actions/catalogue";
+import { reorderItemImagesAction as endpoint87 } from "@/app/actions/catalogue";
+import { quickAddCategoryAction as endpoint88 } from "@/app/actions/catalogue";
+import { quickAddUnitAction as endpoint89 } from "@/app/actions/catalogue";
+import { createAssetsAction as endpoint90 } from "@/app/actions/catalogue";
+import { updateAssetAction as endpoint91 } from "@/app/actions/catalogue";
+import { saveLocationAction as endpoint92 } from "@/app/actions/catalogue";
+import { setLocationArchivedAction as endpoint93 } from "@/app/actions/catalogue";
+import { buildLocationsAction as endpoint94 } from "@/app/actions/catalogue";
+import { saveKitAction as endpoint95 } from "@/app/actions/catalogue";
+import { setKitArchivedAction as endpoint96 } from "@/app/actions/catalogue";
+import { createContainersAction as endpoint97 } from "@/app/actions/catalogue";
+import { setContainerArchivedAction as endpoint98 } from "@/app/actions/catalogue";
+import { qrCodeAction as endpoint99 } from "@/app/actions/catalogue";
+import { startCountAction as endpoint100 } from "@/app/actions/counts";
+import { recordCountAction as endpoint101 } from "@/app/actions/counts";
+import { addCountLineAction as endpoint102 } from "@/app/actions/counts";
+import { scanCountAssetAction as endpoint103 } from "@/app/actions/counts";
+import { refreshCountLineAction as endpoint104 } from "@/app/actions/counts";
+import { submitCountAction as endpoint105 } from "@/app/actions/counts";
+import { reopenCountAction as endpoint106 } from "@/app/actions/counts";
+import { postCountAction as endpoint107 } from "@/app/actions/counts";
+import { cancelCountAction as endpoint108 } from "@/app/actions/counts";
+import { saveCountScheduleAction as endpoint109 } from "@/app/actions/counts";
+import { setCountScheduleActiveAction as endpoint110 } from "@/app/actions/counts";
+import { createFinanceEntryAction as endpoint111 } from "@/app/actions/finance";
+import { reverseFinanceEntryAction as endpoint112 } from "@/app/actions/finance";
+import { previewImportAction as endpoint113 } from "@/app/actions/import";
+import { recheckImportAction as endpoint114 } from "@/app/actions/import";
+import { applyImportAction as endpoint115 } from "@/app/actions/import";
+import { loadSampleDataAction as endpoint116 } from "@/app/actions/import";
+import { createApiKeyAction as endpoint117 } from "@/app/actions/integrations";
+import { revokeApiKeyAction as endpoint118 } from "@/app/actions/integrations";
+import { createWebhookAction as endpoint119 } from "@/app/actions/integrations";
+import { updateWebhookAction as endpoint120 } from "@/app/actions/integrations";
+import { setWebhookEnabledAction as endpoint121 } from "@/app/actions/integrations";
+import { rotateWebhookSecretAction as endpoint122 } from "@/app/actions/integrations";
+import { deleteWebhookAction as endpoint123 } from "@/app/actions/integrations";
+import { sendWebhookTestAction as endpoint124 } from "@/app/actions/integrations";
+import { retryWebhookDeliveryAction as endpoint125 } from "@/app/actions/integrations";
+import { manageJobsAction as endpoint126 } from "@/app/actions/jobs";
+import { approveLoanAction as endpoint127 } from "@/app/actions/loans";
+import { rejectLoanAction as endpoint128 } from "@/app/actions/loans";
+import { cancelLoanAction as endpoint129 } from "@/app/actions/loans";
+import { issueLoanAction as endpoint130 } from "@/app/actions/loans";
+import { returnLoanAction as endpoint131 } from "@/app/actions/loans";
+import { renewLoanAction as endpoint132 } from "@/app/actions/loans";
+import { setDueDateAction as endpoint133 } from "@/app/actions/loans";
+import { resolveIncidentAction as endpoint134 } from "@/app/actions/loans";
+import { requestLoanAction as endpoint135 } from "@/app/actions/loans";
+import { selfCheckoutAction as endpoint136 } from "@/app/actions/loans";
+import { renewMyLoanAction as endpoint137 } from "@/app/actions/loans";
+import { cancelMyLoanAction as endpoint138 } from "@/app/actions/loans";
+import { selfReturnAction as endpoint139 } from "@/app/actions/loans";
+import { createInvitationAction as endpoint140 } from "@/app/actions/members";
+import { resendInvitationAction as endpoint141 } from "@/app/actions/members";
+import { revokeInvitationAction as endpoint142 } from "@/app/actions/members";
+import { changeMemberRoleAction as endpoint143 } from "@/app/actions/members";
+import { setMemberStatusAction as endpoint144 } from "@/app/actions/members";
+import { removeMemberAction as endpoint145 } from "@/app/actions/members";
+import { leaveSpaceAction as endpoint146 } from "@/app/actions/members";
+import { setBorrowingAccessAction as endpoint147 } from "@/app/actions/members";
+import { markNotificationsReadAction as endpoint148 } from "@/app/actions/notifications";
+import { markSpaceNotificationsReadAction as endpoint149 } from "@/app/actions/notifications";
+import { savePaymentSettingsAction as endpoint150 } from "@/app/actions/payments";
+import { testPaymentConnectionAction as endpoint151 } from "@/app/actions/payments";
+import { payNowAction as endpoint152 } from "@/app/actions/payments";
+import { confirmRazorpayPaymentAction as endpoint153 } from "@/app/actions/payments";
+import { payLaterAction as endpoint154 } from "@/app/actions/payments";
+import { submitOfflinePaymentAction as endpoint155 } from "@/app/actions/payments";
+import { markPayLaterAction as endpoint156 } from "@/app/actions/payments";
+import { recordOfflinePaymentAction as endpoint157 } from "@/app/actions/payments";
+import { reviewOfflinePaymentAction as endpoint158 } from "@/app/actions/payments";
+import { waiveChargeAction as endpoint159 } from "@/app/actions/payments";
+import { returnDepositAction as endpoint160 } from "@/app/actions/payments";
+import { refundPaymentAction as endpoint161 } from "@/app/actions/payments";
+import { retryRefundAction as endpoint162 } from "@/app/actions/payments";
+import { createPurchaseAction as endpoint163 } from "@/app/actions/purchases";
+import { addSuggestionAction as endpoint164 } from "@/app/actions/purchases";
+import { movePurchaseAction as endpoint165 } from "@/app/actions/purchases";
+import { receivePurchaseAction as endpoint166 } from "@/app/actions/purchases";
+import { respondByLinkAction as endpoint167 } from "@/app/actions/repairLink";
+import { saveWorkByLinkAction as endpoint168 } from "@/app/actions/repairLink";
+import { reportRepairAction as endpoint169 } from "@/app/actions/repairs";
+import { reportFromIncidentAction as endpoint170 } from "@/app/actions/repairs";
+import { sendRepairRequestsAction as endpoint171 } from "@/app/actions/repairs";
+import { assignTechnicianAction as endpoint172 } from "@/app/actions/repairs";
+import { unassignTechnicianAction as endpoint173 } from "@/app/actions/repairs";
+import { withdrawRepairRequestAction as endpoint174 } from "@/app/actions/repairs";
+import { respondRepairRequestAction as endpoint175 } from "@/app/actions/repairs";
+import { saveRepairWorkAction as endpoint176 } from "@/app/actions/repairs";
+import { closeRepairAction as endpoint177 } from "@/app/actions/repairs";
+import { reopenRepairAction as endpoint178 } from "@/app/actions/repairs";
+import { cancelRepairAction as endpoint179 } from "@/app/actions/repairs";
+import { approveRepairAmountAction as endpoint180 } from "@/app/actions/repairs";
+import { recordRepairPayoutAction as endpoint181 } from "@/app/actions/repairs";
+import { requestRepairPartsAction as endpoint182 } from "@/app/actions/repairs";
+import { resolveScanAction as endpoint183 } from "@/app/actions/scan";
+import { resolveIssueScanAction as endpoint184 } from "@/app/actions/scan";
+import { resolveDispatchScanAction as endpoint185 } from "@/app/actions/scan";
+import { resolveSelfCheckoutScanAction as endpoint186 } from "@/app/actions/scan";
+import { updateSettingsSection as endpoint187 } from "@/app/actions/settings";
+import { uploadSpaceLogoAction as endpoint188 } from "@/app/actions/settings";
+import { removeSpaceLogoAction as endpoint189 } from "@/app/actions/settings";
+import { deleteSpaceAction as endpoint190 } from "@/app/actions/settings";
+import { saveCategoryAction as endpoint191 } from "@/app/actions/settings";
+import { deleteCategoryAction as endpoint192 } from "@/app/actions/settings";
+import { saveUnitAction as endpoint193 } from "@/app/actions/settings";
+import { deleteUnitAction as endpoint194 } from "@/app/actions/settings";
+import { saveSupplierAction as endpoint195 } from "@/app/actions/settings";
+import { setSupplierArchivedAction as endpoint196 } from "@/app/actions/settings";
+import { saveLocationPlanAction as endpoint197 } from "@/app/actions/setup";
+import { addCategoriesAction as endpoint198 } from "@/app/actions/setup";
+import { addUnitAction as endpoint199 } from "@/app/actions/setup";
+import { finishSetupAction as endpoint200 } from "@/app/actions/setup";
+import { joinSpaceAction as endpoint201 } from "@/app/actions/spaces";
+import { receiveStockAction as endpoint202 } from "@/app/actions/stock";
+import { adjustStockAction as endpoint203 } from "@/app/actions/stock";
+import { moveStockAction as endpoint204 } from "@/app/actions/stock";
+import { quarantineStockAction as endpoint205 } from "@/app/actions/stock";
+import { resolveQuarantineAction as endpoint206 } from "@/app/actions/stock";
+import { changeAssetStateAction as endpoint207 } from "@/app/actions/stock";
+import { moveAssetAction as endpoint208 } from "@/app/actions/stock";
+import { addExternalTechnicianAction as endpoint209 } from "@/app/actions/technicians";
+import { addStaffTechnicianAction as endpoint210 } from "@/app/actions/technicians";
+import { updateTechnicianAction as endpoint211 } from "@/app/actions/technicians";
+import { setTechnicianActiveAction as endpoint212 } from "@/app/actions/technicians";
+import { saveTechnicianMessagingAction as endpoint213 } from "@/app/actions/technicians";
+import { requestTransferAction as endpoint214 } from "@/app/actions/transfers";
+import { approveTransferAction as endpoint215 } from "@/app/actions/transfers";
+import { rejectTransferAction as endpoint216 } from "@/app/actions/transfers";
+import { cancelTransferAction as endpoint217 } from "@/app/actions/transfers";
+import { dispatchTransferAction as endpoint218 } from "@/app/actions/transfers";
+import { receiveTransferAction as endpoint219 } from "@/app/actions/transfers";
+import { declareMissingAction as endpoint220 } from "@/app/actions/transfers";
+import { sendBackAction as endpoint221 } from "@/app/actions/transfers";
+import { receiveReturnAction as endpoint222 } from "@/app/actions/transfers";
 export const viewReaders = Object.freeze({
 "account-page:loadAccountPage": endpoint0,
 "admin-mfa-page:loadAdminMfaPage": endpoint1,
@@ -262,189 +263,190 @@ export const viewReaders = Object.freeze({
 "s-spaceSlug-loans-page:loadLoansPage": endpoint36,
 "s-spaceSlug-locations-page:loadLocationsPage": endpoint37,
 "s-spaceSlug-members-page:loadMembersPage": endpoint38,
-"s-spaceSlug-my-loans-loanId-page:loadMyLoanPage": endpoint39,
-"s-spaceSlug-my-loans-page:loadMyLoansPage": endpoint40,
-"s-spaceSlug-notifications-page:loadNotificationsPage": endpoint41,
-"s-spaceSlug-page:loadSpaceHomePage": endpoint42,
-"s-spaceSlug-pay-paymentId-page:loadPayPage": endpoint43,
-"s-spaceSlug-purchases-page:loadPurchasesPage": endpoint44,
-"s-spaceSlug-repairs-issueId-page:loadRepairPage": endpoint45,
-"s-spaceSlug-repairs-new-page:loadReportRepairPage": endpoint46,
-"s-spaceSlug-repairs-page:loadRepairsPage": endpoint47,
-"s-spaceSlug-repairs-payouts-page:loadRepairPayoutsPage": endpoint48,
-"s-spaceSlug-repairs-technicians-page:loadTechniciansPage": endpoint49,
-"s-spaceSlug-reports-page:loadReportsPage": endpoint50,
-"s-spaceSlug-scan-page:loadScanPage": endpoint51,
-"s-spaceSlug-settings-integrations-page:loadIntegrationsSettingsPage": endpoint52,
-"s-spaceSlug-settings-inventory-page:loadInventorySettingsPage": endpoint53,
-"s-spaceSlug-settings-page:loadSpaceSettingsPage": endpoint54,
-"s-spaceSlug-settings-payments-page:loadPaymentSettingsPage": endpoint55,
-"s-spaceSlug-settings-roles-page:loadRolesPage": endpoint56,
-"s-spaceSlug-setup-page:loadSpaceSetupPage": endpoint57,
-"s-spaceSlug-stock-movements-page:loadStockMovementsPage": endpoint58,
-"s-spaceSlug-stock-page:loadStockPage": endpoint59,
-"s-spaceSlug-transfers-transferId-page:loadTransferPage": endpoint60,
-"s-spaceSlug-transfers-new-page:loadNewTransferPage": endpoint61,
-"s-spaceSlug-transfers-page:loadTransfersPage": endpoint62,
-"setup-page:loadSetupPage": endpoint63,
+"s-spaceSlug-mentor-page:loadMentorPage": endpoint39,
+"s-spaceSlug-my-loans-loanId-page:loadMyLoanPage": endpoint40,
+"s-spaceSlug-my-loans-page:loadMyLoansPage": endpoint41,
+"s-spaceSlug-notifications-page:loadNotificationsPage": endpoint42,
+"s-spaceSlug-page:loadSpaceHomePage": endpoint43,
+"s-spaceSlug-pay-paymentId-page:loadPayPage": endpoint44,
+"s-spaceSlug-purchases-page:loadPurchasesPage": endpoint45,
+"s-spaceSlug-repairs-issueId-page:loadRepairPage": endpoint46,
+"s-spaceSlug-repairs-new-page:loadReportRepairPage": endpoint47,
+"s-spaceSlug-repairs-page:loadRepairsPage": endpoint48,
+"s-spaceSlug-repairs-payouts-page:loadRepairPayoutsPage": endpoint49,
+"s-spaceSlug-repairs-technicians-page:loadTechniciansPage": endpoint50,
+"s-spaceSlug-reports-page:loadReportsPage": endpoint51,
+"s-spaceSlug-scan-page:loadScanPage": endpoint52,
+"s-spaceSlug-settings-integrations-page:loadIntegrationsSettingsPage": endpoint53,
+"s-spaceSlug-settings-inventory-page:loadInventorySettingsPage": endpoint54,
+"s-spaceSlug-settings-page:loadSpaceSettingsPage": endpoint55,
+"s-spaceSlug-settings-payments-page:loadPaymentSettingsPage": endpoint56,
+"s-spaceSlug-settings-roles-page:loadRolesPage": endpoint57,
+"s-spaceSlug-setup-page:loadSpaceSetupPage": endpoint58,
+"s-spaceSlug-stock-movements-page:loadStockMovementsPage": endpoint59,
+"s-spaceSlug-stock-page:loadStockPage": endpoint60,
+"s-spaceSlug-transfers-transferId-page:loadTransferPage": endpoint61,
+"s-spaceSlug-transfers-new-page:loadNewTransferPage": endpoint62,
+"s-spaceSlug-transfers-page:loadTransfersPage": endpoint63,
+"setup-page:loadSetupPage": endpoint64,
 });
 export const backendActions = Object.freeze({
-"account:updateProfile": endpoint64,
-"account:changePassword": endpoint65,
-"account:beginMfaEnrollment": endpoint66,
-"account:confirmMfaEnrollment": endpoint67,
-"account:disableMfa": endpoint68,
-"account:signOutEverywhere": endpoint69,
-"admin:verifyAdminMfa": endpoint70,
-"admin:updateInstanceSettingsAction": endpoint71,
-"admin:adminCreateSpace": endpoint72,
-"admin:adminSetUserDisabled": endpoint73,
-"admin:adminSetSpaceArchived": endpoint74,
-"auth:completeSetup": endpoint75,
-"auth:requestPasswordReset": endpoint76,
-"auth:requestMagicLink": endpoint77,
-"auth:resetPassword": endpoint78,
-"auth:acceptInviteWithNewAccount": endpoint79,
-"auth:acceptInviteAsCurrentUser": endpoint80,
-"catalogue:createItemAction": endpoint81,
-"catalogue:updateItemAction": endpoint82,
-"catalogue:setItemArchivedAction": endpoint83,
-"catalogue:uploadItemImagesAction": endpoint84,
-"catalogue:removeItemImageAction": endpoint85,
-"catalogue:reorderItemImagesAction": endpoint86,
-"catalogue:quickAddCategoryAction": endpoint87,
-"catalogue:quickAddUnitAction": endpoint88,
-"catalogue:createAssetsAction": endpoint89,
-"catalogue:updateAssetAction": endpoint90,
-"catalogue:saveLocationAction": endpoint91,
-"catalogue:setLocationArchivedAction": endpoint92,
-"catalogue:buildLocationsAction": endpoint93,
-"catalogue:saveKitAction": endpoint94,
-"catalogue:setKitArchivedAction": endpoint95,
-"catalogue:createContainersAction": endpoint96,
-"catalogue:setContainerArchivedAction": endpoint97,
-"catalogue:qrCodeAction": endpoint98,
-"counts:startCountAction": endpoint99,
-"counts:recordCountAction": endpoint100,
-"counts:addCountLineAction": endpoint101,
-"counts:scanCountAssetAction": endpoint102,
-"counts:refreshCountLineAction": endpoint103,
-"counts:submitCountAction": endpoint104,
-"counts:reopenCountAction": endpoint105,
-"counts:postCountAction": endpoint106,
-"counts:cancelCountAction": endpoint107,
-"counts:saveCountScheduleAction": endpoint108,
-"counts:setCountScheduleActiveAction": endpoint109,
-"finance:createFinanceEntryAction": endpoint110,
-"finance:reverseFinanceEntryAction": endpoint111,
-"import:previewImportAction": endpoint112,
-"import:recheckImportAction": endpoint113,
-"import:applyImportAction": endpoint114,
-"import:loadSampleDataAction": endpoint115,
-"integrations:createApiKeyAction": endpoint116,
-"integrations:revokeApiKeyAction": endpoint117,
-"integrations:createWebhookAction": endpoint118,
-"integrations:updateWebhookAction": endpoint119,
-"integrations:setWebhookEnabledAction": endpoint120,
-"integrations:rotateWebhookSecretAction": endpoint121,
-"integrations:deleteWebhookAction": endpoint122,
-"integrations:sendWebhookTestAction": endpoint123,
-"integrations:retryWebhookDeliveryAction": endpoint124,
-"jobs:manageJobsAction": endpoint125,
-"loans:approveLoanAction": endpoint126,
-"loans:rejectLoanAction": endpoint127,
-"loans:cancelLoanAction": endpoint128,
-"loans:issueLoanAction": endpoint129,
-"loans:returnLoanAction": endpoint130,
-"loans:renewLoanAction": endpoint131,
-"loans:setDueDateAction": endpoint132,
-"loans:resolveIncidentAction": endpoint133,
-"loans:requestLoanAction": endpoint134,
-"loans:selfCheckoutAction": endpoint135,
-"loans:renewMyLoanAction": endpoint136,
-"loans:cancelMyLoanAction": endpoint137,
-"loans:selfReturnAction": endpoint138,
-"members:createInvitationAction": endpoint139,
-"members:resendInvitationAction": endpoint140,
-"members:revokeInvitationAction": endpoint141,
-"members:changeMemberRoleAction": endpoint142,
-"members:setMemberStatusAction": endpoint143,
-"members:removeMemberAction": endpoint144,
-"members:leaveSpaceAction": endpoint145,
-"members:setBorrowingAccessAction": endpoint146,
-"notifications:markNotificationsReadAction": endpoint147,
-"notifications:markSpaceNotificationsReadAction": endpoint148,
-"payments:savePaymentSettingsAction": endpoint149,
-"payments:testPaymentConnectionAction": endpoint150,
-"payments:payNowAction": endpoint151,
-"payments:confirmRazorpayPaymentAction": endpoint152,
-"payments:payLaterAction": endpoint153,
-"payments:submitOfflinePaymentAction": endpoint154,
-"payments:markPayLaterAction": endpoint155,
-"payments:recordOfflinePaymentAction": endpoint156,
-"payments:reviewOfflinePaymentAction": endpoint157,
-"payments:waiveChargeAction": endpoint158,
-"payments:returnDepositAction": endpoint159,
-"payments:refundPaymentAction": endpoint160,
-"payments:retryRefundAction": endpoint161,
-"purchases:createPurchaseAction": endpoint162,
-"purchases:addSuggestionAction": endpoint163,
-"purchases:movePurchaseAction": endpoint164,
-"purchases:receivePurchaseAction": endpoint165,
-"repairLink:respondByLinkAction": endpoint166,
-"repairLink:saveWorkByLinkAction": endpoint167,
-"repairs:reportRepairAction": endpoint168,
-"repairs:reportFromIncidentAction": endpoint169,
-"repairs:sendRepairRequestsAction": endpoint170,
-"repairs:assignTechnicianAction": endpoint171,
-"repairs:unassignTechnicianAction": endpoint172,
-"repairs:withdrawRepairRequestAction": endpoint173,
-"repairs:respondRepairRequestAction": endpoint174,
-"repairs:saveRepairWorkAction": endpoint175,
-"repairs:closeRepairAction": endpoint176,
-"repairs:reopenRepairAction": endpoint177,
-"repairs:cancelRepairAction": endpoint178,
-"repairs:approveRepairAmountAction": endpoint179,
-"repairs:recordRepairPayoutAction": endpoint180,
-"repairs:requestRepairPartsAction": endpoint181,
-"scan:resolveScanAction": endpoint182,
-"scan:resolveIssueScanAction": endpoint183,
-"scan:resolveDispatchScanAction": endpoint184,
-"scan:resolveSelfCheckoutScanAction": endpoint185,
-"settings:updateSettingsSection": endpoint186,
-"settings:uploadSpaceLogoAction": endpoint187,
-"settings:removeSpaceLogoAction": endpoint188,
-"settings:deleteSpaceAction": endpoint189,
-"settings:saveCategoryAction": endpoint190,
-"settings:deleteCategoryAction": endpoint191,
-"settings:saveUnitAction": endpoint192,
-"settings:deleteUnitAction": endpoint193,
-"settings:saveSupplierAction": endpoint194,
-"settings:setSupplierArchivedAction": endpoint195,
-"setup:saveLocationPlanAction": endpoint196,
-"setup:addCategoriesAction": endpoint197,
-"setup:addUnitAction": endpoint198,
-"setup:finishSetupAction": endpoint199,
-"spaces:joinSpaceAction": endpoint200,
-"stock:receiveStockAction": endpoint201,
-"stock:adjustStockAction": endpoint202,
-"stock:moveStockAction": endpoint203,
-"stock:quarantineStockAction": endpoint204,
-"stock:resolveQuarantineAction": endpoint205,
-"stock:changeAssetStateAction": endpoint206,
-"stock:moveAssetAction": endpoint207,
-"technicians:addExternalTechnicianAction": endpoint208,
-"technicians:addStaffTechnicianAction": endpoint209,
-"technicians:updateTechnicianAction": endpoint210,
-"technicians:setTechnicianActiveAction": endpoint211,
-"technicians:saveTechnicianMessagingAction": endpoint212,
-"transfers:requestTransferAction": endpoint213,
-"transfers:approveTransferAction": endpoint214,
-"transfers:rejectTransferAction": endpoint215,
-"transfers:cancelTransferAction": endpoint216,
-"transfers:dispatchTransferAction": endpoint217,
-"transfers:receiveTransferAction": endpoint218,
-"transfers:declareMissingAction": endpoint219,
-"transfers:sendBackAction": endpoint220,
-"transfers:receiveReturnAction": endpoint221,
+"account:updateProfile": endpoint65,
+"account:changePassword": endpoint66,
+"account:beginMfaEnrollment": endpoint67,
+"account:confirmMfaEnrollment": endpoint68,
+"account:disableMfa": endpoint69,
+"account:signOutEverywhere": endpoint70,
+"admin:verifyAdminMfa": endpoint71,
+"admin:updateInstanceSettingsAction": endpoint72,
+"admin:adminCreateSpace": endpoint73,
+"admin:adminSetUserDisabled": endpoint74,
+"admin:adminSetSpaceArchived": endpoint75,
+"auth:completeSetup": endpoint76,
+"auth:requestPasswordReset": endpoint77,
+"auth:requestMagicLink": endpoint78,
+"auth:resetPassword": endpoint79,
+"auth:acceptInviteWithNewAccount": endpoint80,
+"auth:acceptInviteAsCurrentUser": endpoint81,
+"catalogue:createItemAction": endpoint82,
+"catalogue:updateItemAction": endpoint83,
+"catalogue:setItemArchivedAction": endpoint84,
+"catalogue:uploadItemImagesAction": endpoint85,
+"catalogue:removeItemImageAction": endpoint86,
+"catalogue:reorderItemImagesAction": endpoint87,
+"catalogue:quickAddCategoryAction": endpoint88,
+"catalogue:quickAddUnitAction": endpoint89,
+"catalogue:createAssetsAction": endpoint90,
+"catalogue:updateAssetAction": endpoint91,
+"catalogue:saveLocationAction": endpoint92,
+"catalogue:setLocationArchivedAction": endpoint93,
+"catalogue:buildLocationsAction": endpoint94,
+"catalogue:saveKitAction": endpoint95,
+"catalogue:setKitArchivedAction": endpoint96,
+"catalogue:createContainersAction": endpoint97,
+"catalogue:setContainerArchivedAction": endpoint98,
+"catalogue:qrCodeAction": endpoint99,
+"counts:startCountAction": endpoint100,
+"counts:recordCountAction": endpoint101,
+"counts:addCountLineAction": endpoint102,
+"counts:scanCountAssetAction": endpoint103,
+"counts:refreshCountLineAction": endpoint104,
+"counts:submitCountAction": endpoint105,
+"counts:reopenCountAction": endpoint106,
+"counts:postCountAction": endpoint107,
+"counts:cancelCountAction": endpoint108,
+"counts:saveCountScheduleAction": endpoint109,
+"counts:setCountScheduleActiveAction": endpoint110,
+"finance:createFinanceEntryAction": endpoint111,
+"finance:reverseFinanceEntryAction": endpoint112,
+"import:previewImportAction": endpoint113,
+"import:recheckImportAction": endpoint114,
+"import:applyImportAction": endpoint115,
+"import:loadSampleDataAction": endpoint116,
+"integrations:createApiKeyAction": endpoint117,
+"integrations:revokeApiKeyAction": endpoint118,
+"integrations:createWebhookAction": endpoint119,
+"integrations:updateWebhookAction": endpoint120,
+"integrations:setWebhookEnabledAction": endpoint121,
+"integrations:rotateWebhookSecretAction": endpoint122,
+"integrations:deleteWebhookAction": endpoint123,
+"integrations:sendWebhookTestAction": endpoint124,
+"integrations:retryWebhookDeliveryAction": endpoint125,
+"jobs:manageJobsAction": endpoint126,
+"loans:approveLoanAction": endpoint127,
+"loans:rejectLoanAction": endpoint128,
+"loans:cancelLoanAction": endpoint129,
+"loans:issueLoanAction": endpoint130,
+"loans:returnLoanAction": endpoint131,
+"loans:renewLoanAction": endpoint132,
+"loans:setDueDateAction": endpoint133,
+"loans:resolveIncidentAction": endpoint134,
+"loans:requestLoanAction": endpoint135,
+"loans:selfCheckoutAction": endpoint136,
+"loans:renewMyLoanAction": endpoint137,
+"loans:cancelMyLoanAction": endpoint138,
+"loans:selfReturnAction": endpoint139,
+"members:createInvitationAction": endpoint140,
+"members:resendInvitationAction": endpoint141,
+"members:revokeInvitationAction": endpoint142,
+"members:changeMemberRoleAction": endpoint143,
+"members:setMemberStatusAction": endpoint144,
+"members:removeMemberAction": endpoint145,
+"members:leaveSpaceAction": endpoint146,
+"members:setBorrowingAccessAction": endpoint147,
+"notifications:markNotificationsReadAction": endpoint148,
+"notifications:markSpaceNotificationsReadAction": endpoint149,
+"payments:savePaymentSettingsAction": endpoint150,
+"payments:testPaymentConnectionAction": endpoint151,
+"payments:payNowAction": endpoint152,
+"payments:confirmRazorpayPaymentAction": endpoint153,
+"payments:payLaterAction": endpoint154,
+"payments:submitOfflinePaymentAction": endpoint155,
+"payments:markPayLaterAction": endpoint156,
+"payments:recordOfflinePaymentAction": endpoint157,
+"payments:reviewOfflinePaymentAction": endpoint158,
+"payments:waiveChargeAction": endpoint159,
+"payments:returnDepositAction": endpoint160,
+"payments:refundPaymentAction": endpoint161,
+"payments:retryRefundAction": endpoint162,
+"purchases:createPurchaseAction": endpoint163,
+"purchases:addSuggestionAction": endpoint164,
+"purchases:movePurchaseAction": endpoint165,
+"purchases:receivePurchaseAction": endpoint166,
+"repairLink:respondByLinkAction": endpoint167,
+"repairLink:saveWorkByLinkAction": endpoint168,
+"repairs:reportRepairAction": endpoint169,
+"repairs:reportFromIncidentAction": endpoint170,
+"repairs:sendRepairRequestsAction": endpoint171,
+"repairs:assignTechnicianAction": endpoint172,
+"repairs:unassignTechnicianAction": endpoint173,
+"repairs:withdrawRepairRequestAction": endpoint174,
+"repairs:respondRepairRequestAction": endpoint175,
+"repairs:saveRepairWorkAction": endpoint176,
+"repairs:closeRepairAction": endpoint177,
+"repairs:reopenRepairAction": endpoint178,
+"repairs:cancelRepairAction": endpoint179,
+"repairs:approveRepairAmountAction": endpoint180,
+"repairs:recordRepairPayoutAction": endpoint181,
+"repairs:requestRepairPartsAction": endpoint182,
+"scan:resolveScanAction": endpoint183,
+"scan:resolveIssueScanAction": endpoint184,
+"scan:resolveDispatchScanAction": endpoint185,
+"scan:resolveSelfCheckoutScanAction": endpoint186,
+"settings:updateSettingsSection": endpoint187,
+"settings:uploadSpaceLogoAction": endpoint188,
+"settings:removeSpaceLogoAction": endpoint189,
+"settings:deleteSpaceAction": endpoint190,
+"settings:saveCategoryAction": endpoint191,
+"settings:deleteCategoryAction": endpoint192,
+"settings:saveUnitAction": endpoint193,
+"settings:deleteUnitAction": endpoint194,
+"settings:saveSupplierAction": endpoint195,
+"settings:setSupplierArchivedAction": endpoint196,
+"setup:saveLocationPlanAction": endpoint197,
+"setup:addCategoriesAction": endpoint198,
+"setup:addUnitAction": endpoint199,
+"setup:finishSetupAction": endpoint200,
+"spaces:joinSpaceAction": endpoint201,
+"stock:receiveStockAction": endpoint202,
+"stock:adjustStockAction": endpoint203,
+"stock:moveStockAction": endpoint204,
+"stock:quarantineStockAction": endpoint205,
+"stock:resolveQuarantineAction": endpoint206,
+"stock:changeAssetStateAction": endpoint207,
+"stock:moveAssetAction": endpoint208,
+"technicians:addExternalTechnicianAction": endpoint209,
+"technicians:addStaffTechnicianAction": endpoint210,
+"technicians:updateTechnicianAction": endpoint211,
+"technicians:setTechnicianActiveAction": endpoint212,
+"technicians:saveTechnicianMessagingAction": endpoint213,
+"transfers:requestTransferAction": endpoint214,
+"transfers:approveTransferAction": endpoint215,
+"transfers:rejectTransferAction": endpoint216,
+"transfers:cancelTransferAction": endpoint217,
+"transfers:dispatchTransferAction": endpoint218,
+"transfers:receiveTransferAction": endpoint219,
+"transfers:declareMissingAction": endpoint220,
+"transfers:sendBackAction": endpoint221,
+"transfers:receiveReturnAction": endpoint222,
 });

@@ -273,6 +273,13 @@ How this app applies the brand is in [docs/DESIGN.md](docs/DESIGN.md). Rebuild t
 
 ## Documentation
 
+Staff and inventory managers can open **Desk → Project mentor** to discuss a
+project, compare real catalogue capabilities and available alternatives, and
+continue through native inventory/lending workflows. The
+[Agents integration guide](docs/AGENTS-INTEGRATION.md) explains optional local
+Codex mentoring, authenticated endpoints, reviewed activation and the preserved
+QR/photo handover requirements.
+
 | Read this | When you want to |
 | --- | --- |
 | [Documentation index](docs/README.md) | Find every guide |

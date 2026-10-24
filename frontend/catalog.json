@@ -196,6 +196,11 @@
       "id": "s-spaceSlug-members-page:loadMembersPage"
     },
     {
+      "module": "lib/views/generated/s-spaceSlug-mentor-page-loadMentorPage",
+      "name": "loadMentorPage",
+      "id": "s-spaceSlug-mentor-page:loadMentorPage"
+    },
+    {
       "module": "lib/views/generated/s-spaceSlug-my-loans-loanId-page-loadMyLoanPage",
       "name": "loadMyLoanPage",
       "id": "s-spaceSlug-my-loans-loanId-page:loadMyLoanPage"

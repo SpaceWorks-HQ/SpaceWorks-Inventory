@@ -28,6 +28,7 @@ reports, an audit log, webhooks and a REST API.
 | [Invariants](INVARIANTS.md) | The rules every screen, API call and job keeps, and where they are enforced |
 | [Roles and permissions](RBAC.md) | Inventory manager, staff and member, and the role matrix |
 | [REST API](API.md) | API keys, scopes, endpoints and webhooks |
+| [Project mentor and Agents adapter](AGENTS-INTEGRATION.md) | Catalogue-backed local mentoring, reviewed integration, permitted native operations and evidence handoffs |
 | [Design system](DESIGN.md) | Tokens, type, components and the Space Works look |
 | [Testing](TESTING.md) | Test suites and what to run when |
 
@@ -36,4 +37,5 @@ reports, an audit log, webhooks and a REST API.
 - [Contributing](../CONTRIBUTING.md): branches, checks, conventions and commit style.
 - [Security policy](../SECURITY.md): how to report a vulnerability privately.
 - [Changelog](../CHANGELOG.md) and [notices](../NOTICE).
+- [AI assistance for the Agents adapter](AI-USAGE-AGENTS.md): implementation and runtime model provenance.
 - Licence: [AGPL-3.0-or-later](../LICENSE).

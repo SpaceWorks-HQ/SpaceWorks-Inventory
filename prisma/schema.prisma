@@ -617,6 +617,24 @@ model Space {
   repairPayouts     RepairPayout[]
   financeEntries    FinanceEntry[]
   chatConfig        SpaceChatConfig?
+  agentReceipts     AgentOperationReceipt[]
+}
+
+/// One confirmed agent command and its domain result, committed atomically.
+model AgentOperationReceipt {
+  id            String   @id @default(cuid())
+  spaceId       String
+  actorId       String
+  actionKey     String
+  requestHash   String
+  operation     String
+  policyVersion BigInt
+  result        Json
+  createdAt     DateTime @default(now())
+  space         Space    @relation(fields: [spaceId], references: [id], onDelete: Cascade)
+
+  @@unique([spaceId, actorId, actionKey])
+  @@index([spaceId, createdAt])
 }
 
 model Membership {

@@ -110,6 +110,18 @@ only from [SpaceWorks-Design](https://spaceworks-hq.github.io/SpaceWorks-Design/
 
 ## Defaults the owner may revisit
 
+### Agent integration phase (2026-10-25)
+
+At the owner's request, SpaceWorks Agents is embedded against this app's own
+accounts, memberships and native availability/lending services. Codex assists
+implementation; runtime project mentoring may use the installed Codex CLI with
+`gpt-6-luna` after explicit operator configuration. Mentor output is a read-only
+discussion and links to native workflows. The existing QR, photo, payment and
+role rules are preserved. Reviewed dev integration and deployed-revision checks
+gate adapter mutations; PostgreSQL command receipts commit with domain effects.
+See [the integration guide](AGENTS-INTEGRATION.md) and
+[AI assistance record](AI-USAGE-AGENTS.md).
+
 | Decision | Why |
 | --- | --- |
 | A space created under `/admin` for someone without an account makes the instance admin its interim manager and invites the named person as manager | A space must always have an active manager; the admin can leave once the invitee joins |
