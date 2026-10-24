@@ -29,6 +29,11 @@ export const EVENT_TYPES = [
   { type: "transfer.received", label: "Transfer received (fully or partly)" },
   { type: "transfer.cancelled", label: "Transfer cancelled" },
   { type: "transfer.returned", label: "Transfer returned to sender" },
+  { type: "issue.reported", label: "Damaged or broken item reported" },
+  { type: "issue.assigned", label: "Repair assigned to a technician" },
+  { type: "issue.resolved", label: "Repair verified and closed" },
+  { type: "repair.paid", label: "Repair payout recorded" },
+  { type: "finance.entry_posted", label: "Money movement posted to the finance ledger" },
 ] as const;
 
 export type EventType = (typeof EVENT_TYPES)[number]["type"];

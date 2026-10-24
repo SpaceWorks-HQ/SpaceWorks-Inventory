@@ -13,6 +13,8 @@ import {
   canManageInventorySettings,
   canManageLending,
   canManageMembers,
+  canPayRepairs,
+  canViewFinance,
   canTakePayments,
   canViewAuditLog,
   canViewReports,
@@ -25,8 +27,10 @@ import {
 const as = (role: SpaceRole) => ({ role });
 
 describe("role ranks", () => {
-  it("orders MANAGER > STAFF > MEMBER, with no admin or owner role", () => {
-    expect(SPACE_ROLES).toEqual(["MANAGER", "STAFF", "MEMBER"]);
+  it("orders MANAGER > STAFF > MEMBER, plus a repairs-only TECHNICIAN, with no admin or owner role", () => {
+    expect(SPACE_ROLES).toEqual(["MANAGER", "STAFF", "MEMBER", "TECHNICIAN"]);
+    expect(hasRoleAtLeast("TECHNICIAN", "MEMBER")).toBe(false);
+    expect(hasRoleAtLeast("MEMBER", "TECHNICIAN")).toBe(true);
     expect(hasRoleAtLeast("MANAGER", "STAFF")).toBe(true);
     expect(hasRoleAtLeast("STAFF", "MANAGER")).toBe(false);
     expect(hasRoleAtLeast("STAFF", "MEMBER")).toBe(true);
@@ -61,16 +65,25 @@ describe("capability matrix", () => {
     for (const row of ROLE_MATRIX) expect(row.check(null)).toBe(false);
   });
 
-  it("gives inventory managers every capability and members only borrowing", () => {
+  it("gives technicians only repair work and keeps money with managers", () => {
+    expect(ROLE_MATRIX.filter((row) => row.check(as("TECHNICIAN"))).map((row) => row.capability)).toEqual(["Work on repairs sent to them"]);
+    for (const role of ["STAFF", "MEMBER", "TECHNICIAN"] as const) {
+      expect(canViewFinance(as(role))).toBe(false);
+      expect(canPayRepairs(as(role))).toBe(false);
+    }
+    expect(canViewFinance(as("MANAGER"))).toBe(true);
+  });
+
+  it("gives inventory managers every capability and members only borrowing and reporting", () => {
     expect(ROLE_MATRIX.every((row) => row.check(as("MANAGER")))).toBe(true);
     expect(ROLE_MATRIX.some((row) => /owner/i.test(row.capability))).toBe(false);
-    expect(ROLE_MATRIX.filter((row) => row.check(as("MEMBER"))).map((row) => row.capability)).toEqual(["Browse the catalogue and request loans"]);
+    expect(ROLE_MATRIX.filter((row) => row.check(as("MEMBER"))).map((row) => row.capability)).toEqual(["Browse the catalogue and request loans", "Report a damaged or broken item"]);
   });
 });
 
 describe("member management", () => {
   it("lets inventory managers assign every role, other managers included", () => {
-    expect(assignableRoles(as("MANAGER"))).toEqual(["MANAGER", "STAFF", "MEMBER"]);
+    expect(assignableRoles(as("MANAGER"))).toEqual(["MANAGER", "STAFF", "MEMBER", "TECHNICIAN"]);
     expect(assignableRoles(as("STAFF"))).toEqual([]);
     expect(assignableRoles(as("MEMBER"))).toEqual([]);
   });

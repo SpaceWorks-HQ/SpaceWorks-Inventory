@@ -24,33 +24,51 @@
     "value": false
   },
   {
-    "module": "lib/setup/home",
-    "name": "MemberHome",
+    "module": "lib/finance/report",
+    "name": "FinanceReport",
     "id": "Shared4",
     "value": false
   },
   {
     "module": "lib/setup/home",
-    "name": "StaffHome",
+    "name": "MemberHome",
     "id": "Shared5",
+    "value": false
+  },
+  {
+    "module": "lib/setup/home",
+    "name": "StaffHome",
+    "id": "Shared6",
     "value": false
   },
   {
     "module": "lib/payments/config",
     "name": "PaymentConfigView",
-    "id": "Shared6",
+    "id": "Shared7",
     "value": false
   },
   {
     "module": "lib/setup/publicCatalogue",
     "name": "PublicItem",
-    "id": "Shared7",
+    "id": "Shared8",
+    "value": false
+  },
+  {
+    "module": "lib/repairs/chat",
+    "name": "ChatSettingsView",
+    "id": "Shared9",
+    "value": false
+  },
+  {
+    "module": "lib/repairs/views",
+    "name": "RepairDetail",
+    "id": "Shared10",
     "value": false
   },
   {
     "module": "lib/desk/loansQueue",
     "name": "LoanTab",
-    "id": "Shared8",
+    "id": "Shared11",
     "value": false
   }
 ]

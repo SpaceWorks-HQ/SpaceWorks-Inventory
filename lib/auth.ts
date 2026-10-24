@@ -15,12 +15,14 @@ export const SESSION_COOKIE = "swi.session-token.v1";
 const credentialsSchema = z.object({
   email: z.string().trim().toLowerCase().email().max(254),
   password: z.string().min(1).max(128),
-  totp: z.string().trim().max(32).optional(),
+  // Older clients post a missing code as the text "undefined": treat it as no code.
+  totp: z.string().trim().max(32).optional().transform((value) => (value && value !== "undefined" ? value : undefined)),
 });
 
 const magicLinkSchema = z.object({
   token: z.string().trim().min(20).max(128).regex(/^[A-Za-z0-9_-]+$/),
-  totp: z.string().trim().max(32).optional(),
+  // Older clients post a missing code as the text "undefined": treat it as no code.
+  totp: z.string().trim().max(32).optional().transform((value) => (value && value !== "undefined" ? value : undefined)),
 });
 
 /**

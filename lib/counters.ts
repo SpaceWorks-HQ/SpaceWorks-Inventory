@@ -2,7 +2,7 @@ import "server-only";
 
 import type { DbClient } from "@/lib/db";
 
-export type SequenceName = "loan" | "transfer" | "count" | "purchase" | "asset" | "container";
+export type SequenceName = "loan" | "transfer" | "count" | "purchase" | "asset" | "container" | "repair";
 
 /**
  * Next value of a per-space sequence. Atomic via INSERT … ON CONFLICT DO

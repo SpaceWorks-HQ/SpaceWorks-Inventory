@@ -76,6 +76,11 @@
       "id": "q-code-page:loadQrLandingPage"
     },
     {
+      "module": "lib/views/generated/r-token-page-loadRepairLinkPage",
+      "name": "loadRepairLinkPage",
+      "id": "r-token-page:loadRepairLinkPage"
+    },
+    {
       "module": "lib/views/generated/reset-password-token-page-loadResetPasswordPage",
       "name": "loadResetPasswordPage",
       "id": "reset-password-token-page:loadResetPasswordPage"
@@ -119,6 +124,11 @@
       "module": "lib/views/generated/s-spaceSlug-counts-page-loadCountsPage",
       "name": "loadCountsPage",
       "id": "s-spaceSlug-counts-page:loadCountsPage"
+    },
+    {
+      "module": "lib/views/generated/s-spaceSlug-finance-page-loadFinancePage",
+      "name": "loadFinancePage",
+      "id": "s-spaceSlug-finance-page:loadFinancePage"
     },
     {
       "module": "lib/views/generated/s-spaceSlug-import-page-loadImportPage",
@@ -214,6 +224,31 @@
       "module": "lib/views/generated/s-spaceSlug-purchases-page-loadPurchasesPage",
       "name": "loadPurchasesPage",
       "id": "s-spaceSlug-purchases-page:loadPurchasesPage"
+    },
+    {
+      "module": "lib/views/generated/s-spaceSlug-repairs-issueId-page-loadRepairPage",
+      "name": "loadRepairPage",
+      "id": "s-spaceSlug-repairs-issueId-page:loadRepairPage"
+    },
+    {
+      "module": "lib/views/generated/s-spaceSlug-repairs-new-page-loadReportRepairPage",
+      "name": "loadReportRepairPage",
+      "id": "s-spaceSlug-repairs-new-page:loadReportRepairPage"
+    },
+    {
+      "module": "lib/views/generated/s-spaceSlug-repairs-page-loadRepairsPage",
+      "name": "loadRepairsPage",
+      "id": "s-spaceSlug-repairs-page:loadRepairsPage"
+    },
+    {
+      "module": "lib/views/generated/s-spaceSlug-repairs-payouts-page-loadRepairPayoutsPage",
+      "name": "loadRepairPayoutsPage",
+      "id": "s-spaceSlug-repairs-payouts-page:loadRepairPayoutsPage"
+    },
+    {
+      "module": "lib/views/generated/s-spaceSlug-repairs-technicians-page-loadTechniciansPage",
+      "name": "loadTechniciansPage",
+      "id": "s-spaceSlug-repairs-technicians-page:loadTechniciansPage"
     },
     {
       "module": "lib/views/generated/s-spaceSlug-reports-page-loadReportsPage",
@@ -518,6 +553,16 @@
       "id": "counts:setCountScheduleActiveAction"
     },
     {
+      "module": "app/actions/finance",
+      "name": "createFinanceEntryAction",
+      "id": "finance:createFinanceEntryAction"
+    },
+    {
+      "module": "app/actions/finance",
+      "name": "reverseFinanceEntryAction",
+      "id": "finance:reverseFinanceEntryAction"
+    },
+    {
       "module": "app/actions/import",
       "name": "previewImportAction",
       "id": "import:previewImportAction"
@@ -788,6 +833,86 @@
       "id": "purchases:receivePurchaseAction"
     },
     {
+      "module": "app/actions/repairLink",
+      "name": "respondByLinkAction",
+      "id": "repairLink:respondByLinkAction"
+    },
+    {
+      "module": "app/actions/repairLink",
+      "name": "saveWorkByLinkAction",
+      "id": "repairLink:saveWorkByLinkAction"
+    },
+    {
+      "module": "app/actions/repairs",
+      "name": "reportRepairAction",
+      "id": "repairs:reportRepairAction"
+    },
+    {
+      "module": "app/actions/repairs",
+      "name": "reportFromIncidentAction",
+      "id": "repairs:reportFromIncidentAction"
+    },
+    {
+      "module": "app/actions/repairs",
+      "name": "sendRepairRequestsAction",
+      "id": "repairs:sendRepairRequestsAction"
+    },
+    {
+      "module": "app/actions/repairs",
+      "name": "assignTechnicianAction",
+      "id": "repairs:assignTechnicianAction"
+    },
+    {
+      "module": "app/actions/repairs",
+      "name": "unassignTechnicianAction",
+      "id": "repairs:unassignTechnicianAction"
+    },
+    {
+      "module": "app/actions/repairs",
+      "name": "withdrawRepairRequestAction",
+      "id": "repairs:withdrawRepairRequestAction"
+    },
+    {
+      "module": "app/actions/repairs",
+      "name": "respondRepairRequestAction",
+      "id": "repairs:respondRepairRequestAction"
+    },
+    {
+      "module": "app/actions/repairs",
+      "name": "saveRepairWorkAction",
+      "id": "repairs:saveRepairWorkAction"
+    },
+    {
+      "module": "app/actions/repairs",
+      "name": "closeRepairAction",
+      "id": "repairs:closeRepairAction"
+    },
+    {
+      "module": "app/actions/repairs",
+      "name": "reopenRepairAction",
+      "id": "repairs:reopenRepairAction"
+    },
+    {
+      "module": "app/actions/repairs",
+      "name": "cancelRepairAction",
+      "id": "repairs:cancelRepairAction"
+    },
+    {
+      "module": "app/actions/repairs",
+      "name": "approveRepairAmountAction",
+      "id": "repairs:approveRepairAmountAction"
+    },
+    {
+      "module": "app/actions/repairs",
+      "name": "recordRepairPayoutAction",
+      "id": "repairs:recordRepairPayoutAction"
+    },
+    {
+      "module": "app/actions/repairs",
+      "name": "requestRepairPartsAction",
+      "id": "repairs:requestRepairPartsAction"
+    },
+    {
       "module": "app/actions/scan",
       "name": "resolveScanAction",
       "id": "scan:resolveScanAction"
@@ -916,6 +1041,31 @@
       "module": "app/actions/stock",
       "name": "moveAssetAction",
       "id": "stock:moveAssetAction"
+    },
+    {
+      "module": "app/actions/technicians",
+      "name": "addExternalTechnicianAction",
+      "id": "technicians:addExternalTechnicianAction"
+    },
+    {
+      "module": "app/actions/technicians",
+      "name": "addStaffTechnicianAction",
+      "id": "technicians:addStaffTechnicianAction"
+    },
+    {
+      "module": "app/actions/technicians",
+      "name": "updateTechnicianAction",
+      "id": "technicians:updateTechnicianAction"
+    },
+    {
+      "module": "app/actions/technicians",
+      "name": "setTechnicianActiveAction",
+      "id": "technicians:setTechnicianActiveAction"
+    },
+    {
+      "module": "app/actions/technicians",
+      "name": "saveTechnicianMessagingAction",
+      "id": "technicians:saveTechnicianMessagingAction"
     },
     {
       "module": "app/actions/transfers",

@@ -59,16 +59,19 @@ export type SecretPurpose =
   /** WebhookEndpoint.secretEnc (the HMAC signing secret). */
   | "webhook-secrets"
   /** SpacePaymentConfig Razorpay and Stripe secrets. */
-  | "payment-secrets";
+  | "payment-secrets"
+  /** SpaceChatConfig Telegram bot token and WhatsApp access token. */
+  | "chat-secrets";
 
 const PURPOSE_INFO: Record<SecretPurpose, string> = {
   "instance-settings": "swi-instance-settings-v1",
   "webhook-secrets": "swi-webhook-secrets-v1",
   "payment-secrets": "swi-payment-secrets-v1",
+  "chat-secrets": "swi-chat-secrets-v1",
 };
 
 /** Third-party credentials use INTEGRATION_ENCRYPTION_KEY when set. */
-const INTEGRATION_PURPOSES = new Set<SecretPurpose>(["webhook-secrets", "payment-secrets"]);
+const INTEGRATION_PURPOSES = new Set<SecretPurpose>(["webhook-secrets", "payment-secrets", "chat-secrets"]);
 
 function rootKeyFor(purpose: SecretPurpose): Buffer {
   if (INTEGRATION_PURPOSES.has(purpose) && process.env.INTEGRATION_ENCRYPTION_KEY) {

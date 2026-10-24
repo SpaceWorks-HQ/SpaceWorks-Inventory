@@ -13,6 +13,7 @@ import { EmptyState } from "@/components/ui/display";
 import { Menu, MenuContent, MenuItem, MenuTrigger } from "@/components/ui/menu";
 import { Table, TBody, TD, TH, THead, TR } from "@/components/ui/table";
 import { formatMoney } from "@/lib/format/money";
+import { OrderDialog } from "./OrderDialog";
 import { ReceiveDialog } from "./ReceiveDialog";
 
 export type PurchaseRow = {
@@ -27,13 +28,16 @@ export type PurchaseRow = {
   link: string | null;
   note: string | null;
   supplier: string | null;
+  supplierId: string | null;
+  /** What it cost is recorded (and in the finance ledger). */
+  paid: boolean;
   requestedBy: string | null;
   requestedLabel: string;
 };
 
 type Step = "approve" | "order" | "cancel";
 
-const STEP_DONE: Record<Step, string> = { approve: "Purchase approved.", order: "Marked as ordered.", cancel: "Purchase cancelled." };
+const STEP_DONE: Record<Exclude<Step, "order">, string> = { approve: "Purchase approved.", cancel: "Purchase cancelled." };
 
 function Actions({ row, onStep, onReceive }: { row: PurchaseRow; onStep: (step: Step) => void; onReceive: () => void }) {
   const open = row.status === "REQUESTED" || row.status === "APPROVED" || row.status === "ORDERED";
@@ -53,14 +57,15 @@ function Actions({ row, onStep, onReceive }: { row: PurchaseRow; onStep: (step: 
   );
 }
 
-export function PurchasesTable({ slug, currency, rows, manage, locations, filterLabel }: { slug: string; currency: string; rows: PurchaseRow[]; manage: boolean; locations: { id: string; label: string }[]; filterLabel: string }) {
+export function PurchasesTable({ slug, currency, rows, manage, locations, suppliers, filterLabel }: { slug: string; currency: string; rows: PurchaseRow[]; manage: boolean; locations: { id: string; label: string }[]; suppliers: { id: string; name: string }[]; filterLabel: string }) {
   const router = useRouter();
   const { showToast } = useToast();
   const [pending, startTransition] = useTransition();
   const [cancelling, setCancelling] = useState<PurchaseRow | null>(null);
   const [receiving, setReceiving] = useState<PurchaseRow | null>(null);
+  const [ordering, setOrdering] = useState<PurchaseRow | null>(null);
 
-  const move = (row: PurchaseRow, step: Step) =>
+  const move = (row: PurchaseRow, step: Exclude<Step, "order">) =>
     startTransition(async () => {
       const result = await movePurchaseAction(slug, { purchaseId: row.id, step });
       setCancelling(null);
@@ -82,7 +87,7 @@ export function PurchasesTable({ slug, currency, rows, manage, locations, filter
             <TH>Purchase</TH>
             <TH>Item</TH>
             <TH className="text-right">Quantity</TH>
-            <TH className="text-right">Unit cost</TH>
+            {manage ? <TH className="text-right">Unit cost</TH> : null}
             <TH>Status</TH>
             <TH>Requested</TH>
             {manage ? <TH><span className="sr-only">Actions</span></TH> : null}
@@ -101,7 +106,7 @@ export function PurchasesTable({ slug, currency, rows, manage, locations, filter
                 {row.note ? <span className="block text-caption text-ink-muted">{row.note}</span> : null}
               </TD>
               <TD className="text-right tabular-nums">{row.quantity}</TD>
-              <TD className="whitespace-nowrap text-right tabular-nums">{row.unitCostMinor === null ? "—" : formatMoney(row.unitCostMinor, currency)}</TD>
+              {manage ? <TD className="whitespace-nowrap text-right tabular-nums">{row.unitCostMinor === null ? "—" : formatMoney(row.unitCostMinor, currency)}</TD> : null}
               <TD><PurchaseStatusChip status={row.status} /></TD>
               <TD className="whitespace-nowrap text-ink-muted">
                 <span className="block">{row.requestedLabel}</span>
@@ -109,7 +114,7 @@ export function PurchasesTable({ slug, currency, rows, manage, locations, filter
               </TD>
               {manage ? (
                 <TD className="w-12 text-right">
-                  <Actions row={row} onStep={(step) => (step === "cancel" ? setCancelling(row) : move(row, step))} onReceive={() => setReceiving(row)} />
+                  <Actions row={row} onStep={(step) => (step === "cancel" ? setCancelling(row) : step === "order" ? setOrdering(row) : move(row, step))} onReceive={() => setReceiving(row)} />
                 </TD>
               ) : null}
             </TR>
@@ -126,7 +131,8 @@ export function PurchasesTable({ slug, currency, rows, manage, locations, filter
         onCancel={() => setCancelling(null)}
         onConfirm={() => cancelling && move(cancelling, "cancel")}
       />
-      {receiving ? <ReceiveDialog slug={slug} currency={currency} purchase={receiving} locations={locations} onClose={() => setReceiving(null)} /> : null}
+      {receiving ? <ReceiveDialog slug={slug} currency={currency} purchase={receiving} locations={locations} suppliers={suppliers} onClose={() => setReceiving(null)} /> : null}
+      {ordering ? <OrderDialog slug={slug} currency={currency} purchase={ordering} suppliers={suppliers} onClose={() => setOrdering(null)} /> : null}
     </>
   );
 }

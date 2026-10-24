@@ -73,6 +73,7 @@ behind a fresh authenticator code):
 | Branding | Logo and how the space looks to members and visitors |
 | Payments (`/settings/payments`) | Razorpay, Stripe and cash/bank (offline) payments, test mode, webhook URLs |
 | Integrations (`/settings/integrations`) | API keys and outbound webhooks |
+| Technicians (`/repairs/technicians`) | The technician directory, and the Telegram bot and WhatsApp Cloud API credentials used to message technicians (encrypted, write-only; WhatsApp needs an approved template with one body parameter, `repair_request` by default) |
 | Roles (`/settings/roles`) | The role matrix for this space |
 | Danger zone | Delete the space |
 

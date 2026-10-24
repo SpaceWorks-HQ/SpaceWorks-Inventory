@@ -72,6 +72,17 @@ shortcut; change this file in the same pull request if a rule ever changes.
     (`GatewayEvent`). Deposits and rental must be paid or marked pay later
     before issue when `paymentBeforeIssue` is on.
 
+- **Every money movement is in the finance ledger.** Settled payments,
+  processed refunds, repair payouts and bought purchases post exactly one
+  `FinanceEntry` in their own transaction (`lib/finance/sources.ts`;
+  unique per source). The ledger, repair payouts and the repair timeline are
+  append-only (database trigger); corrections are reversing entries, and
+  `ledgerCheck` compares the ledger with its sources. One currency per space.
+- **Repairs hold stock only through the availability module** (an asset goes
+  to MAINTENANCE, quantity stock to the quarantined bucket) and release it
+  when the repair closes or is cancelled. Money is for inventory managers
+  only; a technician sees only the amount they asked and whether it is paid.
+
 ## Tenancy and security
 
 15. **The space is the tenant boundary.** Every query filters by `spaceId`

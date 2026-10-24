@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { IncidentsSection, LoansSection, PaymentsSection, TransfersSection } from "@/components/reports/ActivitySections";
+import { ReportTableView } from "@/components/reports/ReportTableView";
 import { ReportToolbar } from "@/components/reports/ReportToolbar";
 import { LowStockSection, MovementSection, ValuationSection } from "@/components/reports/StockSections";
 import { PageHeader } from "@/components/ui/display";
@@ -9,7 +10,7 @@ import { formatDate, formatDayShort } from "@/lib/format/datetime";
 import { requireSpace } from "@/lib/permissions";
 import {
   REPORTS, incidentsReport, incidentsTables, isReportKey, loansReport, loansTables, lowStockReport, lowStockTables, movementReport, movementTables,
-  parseRange, paymentsReport, paymentsTables, transfersReport, transfersTables, valuationReport, valuationTables, type DateRange, type ReportKey,
+  parseRange, paymentsReport, paymentsTables, repairsReport, repairsTables, spendReport, spendTables, transfersReport, transfersTables, valuationReport, valuationTables, type DateRange, type ReportKey,
 } from "@/lib/reports";
 import { eachDay, startOfDay } from "@/lib/reports/range";
 
@@ -21,8 +22,8 @@ async function loadView(key: ReportKey, space: SpaceInfo, range: DateRange) {
   const day = (date: Date) => formatDate(date, space.timezone);
   switch (key) {
     case "valuation": {
-      const data = await valuationReport(space.id);
-      return { key, data, tables: valuationTables(data) } as const;
+      const [data, spend] = await Promise.all([valuationReport(space.id), spendReport(space.id)]);
+      return { key, data, tables: [...valuationTables(data), ...spendTables(spend)] } as const;
     }
     case "low-stock": {
       const data = await lowStockReport(space.id);
@@ -47,6 +48,10 @@ async function loadView(key: ReportKey, space: SpaceInfo, range: DateRange) {
     case "payments": {
       const data = await paymentsReport(space.id, range);
       return { key, data, tables: paymentsTables(data) } as const;
+    }
+    case "repairs": {
+      const data = await repairsReport(space.id, range, space.timezone);
+      return { key, data, tables: repairsTables(data) } as const;
     }
   }
 }
@@ -85,13 +90,14 @@ export default async function ReportsPage({ params, searchParams }: PageProps<"/
         </div>
       }
     >
-      {view.key === "valuation" ? <ValuationSection data={view.data} tables={view.tables} /> : null}
+      {view.key === "valuation" ? <ValuationSection data={view.data} tables={[...view.tables]} /> : null}
       {view.key === "low-stock" ? <LowStockSection rows={view.data} tables={view.tables} currency={currency} purchasesHref={`/s/${space.slug}/purchases`} /> : null}
       {view.key === "movements" && days ? <MovementSection data={view.data} tables={view.tables} currency={currency} dayLabels={days} /> : null}
       {view.key === "loans" ? <LoansSection data={view.data} tables={view.tables} currency={currency} /> : null}
       {view.key === "incidents" ? <IncidentsSection data={view.data} tables={view.tables} currency={currency} /> : null}
       {view.key === "transfers" ? <TransfersSection data={view.data} tables={view.tables} currency={currency} /> : null}
       {view.key === "payments" ? <PaymentsSection data={view.data} tables={view.tables} currency={currency} /> : null}
+      {view.key === "repairs" ? <div className="space-y-6">{view.tables.map((table) => <ReportTableView key={table.title} table={table} currency={currency} />)}</div> : null}
     </ListLayout>
   );
 }

@@ -34,7 +34,7 @@ const [purchases, counts, suggestions, items, suppliers, locations] = await Prom
       where: { spaceId: space.id, status: { in: [...filter.statuses] } },
       orderBy: [{ updatedAt: "desc" }],
       take: 200,
-      select: { id: true, number: true, name: true, quantity: true, status: true, unitCostMinor: true, link: true, note: true, supplierId: true, requestedById: true, createdAt: true, item: { select: { id: true, sku: true, tracking: true } } },
+      select: { id: true, number: true, name: true, quantity: true, status: true, unitCostMinor: true, paidMinor: true, link: true, note: true, supplierId: true, requestedById: true, createdAt: true, item: { select: { id: true, sku: true, tracking: true } } },
     }),
     prisma.purchaseItem.groupBy({ by: ["status"], where: { spaceId: space.id }, _count: { _all: true } }),
     reorderSuggestions(space.id),
@@ -58,6 +58,8 @@ const rows: PurchaseRow[] = purchases.map((row) => ({
     link: row.link,
     note: row.note,
     supplier: row.supplierId ? supplierNames.get(row.supplierId) ?? null : null,
+    supplierId: row.supplierId,
+    paid: row.paidMinor !== null,
     requestedBy: row.requestedById ? names.get(row.requestedById) ?? "Former member" : null,
     requestedLabel: formatRelativeTime(row.createdAt, space.timezone),
   }));

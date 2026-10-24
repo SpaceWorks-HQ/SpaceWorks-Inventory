@@ -14,6 +14,8 @@ export type NavItemConfig = {
   /** Path below /s/<slug>; "" is the space home. */
   path: string;
   minRole: SpaceRole;
+  /** Roles outside the ladder that also see it (technicians see Repairs). */
+  alsoFor?: SpaceRole[];
   requires?: NavRequirement;
   /** Match only the exact path (default: the path and anything below it). */
   exact?: boolean;
@@ -50,8 +52,10 @@ export const NAV_GROUPS: readonly NavGroupConfig[] = [
       { key: "assets", label: "Assets", path: "/assets", minRole: "STAFF" },
       { key: "locations", label: "Locations", path: "/locations", minRole: "STAFF" },
       { key: "kits", label: "Kits & containers", path: "/kits", minRole: "STAFF" },
+      { key: "repairs", label: "Repairs", path: "/repairs", minRole: "STAFF", alsoFor: ["TECHNICIAN"] },
       { key: "purchases", label: "To buy", path: "/purchases", minRole: "MANAGER" },
       { key: "reports", label: "Reports", path: "/reports", minRole: "MANAGER" },
+      { key: "finance", label: "Finance", path: "/finance", minRole: "MANAGER" },
     ],
   },
   {
@@ -59,6 +63,7 @@ export const NAV_GROUPS: readonly NavGroupConfig[] = [
     label: "Space",
     items: [
       { key: "members", label: "Members", path: "/members", minRole: "MANAGER" },
+      { key: "technicians", label: "Technicians", path: "/repairs/technicians", minRole: "MANAGER" },
       { key: "inventory-settings", label: "Inventory settings", path: "/settings/inventory", minRole: "MANAGER" },
       { key: "settings", label: "Space settings", path: "/settings", minRole: "MANAGER" },
       { key: "audit", label: "Audit log", path: "/audit", minRole: "MANAGER" },
@@ -79,7 +84,7 @@ export function spaceBasePath(slug: string) {
 }
 
 function allowed(item: NavItemConfig, context: NavContext) {
-  if (!hasRoleAtLeast(context.role, item.minRole)) return false;
+  if (!hasRoleAtLeast(context.role, item.minRole) && !item.alsoFor?.includes(context.role)) return false;
   if (item.requires === "lending") return context.space.lendingEnabled;
   return true;
 }

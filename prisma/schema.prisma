@@ -27,6 +27,8 @@ enum SpaceRole {
   MANAGER
   STAFF
   MEMBER
+  /// Repairs only: sees and works on the repairs sent to them.
+  TECHNICIAN
 }
 
 enum MembershipStatus {
@@ -303,6 +305,7 @@ model User {
   notifications           Notification[]
   instanceSettingsUpdated InstanceSetting[]
   loansBorrowed           Loan[]                   @relation("LoanBorrower")
+  technicianEntries       Technician[]
 }
 
 model Account {
@@ -562,6 +565,8 @@ model Space {
   labelShowLocation        Boolean   @default(false)
   defaultReorderPoint      Int?
   countVarianceThreshold   Int?
+  /// Days a repair request (and an external technician's link) stays open.
+  repairRequestDays        Int       @default(14)
 
   /// Space logo shown on the public catalogue and loan slips.
   logoKey String?
@@ -604,6 +609,14 @@ model Space {
   webhookDeliveries WebhookDelivery[]
   importJobs        ImportJob[]
   suppliers         Supplier[]
+  technicians       Technician[]
+  repairIssues      RepairIssue[]
+  repairRequests    RepairRequest[]
+  repairEvents      RepairEvent[]
+  repairPhotos      RepairPhoto[]
+  repairPayouts     RepairPayout[]
+  financeEntries    FinanceEntry[]
+  chatConfig        SpaceChatConfig?
 }
 
 model Membership {
@@ -820,6 +833,7 @@ model Item {
   supplier      Supplier?          @relation(fields: [supplierId], references: [id], onDelete: SetNull)
   images        ItemImage[]
   assets        Asset[]
+  repairIssues  RepairIssue[]
   stockLevels   StockLevel[]
   movements     StockMovement[]
   reservations  StockReservation[]
@@ -882,6 +896,7 @@ model Asset {
   transferAssets TransferLineAsset[]
   countScans     StockCountScan[]
   incidents      LoanIncident[]
+  repairIssues   RepairIssue[]
 
   @@index([spaceId, itemId, status])
   @@index([locationId])
@@ -1096,11 +1111,19 @@ model PurchaseItem {
   receivedById       String?
   /// Where received stock went; set once it is in inventory.
   receivedLocationId String?
+  /// What was actually spent, recorded when it was bought (posted to the finance ledger once).
+  paidMinor          Int?
+  paidMethod         PayoutMethod?
+  paidReference      String?
+  paidAt             DateTime?
+  /// The repair these parts are for.
+  repairIssueId      String?
   createdAt          DateTime       @default(now())
   updatedAt          DateTime       @updatedAt
 
-  space Space @relation(fields: [spaceId], references: [id], onDelete: Cascade)
-  item  Item? @relation(fields: [itemId], references: [id], onDelete: SetNull)
+  space       Space        @relation(fields: [spaceId], references: [id], onDelete: Cascade)
+  item        Item?        @relation(fields: [itemId], references: [id], onDelete: SetNull)
+  repairIssue RepairIssue? @relation(fields: [repairIssueId], references: [id], onDelete: SetNull)
 
   @@unique([spaceId, number])
   @@index([spaceId, status])
@@ -1336,10 +1359,11 @@ model LoanIncident {
   resolutionNote String?
   createdAt      DateTime            @default(now())
 
-  space Space    @relation(fields: [spaceId], references: [id], onDelete: Cascade)
-  loan  Loan     @relation(fields: [loanId], references: [id], onDelete: Cascade)
-  line  LoanLine @relation(fields: [lineId], references: [id], onDelete: Cascade)
-  asset Asset?   @relation(fields: [assetId], references: [id], onDelete: SetNull)
+  space  Space        @relation(fields: [spaceId], references: [id], onDelete: Cascade)
+  loan   Loan         @relation(fields: [loanId], references: [id], onDelete: Cascade)
+  line   LoanLine     @relation(fields: [lineId], references: [id], onDelete: Cascade)
+  asset  Asset?       @relation(fields: [assetId], references: [id], onDelete: SetNull)
+  repair RepairIssue?
 
   @@index([spaceId, status])
   @@index([borrowerId, status])
@@ -1539,4 +1563,297 @@ model ImportJob {
   space Space @relation(fields: [spaceId], references: [id], onDelete: Cascade)
 
   @@index([spaceId, createdAt])
+}
+
+// ───────────────────────────── Repairs and finance ─────────────────────────────
+
+enum RepairSeverity {
+  LOW
+  MEDIUM
+  HIGH
+  CRITICAL
+}
+
+enum RepairStatus {
+  /// Reported; no technician has it yet.
+  REPORTED
+  /// A technician accepted it (or a manager assigned one) and is working on it.
+  ASSIGNED
+  /// The technician says it is fixed; a manager verifies.
+  FIXED
+  CLOSED
+  CANCELLED
+}
+
+enum RepairOutcome {
+  FIXED
+  SCRAPPED
+}
+
+enum TechnicianKind {
+  STAFF
+  EXTERNAL
+}
+
+enum TechnicianChannel {
+  EMAIL
+  WHATSAPP
+  TELEGRAM
+}
+
+enum RepairRequestStatus {
+  SENT
+  ACCEPTED
+  DECLINED
+  EXPIRED
+  /// Someone else took it, the repair closed, or a manager withdrew it.
+  CLOSED
+}
+
+enum PayoutMethod {
+  CASH
+  BANK_TRANSFER
+  UPI
+  OTHER
+}
+
+enum FinanceDirection {
+  IN
+  OUT
+}
+
+enum FinanceMethod {
+  GATEWAY_RAZORPAY
+  GATEWAY_STRIPE
+  CASH
+  BANK_TRANSFER
+  UPI
+  OTHER
+}
+
+enum FinanceCategory {
+  LOAN_FEES
+  DEPOSIT
+  RENTAL
+  LATE_FEE
+  DAMAGE
+  LOSS
+  REFUND
+  DEPOSIT_REFUND
+  REPAIR
+  PURCHASE
+  RENT
+  UTILITIES
+  SUPPLIES
+  OTHER_INCOME
+  OTHER_EXPENSE
+}
+
+/// A technician in a space's directory: a member with the Technician (or staff) role, or an external contact.
+model Technician {
+  id               String             @id @default(cuid())
+  spaceId          String
+  kind             TechnicianKind
+  /// Staff technicians only.
+  userId           String?
+  name             String
+  email            String?
+  phone            String?
+  /// Full number with country code, for WhatsApp messages.
+  whatsapp         String?
+  telegramChatId   String?
+  skills           String[]           @default([])
+  preferredChannel TechnicianChannel?
+  notes            String?
+  active           Boolean            @default(true)
+  createdAt        DateTime           @default(now())
+  updatedAt        DateTime           @updatedAt
+
+  space    Space           @relation(fields: [spaceId], references: [id], onDelete: Cascade)
+  user     User?           @relation(fields: [userId], references: [id], onDelete: SetNull)
+  requests RepairRequest[]
+  assigned RepairIssue[]
+  payouts  RepairPayout[]
+
+  @@unique([spaceId, userId])
+  @@index([spaceId, active])
+}
+
+/// A damaged or broken item or asset, from report to verified fix.
+model RepairIssue {
+  id                   String         @id @default(cuid())
+  spaceId              String
+  number               Int
+  itemId               String
+  assetId              String?
+  /// Raised from a lost-or-damaged loan incident.
+  incidentId           String?        @unique
+  title                String
+  description          String
+  severity             RepairSeverity @default(MEDIUM)
+  status               RepairStatus   @default(REPORTED)
+  reportedById         String?
+  /// Stock this repair keeps out of use (quarantined through lib/inventory/availability).
+  heldQuantity         Int            @default(0)
+  heldLocationId       String?
+  /// The hold was already there (returned damaged) and goes back to the incident if the repair is cancelled.
+  holdAdopted          Boolean        @default(false)
+  assignedTechnicianId String?
+  fixRemarks           String?
+  partsUsed            String?
+  amountAskedMinor     Int?
+  fixedAt              DateTime?
+  approvedMinor        Int?
+  approvedById         String?
+  approvedAt           DateTime?
+  approvalNote         String?
+  outcome              RepairOutcome?
+  closedAt             DateTime?
+  closedById           String?
+  closeNote            String?
+  createdAt            DateTime       @default(now())
+  updatedAt            DateTime       @updatedAt
+
+  space      Space           @relation(fields: [spaceId], references: [id], onDelete: Cascade)
+  item       Item            @relation(fields: [itemId], references: [id], onDelete: NoAction)
+  asset      Asset?          @relation(fields: [assetId], references: [id], onDelete: NoAction)
+  incident   LoanIncident?   @relation(fields: [incidentId], references: [id], onDelete: SetNull)
+  technician Technician?     @relation(fields: [assignedTechnicianId], references: [id], onDelete: NoAction)
+  requests   RepairRequest[]
+  events     RepairEvent[]
+  photos     RepairPhoto[]
+  payouts    RepairPayout[]
+  purchases  PurchaseItem[]
+
+  @@unique([spaceId, number])
+  @@index([spaceId, status])
+  @@index([itemId])
+}
+
+/// One technician asked to take one repair. External technicians get a link (only its SHA-256 is stored).
+model RepairRequest {
+  id           String              @id @default(cuid())
+  spaceId      String
+  issueId      String
+  technicianId String
+  status       RepairRequestStatus @default(SENT)
+  tokenHash    String?             @unique
+  expiresAt    DateTime
+  /// Where it was sent: EMAIL, WHATSAPP, TELEGRAM, INBOX.
+  channels     String[]            @default([])
+  sentById     String?
+  sentAt       DateTime            @default(now())
+  respondedAt  DateTime?
+
+  space      Space       @relation(fields: [spaceId], references: [id], onDelete: Cascade)
+  issue      RepairIssue @relation(fields: [issueId], references: [id], onDelete: Cascade)
+  technician Technician  @relation(fields: [technicianId], references: [id], onDelete: NoAction)
+
+  @@unique([issueId, technicianId])
+  @@index([spaceId, status])
+}
+
+/// Append-only timeline of a repair (who was asked, on which channel, and every step).
+model RepairEvent {
+  id           String   @id @default(cuid())
+  spaceId      String
+  issueId      String
+  kind         String
+  actorId      String?
+  technicianId String?
+  channel      String?
+  text         String?
+  createdAt    DateTime @default(now())
+
+  space Space       @relation(fields: [spaceId], references: [id], onDelete: Cascade)
+  issue RepairIssue @relation(fields: [issueId], references: [id], onDelete: Cascade)
+
+  @@index([issueId, createdAt])
+}
+
+model RepairPhoto {
+  id           String   @id @default(cuid())
+  spaceId      String
+  issueId      String
+  /// REPORT or FIX.
+  stage        String
+  storageKey   String   @unique
+  contentType  String
+  sizeBytes    Int
+  sha256       String
+  uploadedById String?
+  technicianId String?
+  createdAt    DateTime @default(now())
+
+  space Space       @relation(fields: [spaceId], references: [id], onDelete: Cascade)
+  issue RepairIssue @relation(fields: [issueId], references: [id], onDelete: Cascade)
+
+  @@index([issueId])
+}
+
+/// Money paid to a technician for a repair. Append-only; partial payouts add up to the approved amount.
+model RepairPayout {
+  id           String       @id @default(cuid())
+  spaceId      String
+  issueId      String
+  technicianId String
+  amountMinor  Int
+  currency     String
+  method       PayoutMethod
+  reference    String?
+  paidAt       DateTime
+  paidById     String?
+  note         String?
+  createdAt    DateTime     @default(now())
+
+  space      Space       @relation(fields: [spaceId], references: [id], onDelete: Cascade)
+  issue      RepairIssue @relation(fields: [issueId], references: [id], onDelete: NoAction)
+  technician Technician  @relation(fields: [technicianId], references: [id], onDelete: NoAction)
+
+  @@index([spaceId, paidAt])
+  @@index([issueId])
+}
+
+/// Every money movement of a space, posted once per source in the source's own transaction. Append-only;
+/// a correction is a reversing entry. Item, asset, technician and supplier ids are kept as plain values.
+model FinanceEntry {
+  id           String           @id @default(cuid())
+  spaceId      String
+  direction    FinanceDirection
+  category     FinanceCategory
+  amountMinor  Int
+  currency     String
+  method       FinanceMethod
+  reference    String?
+  occurredAt   DateTime
+  /// Payment, Refund, RepairPayout, PurchaseItem, Manual or Reversal.
+  sourceType   String
+  sourceId     String
+  actorId      String?
+  note         String?
+  itemId       String?
+  assetId      String?
+  technicianId String?
+  supplierId   String?
+  reversesId   String?          @unique
+  createdAt    DateTime         @default(now())
+
+  space Space @relation(fields: [spaceId], references: [id], onDelete: Cascade)
+
+  @@unique([sourceType, sourceId])
+  @@index([spaceId, occurredAt])
+  @@index([spaceId, category])
+}
+
+/// Credentials for messaging technicians directly. Secrets are encrypted ("chat-secrets") and write-only.
+model SpaceChatConfig {
+  spaceId               String   @id
+  telegramBotTokenEnc   String?
+  whatsappPhoneNumberId String?
+  whatsappTokenEnc      String?
+  whatsappTemplate      String   @default("repair_request")
+  whatsappLanguage      String   @default("en")
+  updatedAt             DateTime @updatedAt
+
+  space Space @relation(fields: [spaceId], references: [id], onDelete: Cascade)
 }

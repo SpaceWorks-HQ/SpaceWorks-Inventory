@@ -7,7 +7,7 @@ import { afterCursor, enumParam, pageOf, parsePage } from "@/lib/api/pagination"
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
 
-const ROLES = ["MANAGER", "STAFF", "MEMBER"] as const;
+const ROLES = ["MANAGER", "STAFF", "MEMBER", "TECHNICIAN"] as const;
 const STANDING = ["GOOD", "RESTRICTED", "SUSPENDED"] as const;
 const STATUSES = ["ACTIVE", "SUSPENDED"] as const;
 

@@ -50,7 +50,7 @@ export const schemas = {
   Approve: obj({ quantities: { type: ["object", "null"], additionalProperties: int, description: "Line id → units to approve. Omit to approve everything requested." } }),
   Reject: obj({ reason: str }, ["reason"]),
   Cancel: obj({ reason: str }),
-  Member: obj({ id: str, name: nstr, role: { enum: ["MANAGER", "STAFF", "MEMBER"] }, status: { enum: ["ACTIVE", "SUSPENDED"] }, borrowingStatus: { enum: ["GOOD", "RESTRICTED", "SUSPENDED"] }, joinedAt: dt }),
+  Member: obj({ id: str, name: nstr, role: { enum: ["MANAGER", "STAFF", "MEMBER", "TECHNICIAN"] }, status: { enum: ["ACTIVE", "SUSPENDED"] }, borrowingStatus: { enum: ["GOOD", "RESTRICTED", "SUSPENDED"] }, joinedAt: dt }),
 } as const;
 
 export const parameters = {

@@ -18,7 +18,7 @@ type Denied = { ok: false; error: string; fieldErrors?: Record<string, string[]>
  */
 export async function spaceAction(slug: unknown, allowed: (membership: RoleHolder) => boolean, bucket: Bucket = "action"): Promise<{ ctx: SpaceContext; denied?: undefined } | { ctx?: undefined; denied: Denied }> {
   const parsed = slugSchema.safeParse(slug);
-  const ctx = parsed.success ? await getSpaceForAction(parsed.data, "MEMBER") : null;
+  const ctx = parsed.success ? await getSpaceForAction(parsed.data, "TECHNICIAN") : null;
   if (!ctx || !allowed(ctx.membership)) return { denied: actionError(NOT_ALLOWED) };
   if (await isActionRateLimited(bucket, ctx.user.id)) return { denied: actionError(RATE_LIMITED) };
   return { ctx };

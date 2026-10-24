@@ -7,7 +7,7 @@ import { domainFailure, spaceAction } from "@/lib/actionContext";
 import { actionError, validationError, type ActionResult } from "@/lib/actionResult";
 import { DomainError } from "@/lib/domainError";
 import { parseMoneyToMinor } from "@/lib/format/money";
-import { createPurchase, movePurchase, receivePurchase } from "@/lib/purchases";
+import { createPurchase, movePurchase, receivePurchase, type PurchasePayment } from "@/lib/purchases";
 import { canAdjustStock, canViewStock } from "@/lib/roles";
 import { idSchema } from "@/lib/validation";
 
@@ -28,9 +28,27 @@ function toMinor(value: string | null, currency: string): number | null | "inval
 
 const COST_ERROR = "Enter the cost as a number, for example 249.50.";
 
+/** What was spent when it was bought: required to mark a purchase ordered (or to receive one that skipped that step). */
+const paymentSchema = z.object({
+  amount: z.string().trim().min(1, "Enter the amount spent.").max(20),
+  method: z.enum(["CASH", "BANK_TRANSFER", "UPI", "OTHER"]),
+  reference: optionalText(120),
+  supplierId: optionalId,
+}).optional();
+
+function toPayment(input: z.infer<typeof paymentSchema>, currency: string): PurchasePayment | undefined | "invalid" {
+  if (!input) return undefined;
+  const amountMinor = parseMoneyToMinor(input.amount, currency);
+  if (amountMinor === null || amountMinor <= 0) return "invalid";
+  return { amountMinor, method: input.method, reference: input.reference, supplierId: input.supplierId };
+}
+
+const AMOUNT_ERROR = "Enter the amount spent, for example 1249.50.";
+
 function revalidate(slug: string) {
   revalidatePath(`/s/${slug}/purchases`);
   revalidatePath(`/s/${slug}/reports`);
+  revalidatePath(`/s/${slug}/finance`);
 }
 
 const createSchema = z.object({
@@ -79,15 +97,17 @@ export async function addSuggestionAction(slug: string, input: unknown): Promise
   }
 }
 
-const moveSchema = z.object({ purchaseId: idSchema, step: z.enum(["approve", "order", "cancel"]) });
+const moveSchema = z.object({ purchaseId: idSchema, step: z.enum(["approve", "order", "cancel"]), payment: paymentSchema });
 
 export async function movePurchaseAction(slug: string, input: unknown): Promise<ActionResult> {
   const { ctx, denied } = await spaceAction(slug, canAdjustStock);
   if (denied) return denied;
   const parsed = moveSchema.safeParse(input);
   if (!parsed.success) return validationError(parsed.error);
+  const payment = toPayment(parsed.data.payment, ctx.space.currency);
+  if (payment === "invalid") return actionError(AMOUNT_ERROR, { amount: [AMOUNT_ERROR] });
   try {
-    await prisma.$transaction((tx) => movePurchase(tx, { spaceId: ctx.space.id, purchaseId: parsed.data.purchaseId, step: parsed.data.step }, { userId: ctx.user.id }));
+    await prisma.$transaction((tx) => movePurchase(tx, { spaceId: ctx.space.id, purchaseId: parsed.data.purchaseId, step: parsed.data.step, payment }, { userId: ctx.user.id }));
     revalidate(ctx.space.slug);
     return { ok: true };
   } catch (error) {
@@ -101,6 +121,7 @@ const receiveSchema = z.object({
   quantity: z.number().int("Enter a whole number.").min(1, "Enter how many arrived.").max(100_000),
   unitCost: moneyText,
   tracking: z.enum(["QUANTITY", "SERIALIZED"]).optional(),
+  payment: paymentSchema,
 });
 
 export async function receivePurchaseAction(slug: string, input: unknown): Promise<ActionResult<{ itemId: string }>> {
@@ -110,8 +131,10 @@ export async function receivePurchaseAction(slug: string, input: unknown): Promi
   if (!parsed.success) return validationError(parsed.error);
   const unitCostMinor = toMinor(parsed.data.unitCost, ctx.space.currency);
   if (unitCostMinor === "invalid") return actionError(COST_ERROR, { unitCost: [COST_ERROR] });
+  const payment = toPayment(parsed.data.payment, ctx.space.currency);
+  if (payment === "invalid") return actionError(AMOUNT_ERROR, { amount: [AMOUNT_ERROR] });
   try {
-    const result = await prisma.$transaction((tx) => receivePurchase(tx, { spaceId: ctx.space.id, purchaseId: parsed.data.purchaseId, locationId: parsed.data.locationId, quantity: parsed.data.quantity, unitCostMinor, tracking: parsed.data.tracking }, { userId: ctx.user.id }), { timeout: 30_000 });
+    const result = await prisma.$transaction((tx) => receivePurchase(tx, { spaceId: ctx.space.id, purchaseId: parsed.data.purchaseId, locationId: parsed.data.locationId, quantity: parsed.data.quantity, unitCostMinor, tracking: parsed.data.tracking, payment }, { userId: ctx.user.id }), { timeout: 30_000 });
     revalidate(ctx.space.slug);
     revalidatePath(`/s/${ctx.space.slug}/items`);
     return { ok: true, data: result };

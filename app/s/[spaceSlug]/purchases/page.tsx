@@ -43,7 +43,7 @@ export default async function PurchasesPage({ params, searchParams }: PageProps<
       where: { spaceId: space.id, status: { in: [...filter.statuses] } },
       orderBy: [{ updatedAt: "desc" }],
       take: 200,
-      select: { id: true, number: true, name: true, quantity: true, status: true, unitCostMinor: true, link: true, note: true, supplierId: true, requestedById: true, createdAt: true, item: { select: { id: true, sku: true, tracking: true } } },
+      select: { id: true, number: true, name: true, quantity: true, status: true, unitCostMinor: true, paidMinor: true, link: true, note: true, supplierId: true, requestedById: true, createdAt: true, item: { select: { id: true, sku: true, tracking: true } } },
     }),
     prisma.purchaseItem.groupBy({ by: ["status"], where: { spaceId: space.id }, _count: { _all: true } }),
     reorderSuggestions(space.id),
@@ -67,6 +67,8 @@ export default async function PurchasesPage({ params, searchParams }: PageProps<
     link: row.link,
     note: row.note,
     supplier: row.supplierId ? supplierNames.get(row.supplierId) ?? null : null,
+    supplierId: row.supplierId,
+    paid: row.paidMinor !== null,
     requestedBy: row.requestedById ? names.get(row.requestedById) ?? "Former member" : null,
     requestedLabel: formatRelativeTime(row.createdAt, space.timezone),
   }));
@@ -86,7 +88,7 @@ export default async function PurchasesPage({ params, searchParams }: PageProps<
       toolbar={<NavTabs label="Filter the buy list" items={tabs} />}
     >
       <SuggestionsPanel slug={space.slug} suggestions={suggestionRows} />
-      <PurchasesTable slug={space.slug} currency={space.currency} rows={rows} manage={manage} locations={locationOptions} filterLabel={filter.label.toLowerCase()} />
+      <PurchasesTable slug={space.slug} currency={space.currency} rows={rows} manage={manage} locations={locationOptions} suppliers={suppliers} filterLabel={filter.label.toLowerCase()} />
     </ListLayout>
   );
 }

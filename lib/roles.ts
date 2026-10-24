@@ -5,22 +5,23 @@ import type { SpaceRole } from "@prisma/client";
  * unit tests). Server code checks these after `requireSpace` resolved the
  * membership from the database; UI visibility is never authorization.
  *
- * MANAGER > STAFF > MEMBER. The inventory manager runs the whole space,
+ * MANAGER > STAFF > MEMBER, plus TECHNICIAN (repairs only, ranked below
+ * MEMBER so it passes no member check). The inventory manager runs the whole space,
  * including deleting it and managing other managers (owner decisions
  * 2026-10-24: no admin or owner role). A space always keeps at least one
  * active manager (lib/membership.ts). The full matrix is documented in
  * docs/RBAC.md and enforced by tests/unit/roles.test.ts.
  */
-export const SPACE_ROLES: readonly SpaceRole[] = ["MANAGER", "STAFF", "MEMBER"] as const;
+export const SPACE_ROLES: readonly SpaceRole[] = ["MANAGER", "STAFF", "MEMBER", "TECHNICIAN"] as const;
 
-const roleRank: Record<SpaceRole, number> = { MEMBER: 0, STAFF: 1, MANAGER: 2 };
+const roleRank: Record<SpaceRole, number> = { TECHNICIAN: -1, MEMBER: 0, STAFF: 1, MANAGER: 2 };
 
 export function hasRoleAtLeast(role: SpaceRole, min: SpaceRole): boolean {
   return roleRank[role] >= roleRank[min];
 }
 
 export function roleLabel(role: SpaceRole): string {
-  return { MANAGER: "Inventory manager", STAFF: "Staff", MEMBER: "Member" }[role];
+  return { MANAGER: "Inventory manager", STAFF: "Staff", MEMBER: "Member", TECHNICIAN: "Technician" }[role];
 }
 
 export function roleDescription(role: SpaceRole): string {
@@ -28,6 +29,7 @@ export function roleDescription(role: SpaceRole): string {
     MANAGER: "Runs the space: catalogue, stock, settings, payments, members and other managers, API keys, webhooks, the audit log and deleting the space.",
     STAFF: "Issue and return loans, counts, dispatch and receive transfers.",
     MEMBER: "Browse the catalogue, borrow and return their own loans.",
+    TECHNICIAN: "Only repairs: sees the repairs sent to them, accepts them and records the fix, photos and the amount asked. Needs an authenticator app.",
   }[role];
 }
 
@@ -94,6 +96,21 @@ export const canManageLending = canManageSpace;
 export const canManagePayments = canManageSpace;
 /** Record offline payments, waive fees and refund deposits at the desk. */
 export const canTakePayments = (m: RoleHolder) => atLeast(m, "STAFF");
+// ───────────── Repairs and finance ─────────────
+/** Report a damaged or broken item. */
+export const canReportRepairs = (m: RoleHolder) => atLeast(m, "MEMBER");
+/** See every repair and its timeline (never amounts). */
+export const canViewRepairs = (m: RoleHolder) => atLeast(m, "STAFF");
+/** Be in the technician directory and work on the repairs sent to you. */
+export const canWorkRepairs = (m: RoleHolder) => m?.role === "TECHNICIAN" || atLeast(m, "STAFF");
+/** Technicians directory, repair requests, assigning, verifying and closing. */
+export const canManageRepairs = (m: RoleHolder) => atLeast(m, "MANAGER");
+/** Approve repair amounts and record payouts. */
+export const canPayRepairs = (m: RoleHolder) => atLeast(m, "MANAGER");
+/** The finance ledger, money reports, spend columns, exports and manual entries (owner decision: top role only). */
+export const canViewFinance = (m: RoleHolder) => atLeast(m, "MANAGER");
+export const canManageFinance = (m: RoleHolder) => atLeast(m, "MANAGER");
+
 /** Delete the space. */
 export const canDeleteSpace = (m: RoleHolder) => atLeast(m, "MANAGER");
 
@@ -126,5 +143,11 @@ export const ROLE_MATRIX: readonly { capability: string; check: (m: RoleHolder) 
   { capability: "API keys and webhooks", check: canManageApiKeys },
   { capability: "Audit log", check: canViewAuditLog },
   { capability: "Space settings", check: canManageSpace },
+  { capability: "Report a damaged or broken item", check: canReportRepairs },
+  { capability: "See every repair (without amounts)", check: canViewRepairs },
+  { capability: "Work on repairs sent to them", check: canWorkRepairs },
+  { capability: "Technicians, repair requests, verifying fixes", check: canManageRepairs },
+  { capability: "Approve and pay repair amounts", check: canPayRepairs },
+  { capability: "Finance: ledger, money reports and exports", check: canViewFinance },
   { capability: "Delete the space", check: canDeleteSpace },
 ];

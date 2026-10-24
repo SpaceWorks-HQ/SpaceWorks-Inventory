@@ -5,7 +5,7 @@ import { requireSpace } from "@/lib/permissions";
 
 export async function loadgenerateMetadata({ params }: LayoutProps<"/s/[spaceSlug]">) {
 const { spaceSlug } = await params;
-const { space } = await requireSpace(spaceSlug);
+const { space } = await requireSpace(spaceSlug, "TECHNICIAN");
 return { title: { default: space.name, template: `%s · ${space.name}` } };
 
 }

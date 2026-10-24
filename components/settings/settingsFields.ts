@@ -32,7 +32,7 @@ export const SECTION_DESCRIPTIONS: Record<SettingsSection, string> = {
   fees: "Deposits, rental and fees for borrowing. Leave everything at free for a free lending library.",
   notifications: "Which alerts staff receive in the app and by email.",
   network: "How this space works with the other makerspaces on this install.",
-  inventory: "Stock-room rules for inventory managers: approvals, labels, reorder points and counts.",
+  inventory: "Stock-room rules for inventory managers: approvals, labels, reorder points, counts and repair requests.",
 };
 
 export const SETTINGS_FIELDS: Record<SettingsSection, readonly FieldSpec[]> = {
@@ -128,5 +128,6 @@ export const SETTINGS_FIELDS: Record<SettingsSection, readonly FieldSpec[]> = {
     sw("labelShowLocation", "Location on labels", "Print the item's home location on its label."),
     { key: "defaultReorderPoint", label: "Default reorder point", help: "New items get this low-stock threshold unless they set their own. Leave blank for no default.", kind: "optionalNumber", unit: "units" },
     { key: "countVarianceThreshold", label: "Count check threshold", help: "Count lines that differ by more than this need a second person to post. Leave blank to always need a second person.", kind: "optionalNumber", unit: "units" },
+    num("repairRequestDays", "Repair requests stay open", "How long a technician has to answer a repair request. External technicians' links stop working after this too.", "days"),
   ],
 };

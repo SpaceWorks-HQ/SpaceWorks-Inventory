@@ -21,7 +21,8 @@ export function MagicLinkSignIn({ token, next }: { token: string; next: string }
     setError(null);
     setLoading(true);
     try {
-      const result = await signIn("magic-link", { token, totp: mfaStep ? code : undefined, redirect: false });
+      // Send totp only on the code step: signIn() posts an undefined value as the text "undefined".
+      const result = await signIn("magic-link", { token, ...(mfaStep ? { totp: code } : {}), redirect: false });
       if (!result || result.error) {
         if (result?.code === "mfa_required") setMfaStep(true);
         else setError(mfaStep ? "That code didn't work. Check your authenticator app or use a recovery code." : "This link has expired or was already used. Ask for a new one.");

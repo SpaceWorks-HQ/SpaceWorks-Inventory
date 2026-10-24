@@ -56,8 +56,8 @@ only from [SpaceWorks-Design](https://spaceworks-hq.github.io/SpaceWorks-Design/
    or the instance admin naming a manager) becomes its first manager;
    managers manage everyone, other managers included, and delete the space. A
    space always keeps at least one active manager. Existing owners, admins
-   and their invitations were migrated to inventory managers. See
-   [Roles](RBAC.md).
+   and their invitations were migrated to inventory managers. A **Technician**
+   role does repairs only and needs an authenticator app. See [Roles](RBAC.md).
 2. **Branches.** Only two long-lived branches: `dev` (integration) and `main`
    (production). No feature or phase branches are kept: work lands on `dev`,
    `dev` merges to `main`, and only @Shaan-Shoukath pushes or merges to `main`
@@ -77,8 +77,35 @@ only from [SpaceWorks-Design](https://spaceworks-hq.github.io/SpaceWorks-Design/
 6. **README.** It follows SpaceWorks-Events: banner, light screenshots,
    one-line install and Render, with the Patch easter eggs and the Events
    light/dark circular reveal ([Design](DESIGN.md) 4.14).
-7. **Version.** This work is 0.2.0; 0.1.0 was never released.
-8. **No pauses.** The build continues without waiting for owner decisions;
+7. **Version.** The first public release is **0.5.0** (it replaces the
+   earlier 0.2.0 plan; 0.1.0 and 0.2.0 were never released).
+8. **Repairs.** A damaged or broken item or asset (also from a loan incident)
+   is reported with severity, photos and a description. Each space keeps a
+   directory of technicians: members with the Technician role and external
+   contacts (email, phone, WhatsApp, Telegram, skills, preferred channel,
+   notes, active). The manager picks one or more technicians (filtered by
+   skill) and sends the request by email plus WhatsApp and Telegram where set
+   up; external technicians get their own link (32 random bytes, SHA-256
+   stored, one repair, expires, closes when taken, withdrawn, unassigned or
+   closed). The first to accept is assigned and the others are told. The
+   technician records fix notes, parts, photos and the amount asked; the
+   manager verifies and closes (or reopens with a reason), approves the
+   amount (a different amount needs a reason) and records payouts (cash, bank
+   transfer, UPI or other, reference required except cash, partial payouts
+   allowed) in an append-only payout ledger. Stock under repair is
+   quarantined only through `lib/inventory/availability`. The buy list stays;
+   parts for a repair go on it linked to the repair.
+9. **Finance.** Every money movement posts one entry to an append-only
+   `FinanceEntry` ledger in the same transaction as its source: settled loan
+   payments (deposits, rental, late, damage and loss charges), processed
+   refunds and returned deposits, repair payouts, purchases when bought (the
+   amount, method, reference and supplier are required) and manual income or
+   expenses. Corrections are reversing entries; one currency per space (the
+   currency locks once money is recorded). History was backfilled. The
+   Finance page, money reports and exports, spend columns, KPIs and payouts
+   are for the **inventory manager only**; a technician sees only the amount
+   they asked and whether it is paid.
+10. **No pauses.** The build continues without waiting for owner decisions;
    commits stay local on `dev` until the owner's QA.
 
 ## Defaults the owner may revisit
@@ -92,6 +119,15 @@ only from [SpaceWorks-Design](https://spaceworks-hq.github.io/SpaceWorks-Design/
 | The production harness (`test:e2e:vps` and `test:e2e:split` with `--external-services --demo`, in Linux) is the authoritative browser gate; the Windows dev-server run is secondary | Fast Refresh on Windows can reload pages mid-test; every e2e spec still runs in at least one mode |
 | In dark mode the 404 pet sits on a cream chip | The brand pet art is drawn for light backgrounds |
 | Easter eggs and the colour-mode reveal are off under reduced motion | Accessibility first; they are decoration |
+| A new repair notifies the inventory managers; technicians hear about it only when a manager sends it to them | Owner update 11 (selected technicians) replaces "email every active technician" from update 7 |
+| Inventory has no team chat channels; Telegram and WhatsApp are used only to message technicians directly, configured on the Technicians page | Inventory never had team channels; this is the smallest setup that reaches technicians where they are |
+| A payment for one kind of charge is filed under it; a payment covering several is "Loan fees" | One ledger entry per payment keeps "each source posts once" exact |
+| Stock received without a buy-list purchase (adjustments, imports) does not post to finance | It carries no payment details; buy anything through the buy list to record its cost |
+| Backfilled purchases are estimated from unit cost × quantity with method "Other" | The real amount was never recorded before the ledger |
+| An external technician's link stays open while they hold the repair and is extended each time they save | Repairs can take longer than the request window |
+| Financial years run April to March and weeks start on Monday | Indian convention, matching the default currency and time zone |
+| Manual entries have no receipt photo yet | The owner listed it as optional; the note and reference carry the receipt number |
+| Unit costs on the buy list are shown only to inventory managers | Finance is for the top role only |
 
 ## Owner checks (cannot be run from a development machine)
 
@@ -101,3 +137,4 @@ only from [SpaceWorks-Design](https://spaceworks-hq.github.io/SpaceWorks-Design/
 | A real VPS install, release path and `--ref dev` | A fresh Ubuntu server installs, the menu's check passes, update, backup and restore work, and HTTPS is issued |
 | GHCR publish and release install | The first release from `main` publishes both images and the installer pulls them instead of building |
 | Live Razorpay and Stripe test-mode payments | One paid and refunded loan per gateway in test mode, with webhooks applied once |
+| Telegram and WhatsApp messages to technicians | A real bot token and an approved WhatsApp template deliver a repair request to a technician's chat; the link in it opens the request |

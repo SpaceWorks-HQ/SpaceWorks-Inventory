@@ -4,6 +4,7 @@ import { recordAuditEvent } from "@/lib/audit";
 import { loanRef } from "@/lib/catalogue/references";
 import type { Tx } from "@/lib/db";
 import { emitEvent } from "@/lib/events/emit";
+import { postPaymentReceived } from "@/lib/finance/sources";
 import { formatMoney } from "@/lib/format/money";
 import { createNotifications } from "@/lib/notifications";
 import { FLAG_PREFIX, loanBorrowerPath, lockPayment, releaseCharges } from "./internal";
@@ -54,6 +55,7 @@ export async function settlePayment(tx: Tx, args: { spaceId: string; paymentId: 
     if (due === 0) await tx.payment.update({ where: { id: promise.id }, data: { status: "CANCELLED", note: "Paid another way." } });
   }
 
+  await postPaymentReceived(tx, payment.id);
   const loan = await tx.loan.findUniqueOrThrow({ where: { id: payment.loanId }, select: { id: true, number: true, space: { select: { slug: true } } } });
   await recordAuditEvent({
     client: tx,

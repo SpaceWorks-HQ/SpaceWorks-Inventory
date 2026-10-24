@@ -11,22 +11,24 @@ import { Dialog, DialogBody, DialogContent, DialogFooter, DialogHeader } from "@
 import { Dropdown, Field, Input } from "@/components/ui/field";
 import { currencyMinorDigits } from "@/lib/format/money";
 import { moneyInputValue } from "@/lib/format/quantity";
+import { emptyPayment, PaymentFields, paymentInput } from "./PaymentFields";
 import type { PurchaseRow } from "./PurchasesTable";
 
-/** Receive a delivery into stock at one location, with the cost actually paid. */
-export function ReceiveDialog({ slug, currency, purchase, locations, onClose }: { slug: string; currency: string; purchase: PurchaseRow; locations: { id: string; label: string }[]; onClose: () => void }) {
+/** Receive a delivery into stock at one location. A purchase that skipped "ordered" records what it cost here. */
+export function ReceiveDialog({ slug, currency, purchase, locations, suppliers, onClose }: { slug: string; currency: string; purchase: PurchaseRow; locations: { id: string; label: string }[]; suppliers: { id: string; name: string }[]; onClose: () => void }) {
   const router = useRouter();
   const { showToast } = useToast();
   const [locationId, setLocationId] = useState(locations[0]?.id ?? "");
   const [quantity, setQuantity] = useState(String(purchase.quantity));
   const [unitCost, setUnitCost] = useState(moneyInputValue(purchase.unitCostMinor, currencyMinorDigits(currency)));
   const [tracking, setTracking] = useState<"QUANTITY" | "SERIALIZED">("QUANTITY");
+  const [payment, setPayment] = useState(emptyPayment(purchase.supplierId));
   const [errors, setErrors] = useState<Record<string, string[]>>({});
   const [pending, startTransition] = useTransition();
 
   const submit = () =>
     startTransition(async () => {
-      const result = await receivePurchaseAction(slug, { purchaseId: purchase.id, locationId, quantity: Number(quantity) || 0, unitCost, tracking: purchase.linked ? undefined : tracking });
+      const result = await receivePurchaseAction(slug, { purchaseId: purchase.id, locationId, quantity: Number(quantity) || 0, unitCost, tracking: purchase.linked ? undefined : tracking, payment: purchase.paid ? undefined : paymentInput(payment) });
       if (!result.ok) {
         setErrors(result.fieldErrors ?? {});
         showToast(result.error, "error");
@@ -64,6 +66,7 @@ export function ReceiveDialog({ slug, currency, purchase, locations, onClose }: 
             <Field label={`Unit cost (${currency})`} optional error={errors.unitCost?.[0]} helperText="Updates the average cost used for valuation.">
               <Input inputMode="decimal" value={unitCost} onChange={(event) => setUnitCost(event.target.value)} placeholder="0.00" />
             </Field>
+            {purchase.paid ? null : <PaymentFields currency={currency} value={payment} onChange={setPayment} suppliers={suppliers} errors={errors} />}
             {purchase.linked ? null : (
               <fieldset className="sm:col-span-2">
                 <legend className="mb-1 text-label text-ink">How to track the new item</legend>

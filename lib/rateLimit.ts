@@ -27,7 +27,9 @@ export type Bucket =
   | "apiWrite"
   | "webhook"
   | "dataExport"
-  | "realtime";
+  | "realtime"
+  | "repairReport"
+  | "repairLink";
 
 const limits: Record<Bucket, { max: number; windowMs: number; }> = {
   global: { max: 600, windowMs: 60_000 },
@@ -51,6 +53,10 @@ const limits: Record<Bucket, { max: number; windowMs: number; }> = {
   dataExport: { max: 5, windowMs: 60 * 60_000 },
   // SSE connections (one per open tab, reconnects after network blips).
   realtime: { max: 60, windowMs: 60_000 },
+  // Members and staff reporting damaged items.
+  repairReport: { max: 20, windowMs: 60 * 60_000 },
+  // An external technician's link page and its actions (per address and per link).
+  repairLink: { max: 30, windowMs: 60_000 },
 };
 
 // Local fallback store

@@ -8,10 +8,33 @@ build is tagged `v<version>-main.<run>.<commit>`; see
 
 ## [Unreleased]
 
-## [0.2.0] - Unreleased
+## [0.5.0] - Unreleased
+
+The first public release: everything since the split from SpaceWorks
+(the 0.2.0 work is folded in; 0.1.0 and 0.2.0 were never released).
 
 ### Added
 
+- **Repairs.** Report a damaged or broken item or asset (members too, and
+  straight from a damaged-item loan incident) with severity and photos; take
+  it out of use through the availability module; a technician directory of
+  members with the new Technician role and external contacts with skills;
+  send a request to the technicians you pick by email, WhatsApp and Telegram;
+  external technicians work through a private link; the first to accept gets
+  the job; fix notes, parts, photos and the amount asked; verify and close or
+  reopen; approve and pay (partial payouts, append-only payout ledger); parts
+  go on the buy list linked to the repair; a Repairs report and webhooks
+  `issue.reported`, `issue.assigned`, `issue.resolved` and `repair.paid`.
+- **Finance** (inventory managers only). One append-only ledger for every
+  money movement, posted with its source: loan payments, refunds and returned
+  deposits, repair payouts, purchases when bought (amount, method, reference
+  and supplier required) and manual income or expenses, with reversals. The
+  Finance page shows income, expenses and net by day, week, month or
+  financial year, by category, method, item, technician and supplier, links
+  each entry to its source and downloads as CSV or Excel (audited). History is
+  backfilled; a ledger check compares it with its sources. The valuation
+  report gains spend by item and cost per asset; webhook
+  `finance.entry_posted`.
 - **Paged desk flows.** Issue, return, self-return, self-checkout, dispatch,
   receive and receive-return are a stepper: one step at a time, Next only
   when the step is ready, earlier steps reachable from the indicator, and a
@@ -45,8 +68,8 @@ build is tagged `v<version>-main.<run>.<commit>`; see
 
 ### Changed
 
-- **Three roles: Inventory manager, Staff and Member.** The admin and owner
-  roles are gone; the inventory manager runs the whole space, including
+- **Roles: Inventory manager, Staff and Member, plus Technician** (repairs
+  only, with an authenticator app). The admin and owner roles are gone; the inventory manager runs the whole space, including
   members, other managers and deleting the space. The space's creator is its
   first manager, and the last active manager can't be demoted, suspended or
   removed, or leave. A migration turns existing owners, admins and their
@@ -56,6 +79,9 @@ build is tagged `v<version>-main.<run>.<commit>`; see
 
 ### Fixed
 
+- Signing in with an authenticator app never asked for the code (the form
+  sent a missing code as the text "undefined"), so accounts with two-step
+  verification could not sign in with a password or an email link.
 - Members can no longer learn another member's loan status, and the member
   loan page no longer receives desk notes, shelves or standing details.
 - Posting a count no longer writes off untouched serialized tools; posted

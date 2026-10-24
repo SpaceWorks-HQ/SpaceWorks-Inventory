@@ -8,5 +8,7 @@ export { movementReport, movementTables, type MovementReport } from "./movements
 export { incidentsReport, incidentsTables, type IncidentsReport } from "./incidents";
 export { transfersReport, transfersTables, type TransfersReport } from "./transfers";
 export { paymentsReport, paymentsTables, type PaymentsReport } from "./payments";
+export { repairsReport, repairsTables, type RepairsReport } from "./repairs";
+export { spendReport, spendTables, type SpendReport } from "./spend";
 export { parseRange, dayInZone, type DateRange } from "./range";
 export { REPORTS, isReportKey, reportTables, type ReportKey } from "./registry";

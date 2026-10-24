@@ -6,7 +6,7 @@ import { requireSpace } from "@/lib/permissions";
 
 export async function loadSpaceLayout({ children, params }: LayoutProps<"/s/[spaceSlug]">) {
 const { spaceSlug } = await params;
-const { user, space, membership } = await requireSpace(spaceSlug);
+const { user, space, membership } = await requireSpace(spaceSlug, "TECHNICIAN");
 const data = await getShellData(user, space, membership);
 return viewDto({ data } as const);
 }

@@ -64,16 +64,18 @@ describe("to buy", () => {
   it("suggests reorders and receives purchases into stock at the purchase cost", async () => {
     const pla = await prisma.$transaction((tx) => createItem(tx, ctx.space.id, { name: "PLA filament", reorderPoint: 2, reorderQuantity: 5 }, system));
     expect((await reorderSuggestions(ctx.space.id)).map((i) => i.id)).toContain(pla.id);
+    const supplier = await prisma.supplier.create({ data: { spaceId: ctx.space.id, name: "Filament shop" } });
+    const payment = { amountMinor: 600000, method: "BANK_TRANSFER" as const, reference: "INV-1", supplierId: supplier.id };
     const purchase = await prisma.$transaction((tx) => createPurchase(tx, { spaceId: ctx.space.id, itemId: pla.id, name: "", quantity: 5, supplierId: null, unitCostMinor: 120000, link: null, note: null }, { userId: ctx.staff.id }));
     await prisma.$transaction((tx) => movePurchase(tx, { spaceId: ctx.space.id, purchaseId: purchase.id, step: "approve" }, { userId: ctx.owner.id }));
-    await prisma.$transaction((tx) => movePurchase(tx, { spaceId: ctx.space.id, purchaseId: purchase.id, step: "order" }, { userId: ctx.owner.id }));
+    await prisma.$transaction((tx) => movePurchase(tx, { spaceId: ctx.space.id, purchaseId: purchase.id, step: "order", payment }, { userId: ctx.owner.id }));
     await prisma.$transaction((tx) => receivePurchase(tx, { spaceId: ctx.space.id, purchaseId: purchase.id, locationId: ctx.shelfB.id, quantity: 4, unitCostMinor: null }, { userId: ctx.staff.id }));
     expect((await level(pla.id, ctx.shelfB.id)).onHand).toBe(4);
     expect((await prisma.item.findUniqueOrThrow({ where: { id: pla.id } })).avgCostMinor).toBe(120000);
     await expect(prisma.$transaction((tx) => movePurchase(tx, { spaceId: ctx.space.id, purchaseId: purchase.id, step: "cancel" }, { userId: ctx.owner.id }))).rejects.toThrow(/can't move/);
     const fresh = await prisma.$transaction((tx) => createPurchase(tx, { spaceId: ctx.space.id, itemId: null, name: "Laser cutter lens", quantity: 1, supplierId: null, unitCostMinor: 500000, link: "https://example.test/lens", note: null }, { userId: ctx.staff.id }));
     await prisma.$transaction((tx) => movePurchase(tx, { spaceId: ctx.space.id, purchaseId: fresh.id, step: "approve" }, { userId: ctx.owner.id }));
-    const { itemId } = await prisma.$transaction((tx) => receivePurchase(tx, { spaceId: ctx.space.id, purchaseId: fresh.id, locationId: ctx.shelfA.id, quantity: null, unitCostMinor: null, tracking: "SERIALIZED" }, { userId: ctx.staff.id }));
+    const { itemId } = await prisma.$transaction((tx) => receivePurchase(tx, { spaceId: ctx.space.id, purchaseId: fresh.id, locationId: ctx.shelfA.id, quantity: null, unitCostMinor: null, tracking: "SERIALIZED", payment: { ...payment, amountMinor: 500000 } }, { userId: ctx.staff.id }));
     expect(await prisma.asset.count({ where: { itemId } })).toBe(1);
   });
 });

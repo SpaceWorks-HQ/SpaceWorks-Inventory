@@ -1,3 +1,4 @@
+import { recordAuditEvent } from "@/lib/audit";
 import { canViewReports, findSpaceForUser, getCurrentUser } from "@/lib/permissions";
 import { checkRateLimitById } from "@/lib/rateLimit";
 import { isReportKey, parseRange, reportTables } from "@/lib/reports";
@@ -9,7 +10,7 @@ export const runtime = "nodejs";
 const notFound = () => new Response("Not found", { status: 404, headers: { "Cache-Control": "private, no-store" } });
 
 /**
- * GET ?report=valuation|low-stock|movements|loans|incidents|transfers|payments&format=csv|xlsx[&from=&to=]
+ * GET ?report=valuation|low-stock|movements|loans|incidents|transfers|payments|repairs&format=csv|xlsx[&from=&to=]
  * Managers and above; everyone else (and any unknown report) gets 404.
  */
 export async function GET(request: Request, context: { params: Promise<{ spaceSlug: string }> }) {
@@ -27,6 +28,7 @@ export async function GET(request: Request, context: { params: Promise<{ spaceSl
   const { space } = found;
   const range = parseRange({ from: url.searchParams.get("from") ?? undefined, to: url.searchParams.get("to") ?? undefined }, space.timezone);
   const { tables } = await reportTables(report, { id: space.id, timezone: space.timezone }, range);
+  await recordAuditEvent({ action: "report.exported", spaceId: space.id, actorId: user.id, targetType: "Space", targetId: space.id, metadata: { report, format, from: range.fromDay, to: range.toDay } });
   const fileBase = `${space.slug}-${report}-${range.fromDay}-to-${range.toDay}`;
   const finalBase = report === "valuation" || report === "low-stock" ? `${space.slug}-${report}-${range.toDay}` : fileBase;
   if (format === "csv") return exportResponse(tablesToCsv(tables, space.currency), finalBase, "csv");

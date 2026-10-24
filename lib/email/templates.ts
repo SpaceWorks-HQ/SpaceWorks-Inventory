@@ -20,7 +20,7 @@ function actionButton(url: string, label: string) {
 <p style="font-size:13px;color:${EMAIL_COLORS.inkMuted};overflow-wrap:anywhere">Or open this link: <a href="${safe}" style="color:${EMAIL_COLORS.teal}">${safe}</a></p>`;
 }
 
-const ROLE_WORDS: Record<string, string> = { MANAGER: "an inventory manager", STAFF: "staff", MEMBER: "a member" };
+const ROLE_WORDS: Record<string, string> = { MANAGER: "an inventory manager", STAFF: "staff", MEMBER: "a member", TECHNICIAN: "a technician" };
 
 export function renderInviteEmail(input: { spaceName: string; inviterName?: string | null; role: string; inviteUrl: string; expiresAt: Date }): RenderedEmail {
   const who = input.inviterName?.trim() ? escapeHtml(input.inviterName.trim()) : "Someone";
@@ -83,5 +83,24 @@ export function renderNotificationEmail(input: { title: string; bodyHtml: string
     input.actionUrl ? actionButton(input.actionUrl, input.actionLabel ?? "Open Space Works") : "",
   ].join(""));
   const text = `${input.title}\n\n${input.bodyHtml.replace(/<[^>]+>/g, "")}${input.actionUrl ? `\n\n${input.actionUrl}` : ""}`;
+  return { subject, html, text };
+}
+
+/** A repair request to an external technician: their own link, nothing else from the space. */
+export function renderRepairRequestEmail(input: { spaceName: string; reference: string; itemName: string; title: string; severity: string; linkUrl: string; expiresAt: Date; assigned?: boolean }): RenderedEmail {
+  const space = escapeHtml(input.spaceName);
+  const days = Math.max(1, Math.round((input.expiresAt.getTime() - Date.now()) / 86_400_000));
+  const subject = input.assigned ? `Repair ${input.reference} from ${input.spaceName} is yours` : `Repair request ${input.reference} from ${input.spaceName}`;
+  const next = input.assigned
+    ? "Open the link to see the details and record your fix notes, photos and the amount you ask."
+    : "Open the link to see the details, accept or decline. Other technicians may have been asked too; the first to accept gets the job.";
+  const html = emailLayout(escapeHtml(subject), [
+    heading(input.assigned ? `${space} assigned you a repair` : `Can you repair this for ${space}?`),
+    paragraph(`<strong>${escapeHtml(input.itemName)}</strong>: ${escapeHtml(input.title)} (${escapeHtml(input.severity.toLowerCase())} priority).`),
+    paragraph(next),
+    actionButton(input.linkUrl, "Open the repair request"),
+    paragraph(`The link is only for you and expires in ${days} ${days === 1 ? "day" : "days"}.`),
+  ].join(""));
+  const text = `${subject}\n\n${input.itemName}: ${input.title} (${input.severity.toLowerCase()} priority).\n\n${next}\n${input.linkUrl}\n\nThe link is only for you and expires in ${days} ${days === 1 ? "day" : "days"}.`;
   return { subject, html, text };
 }

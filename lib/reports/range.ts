@@ -38,14 +38,14 @@ export function startOfDay(day: string, timeZone: string): Date {
 /**
  * Parse `?from=&to=`. Anything missing or invalid falls back to the last
  * 30 days ending today; swapped days are put in order and the span is
- * capped at a year (counting back from `to`).
+ * capped at a year (counting back from `to`), or at `maxDays`.
  */
-export function parseRange(input: { from?: unknown; to?: unknown }, timeZone: string, now: Date = new Date()): DateRange {
+export function parseRange(input: { from?: unknown; to?: unknown }, timeZone: string, now: Date = new Date(), maxDays = MAX_DAYS): DateRange {
   const today = dayInZone(now, timeZone);
   let toDay = typeof input.to === "string" && isRealDay(input.to) ? input.to : today;
   let fromDay = typeof input.from === "string" && isRealDay(input.from) ? input.from : shiftDay(toDay, -(DEFAULT_RANGE_DAYS - 1));
   if (fromDay > toDay) [fromDay, toDay] = [toDay, fromDay];
-  const earliest = shiftDay(toDay, -(MAX_DAYS - 1));
+  const earliest = shiftDay(toDay, -(maxDays - 1));
   if (fromDay < earliest) fromDay = earliest;
   return { from: startOfDay(fromDay, timeZone), to: startOfDay(shiftDay(toDay, 1), timeZone), fromDay, toDay };
 }

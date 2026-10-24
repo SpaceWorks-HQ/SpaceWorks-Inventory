@@ -7,6 +7,7 @@ export const REPORTS = [
   { key: "incidents", label: "Lost and damaged", ranged: true, description: "Lost or damaged items by item and by member, open and resolved." },
   { key: "transfers", label: "Transfers", ranged: true, description: "Transfers in and out by space, stock on the road and shortfalls on arrival." },
   { key: "payments", label: "Payments", ranged: true, description: "Money collected, pending, refunded and waived." },
+  { key: "repairs", label: "Repairs", ranged: true, description: "Repairs reported and closed, and what was paid to technicians by repair, technician, item and month." },
 ] as const;
 
 export type ReportKey = (typeof REPORTS)[number]["key"];

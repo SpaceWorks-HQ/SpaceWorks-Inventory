@@ -55,6 +55,8 @@ and Playwright.
 | `lib/lending/` | **The loan workflow (only writer of loan state)**, eligibility, reminders |
 | `lib/transfers/` | **The transfer workflow (only writer of transfer state)** |
 | `lib/catalogue/` | Items, locations, taxonomy, assets, kits, containers, QR codes |
+| `lib/repairs/` | Repairs, the technician directory, requests and external links (`app/r/[token]`), payouts |
+| `lib/finance/` | **The finance ledger's only writer** (`postFinanceEntry`), source posting rules, reports, consistency check |
 | `lib/counts/`, `lib/purchases/`, `lib/payments/`, `lib/importer/`, `lib/reports/`, `lib/labels/` | Their areas |
 | `lib/events/` | Event catalogue, signed webhook delivery |
 | `lib/settings/sections.ts` | Every space setting, its schema and the role that may change it |
@@ -76,7 +78,8 @@ and Playwright.
    constraints refuse a negative bucket or holds larger than on hand.
 3. **One workflow module owns each state machine.** Loan status changes only
    in `lib/lending/workflow`, transfer status only in `lib/transfers/workflow`,
-   count status only in `lib/counts`. Never update `status` columns elsewhere.
+   count status only in `lib/counts`, repair status only in `lib/repairs`.
+   Never update `status` columns elsewhere.
 4. **Handovers need proof.** Issuing and returning a loan requires the QR
    scan of every serialized unit (and of the container when one is used),
    at least `Space.minEvidencePhotos` photos and remarks (return remarks are
@@ -90,17 +93,25 @@ and Playwright.
 6. **Settings, not constants.** Policy lives in `lib/settings/sections.ts`
    (every section needs MANAGER, the inventory manager)
    and every settings change is audited with the changed field names.
+7. **Every money movement is in the ledger.** Payments, refunds, repair
+   payouts and bought purchases post one `FinanceEntry` (unique per source)
+   in the same transaction; the ledger, payouts and repair timeline are
+   append-only (database trigger). Never write money rows outside their
+   workflow; corrections are reversing entries.
 
 ## Roles (RBAC)
 
-MANAGER > STAFF > MEMBER; there is no admin or owner role. Capabilities live
+MANAGER > STAFF > MEMBER, plus TECHNICIAN (repairs only, ranked below MEMBER
+so no member page opens for it); there is no admin or owner role. Capabilities live
 in `lib/roles.ts` (`ROLE_MATRIX` is the documented matrix, `docs/RBAC.md` the
 prose). MEMBER borrows; STAFF runs the desk (approve loans, issue/return,
 counts, dispatch/receive, take payments); MANAGER, the inventory manager, runs
 the whole space: stock, catalogue, settings, payments, members (other managers
 included), API keys, webhooks, the audit log and deleting the space. A space's
 creator becomes its first manager, and `lib/membership.ts` refuses to demote,
-suspend or remove the last active manager (row-locked, tested).
+suspend or remove the last active manager (row-locked, tested). Money (the
+Finance page, money reports and exports, payouts) is MANAGER only
+(`canViewFinance`).
 Member borrowing standing (`GOOD`, `RESTRICTED`, `SUSPENDED`) is separate from
 the role and checked by `lib/lending/access.ts`.
 

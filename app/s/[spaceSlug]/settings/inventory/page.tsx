@@ -68,6 +68,7 @@ export default async function InventorySettingsPage({ params, searchParams }: Pa
     labelShowLocation: space.labelShowLocation,
     defaultReorderPoint: space.defaultReorderPoint,
     countVarianceThreshold: space.countVarianceThreshold,
+    repairRequestDays: space.repairRequestDays,
   };
 
   return (

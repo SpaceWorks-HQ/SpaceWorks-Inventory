@@ -63,10 +63,10 @@ describe("settings sections", () => {
 
   it("saves nullable inventory thresholds", async () => {
     const result = await saveSettingsSection(prisma, ctx.space, "inventory", {
-      internalTransferApproval: false, labelSize: "LARGE", labelShowName: true, labelShowLocation: true, defaultReorderPoint: 3, countVarianceThreshold: null,
+      internalTransferApproval: false, labelSize: "LARGE", labelShowName: true, labelShowLocation: true, defaultReorderPoint: 3, countVarianceThreshold: null, repairRequestDays: 10,
     }, ctx.staff.id);
     expect(result.ok).toBe(true);
-    expect(await prisma.space.findUniqueOrThrow({ where: { id: ctx.space.id } })).toMatchObject({ labelSize: "LARGE", defaultReorderPoint: 3, countVarianceThreshold: null });
+    expect(await prisma.space.findUniqueOrThrow({ where: { id: ctx.space.id } })).toMatchObject({ labelSize: "LARGE", defaultReorderPoint: 3, countVarianceThreshold: null, repairRequestDays: 10 });
   });
 
   it("replaces the logo key and reports the previous one", async () => {

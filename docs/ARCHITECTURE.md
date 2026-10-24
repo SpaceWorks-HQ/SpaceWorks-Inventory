@@ -93,6 +93,16 @@ See [INVARIANTS.md](INVARIANTS.md).
 - **Payments**: charges per loan; members pay through Razorpay or Stripe,
   choose pay later, or staff record cash/bank payments; webhooks settle
   payments once; deposits are refunded fully or partly with a reason.
+- **Repair** (`lib/repairs`): report (optionally taking the unit out of use
+  through the availability module, or adopting a damaged-loan incident's
+  hold) → requests to chosen technicians (email, WhatsApp, Telegram; a
+  private link for external ones) → first accept assigns → fix notes, photos,
+  amount asked → fixed → verified and closed (stock back in use or written
+  off; the incident resolves) or reopened → amount approved → payouts.
+- **Finance** (`lib/finance`): every source posts one append-only
+  `FinanceEntry` in its own transaction (settled payment, processed refund,
+  repair payout, bought purchase, manual entry; reversals for corrections).
+  The Finance page and money reports read only the ledger.
 
 ## Background work
 

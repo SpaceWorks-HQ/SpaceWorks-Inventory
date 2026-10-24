@@ -6,7 +6,6 @@ import { prisma } from "@/lib/db";
 import { spaceAction } from "@/lib/actionContext";
 import { getCurrentUser } from "@/lib/permissions";
 import { markNotificationsRead } from "@/lib/notifications";
-import { canBorrow } from "@/lib/roles";
 import { actionError, type ActionResult } from "@/lib/actionResult";
 
 const schema = z.object({ ids: z.array(z.string().min(1).max(64)).max(200).optional() });
@@ -24,7 +23,8 @@ export async function markNotificationsReadAction(input: unknown): Promise<Actio
 
 /** Mark the caller's notifications in one space read (all of them when `ids` is omitted). Never touches other people's rows. */
 export async function markSpaceNotificationsReadAction(slug: string, input: unknown): Promise<ActionResult<{ count: number }>> {
-  const { ctx, denied } = await spaceAction(slug, canBorrow);
+  // Everyone with a membership has an inbox, technicians included.
+  const { ctx, denied } = await spaceAction(slug, () => true);
   if (denied) return denied;
   const parsed = schema.safeParse(input ?? {});
   if (!parsed.success) return actionError("Couldn't update notifications. Try again.");

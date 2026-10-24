@@ -3,15 +3,15 @@ import "server-only";
 import { viewDto } from "@/lib/frontend/view";
 import { formatDate, formatDayShort } from "@/lib/format/datetime";
 import { requireSpace } from "@/lib/permissions";
-import { REPORTS, incidentsReport, incidentsTables, isReportKey, loansReport, loansTables, lowStockReport, lowStockTables, movementReport, movementTables, parseRange, paymentsReport, paymentsTables, transfersReport, transfersTables, valuationReport, valuationTables, type DateRange, type ReportKey } from "@/lib/reports";
+import { REPORTS, incidentsReport, incidentsTables, isReportKey, loansReport, loansTables, lowStockReport, lowStockTables, movementReport, movementTables, parseRange, paymentsReport, paymentsTables, repairsReport, repairsTables, spendReport, spendTables, transfersReport, transfersTables, valuationReport, valuationTables, type DateRange, type ReportKey } from "@/lib/reports";
 import { eachDay, startOfDay } from "@/lib/reports/range";
 type SpaceInfo = { id: string; timezone: string };
 async function loadView(key: ReportKey, space: SpaceInfo, range: DateRange) {
   const day = (date: Date) => formatDate(date, space.timezone);
   switch (key) {
     case "valuation": {
-      const data = await valuationReport(space.id);
-      return { key, data, tables: valuationTables(data) } as const;
+      const [data, spend] = await Promise.all([valuationReport(space.id), spendReport(space.id)]);
+      return { key, data, tables: [...valuationTables(data), ...spendTables(spend)] } as const;
     }
     case "low-stock": {
       const data = await lowStockReport(space.id);
@@ -36,6 +36,10 @@ async function loadView(key: ReportKey, space: SpaceInfo, range: DateRange) {
     case "payments": {
       const data = await paymentsReport(space.id, range);
       return { key, data, tables: paymentsTables(data) } as const;
+    }
+    case "repairs": {
+      const data = await repairsReport(space.id, range, space.timezone);
+      return { key, data, tables: repairsTables(data) } as const;
     }
   }
 }

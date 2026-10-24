@@ -5,6 +5,7 @@ import { recordAuditEvent } from "@/lib/audit";
 import type { Tx } from "@/lib/db";
 import { DomainError } from "@/lib/domainError";
 import { emitEvent } from "@/lib/events/emit";
+import { postRefundProcessed } from "@/lib/finance/sources";
 import { formatMoney } from "@/lib/format/money";
 import { createNotifications } from "@/lib/notifications";
 import { loanRef } from "@/lib/catalogue/references";
@@ -75,6 +76,7 @@ export async function processRefund(tx: Tx, args: { spaceId: string; refundId: s
     left -= take;
     if (left === 0) break;
   }
+  await postRefundProcessed(tx, refund.id);
   const loan = await tx.loan.findUniqueOrThrow({ where: { id: refund.payment.loanId }, select: { id: true, number: true, space: { select: { slug: true } } } });
   await recordAuditEvent({ client: tx, action: "refund.processed", spaceId: args.spaceId, actorId: null, targetType: "Refund", targetId: refund.id, metadata: { paymentId: refund.paymentId, amountMinor: refund.amountMinor } });
   await emitEvent(tx, { spaceId: args.spaceId, type: "payment.refunded", data: { refundId: refund.id, paymentId: refund.paymentId, loanId: loan.id, amountMinor: refund.amountMinor, currency: refund.payment.currency, provider: refund.payment.provider } });

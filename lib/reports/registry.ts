@@ -6,6 +6,8 @@ import { REPORTS, type ReportKey } from "./keys";
 import { loansReport, loansTables } from "./loans";
 import { movementReport, movementTables } from "./movements";
 import { paymentsReport, paymentsTables } from "./payments";
+import { repairsReport, repairsTables } from "./repairs";
+import { spendReport, spendTables } from "./spend";
 import type { DateRange } from "./range";
 import { lowStockReport, lowStockTables, valuationReport, valuationTables } from "./stock";
 import type { ReportTable } from "./table";
@@ -21,7 +23,7 @@ export async function reportTables(key: ReportKey, space: SpaceInfo, range: Date
   const title = REPORTS.find((report) => report.key === key)!.label;
   switch (key) {
     case "valuation":
-      return { title, tables: valuationTables(await valuationReport(space.id)) };
+      return { title, tables: [...valuationTables(await valuationReport(space.id)), ...spendTables(await spendReport(space.id))] };
     case "low-stock":
       return { title, tables: lowStockTables(await lowStockReport(space.id)) };
     case "movements":
@@ -34,5 +36,7 @@ export async function reportTables(key: ReportKey, space: SpaceInfo, range: Date
       return { title, tables: transfersTables(await transfersReport(space.id, range), day) };
     case "payments":
       return { title, tables: paymentsTables(await paymentsReport(space.id, range)) };
+    case "repairs":
+      return { title, tables: repairsTables(await repairsReport(space.id, range, space.timezone)) };
   }
 }

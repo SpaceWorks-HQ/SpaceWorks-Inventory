@@ -10,7 +10,7 @@ function safeLink(url: string | null): string | null {
 }
 export async function loadNotificationsPage({ params }: PageProps<"/s/[spaceSlug]/notifications">) {
 const { spaceSlug } = await params;
-const { user, space } = await requireSpace(spaceSlug, "MEMBER");
+const { user, space } = await requireSpace(spaceSlug, "TECHNICIAN");
 const rows = await listNotifications(user.id, { spaceId: space.id, take: 100 });
 const now = new Date();
 const entries: NotificationEntry[] = rows

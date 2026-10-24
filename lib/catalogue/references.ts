@@ -1,6 +1,6 @@
 /**
  * Human references (pure and client-safe): LN-0042, TR-0007, CC-0003,
- * PO-0011 and asset tags such as TSK-000042.
+ * PO-0011, RP-0005 and asset tags such as TSK-000042.
  */
 export function loanRef(number: number) {
   return `LN-${String(number).padStart(4, "0")}`;
@@ -13,6 +13,9 @@ export function countRef(number: number) {
 }
 export function purchaseRef(number: number) {
   return `PO-${String(number).padStart(4, "0")}`;
+}
+export function repairRef(number: number) {
+  return `RP-${String(number).padStart(4, "0")}`;
 }
 export function assetTag(prefix: string, number: number) {
   return `${prefix}-${String(number).padStart(6, "0")}`;

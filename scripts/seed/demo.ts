@@ -1,6 +1,7 @@
 // Demo data for local review and README screenshots: two makerspaces with
 // people in every role, the sample inventory, loans in every state, a
-// transfer in transit between the spaces, an open count and a buy list.
+// transfer in transit between the spaces, an open count, a buy list, repairs
+// with technicians and the finance ledger (scripts/seed/repairs.ts).
 // Run with `DEMO_PASSWORD=... npm run db:seed:demo` (bundled by scripts/seed-demo.mjs).
 // Idempotent: re-running replaces the demo spaces and @tinkerspace.test users.
 import bcrypt from "bcryptjs";
@@ -14,6 +15,7 @@ import { approveTransfer, dispatchTransfer, requestTransfer } from "@/lib/transf
 import { startCount } from "@/lib/counts";
 import { createPurchase, movePurchase } from "@/lib/purchases";
 import type { StoredImage } from "@/lib/storage";
+import { seedRepairs } from "./repairs";
 
 const DOMAIN = "@tinkerspace.test";
 const SPACES = [
@@ -123,5 +125,6 @@ export async function seedDemo(password: string) {
   const order = await prisma.$transaction((tx) => createPurchase(tx, { spaceId: kochi!.id, itemId: jumpers.id, name: "", quantity: 10, supplierId: null, unitCostMinor: 9000, link: null, note: "Running low before the workshop" }, staff));
   await prisma.$transaction((tx) => movePurchase(tx, { spaceId: kochi!.id, purchaseId: order.id, step: "approve" }, manager));
   await prisma.$transaction((tx) => createPurchase(tx, { spaceId: kochi!.id, itemId: null, name: "Laser cutter honeycomb bed", quantity: 1, supplierId: null, unitCostMinor: 1_250_000, link: null, note: null }, staff));
-  return { spaces: SPACES.map((s) => s.slug), users: PEOPLE.map((p) => `${p.key}${DOMAIN} (${p.role})`) };
+  await seedRepairs({ spaceId: kochi!.id, users, domain: DOMAIN, passwordHash });
+  return { spaces: SPACES.map((s) => s.slug), users: [...PEOPLE.map((p) => `${p.key}${DOMAIN} (${p.role})`), `arun${DOMAIN} (TECHNICIAN, authenticator)`] };
 }

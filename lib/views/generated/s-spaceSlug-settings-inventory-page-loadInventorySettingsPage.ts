@@ -55,6 +55,7 @@ const inventoryValues = {
     labelShowLocation: space.labelShowLocation,
     defaultReorderPoint: space.defaultReorderPoint,
     countVarianceThreshold: space.countVarianceThreshold,
+    repairRequestDays: space.repairRequestDays,
   };
 return viewDto({ space, tab, data, slug, tabs, minorDigits, inventoryValues } as const);
 }

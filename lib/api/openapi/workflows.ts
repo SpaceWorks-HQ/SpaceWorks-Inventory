@@ -75,7 +75,7 @@ export const workflowPaths = {
       summary: "List members (names, roles, borrowing standing)",
       tags: ["Members"],
       ...scope("read:members"),
-      parameters: [...pageParams, query("role", "MANAGER, STAFF or MEMBER."), query("borrowing", "GOOD, RESTRICTED or SUSPENDED."), query("status", "ACTIVE or SUSPENDED.")],
+      parameters: [...pageParams, query("role", "MANAGER, STAFF, MEMBER or TECHNICIAN."), query("borrowing", "GOOD, RESTRICTED or SUSPENDED."), query("status", "ACTIVE or SUSPENDED.")],
       responses: { 200: page("Member"), ...errors("Invalid", "Unauthorized", "Forbidden") },
     },
   },

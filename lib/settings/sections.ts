@@ -109,6 +109,7 @@ export const SETTINGS_SECTIONS = {
       labelShowLocation: bool,
       defaultReorderPoint: z.number().int().min(0).max(1_000_000).nullable(),
       countVarianceThreshold: z.number().int().min(0).max(1_000_000).nullable(),
+      repairRequestDays: z.number().int().min(1, "Keep requests open for at least a day.").max(90),
     }),
   },
 } as const satisfies Record<string, { title: string; minRole: SpaceRole; schema: z.ZodType }>;

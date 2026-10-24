@@ -9,6 +9,7 @@ import {
   renderInviteEmail,
   renderMagicLinkEmail,
   renderPasswordResetEmail,
+  renderRepairRequestEmail,
   type RenderedEmail,
 } from "@/lib/email/templates";
 
@@ -22,6 +23,9 @@ import {
  *   `enqueueEmail` without touching this file. Never put bearer links in it.
  * - "space-invite", "password-reset", "email-verification", "magic-link":
  *   carry a bearer URL, so the row is deleted after delivery or terminal failure.
+ * - "repair-request": a repair request emailed to an external technician (bearer link).
+ * - "repair-chat": a Telegram or WhatsApp message to a technician (lib/repairs/chat.ts);
+ *   it may carry the same link, so it is deleted after delivery too.
  * - "webhook.deliver": one outbound webhook delivery ({ deliveryId }) queued
  *   by `emitEvent()` (lib/events); the WebhookDelivery row tracks attempts,
  *   so this row only mirrors the outcome.
@@ -32,8 +36,9 @@ type InvitePayload = { spaceId?: string; to: string; spaceName: string; inviterN
 type ResetPayload = { to: string; resetUrl: string; expiresAt: string };
 type VerificationPayload = { to: string; verificationUrl: string; expiresAt: string };
 type MagicLinkPayload = { to: string; signInUrl: string; expiresAt: string };
+type RepairRequestPayload = { spaceId: string; to: string; spaceName: string; reference: string; itemName: string; title: string; severity: string; linkUrl: string; expiresAt: string; assigned?: boolean };
 
-const CAPABILITY_KINDS = new Set(["space-invite", "password-reset", "email-verification", "magic-link"]);
+const CAPABILITY_KINDS = new Set(["space-invite", "password-reset", "email-verification", "magic-link", "repair-request", "repair-chat"]);
 
 function create(client: DbClient, kind: string, payload: object) {
   return client.outboxMessage.create({ data: { kind, payload: payload as Prisma.InputJsonValue }, select: { id: true } });
@@ -53,6 +58,14 @@ export function enqueuePasswordReset(client: DbClient, payload: Omit<ResetPayloa
 
 export function enqueueEmailVerification(client: DbClient, payload: Omit<VerificationPayload, "expiresAt"> & { expiresAt: Date }) {
   return create(client, "email-verification", { ...payload, expiresAt: payload.expiresAt.toISOString() });
+}
+
+export function enqueueRepairRequest(client: DbClient, payload: Omit<RepairRequestPayload, "expiresAt"> & { expiresAt: Date }) {
+  return create(client, "repair-request", { ...payload, expiresAt: payload.expiresAt.toISOString() });
+}
+
+export function enqueueRepairChat(client: DbClient, payload: { spaceId: string; channel: "TELEGRAM" | "WHATSAPP"; to: string; text: string; expiresAt: Date }) {
+  return create(client, "repair-chat", { ...payload, expiresAt: payload.expiresAt.toISOString() });
 }
 
 export function enqueueMagicLink(client: DbClient, payload: Omit<MagicLinkPayload, "expiresAt"> & { expiresAt: Date }) {
@@ -117,6 +130,9 @@ export function renderOutboxMessage(kind: string, raw: Prisma.JsonValue, now = n
     case "magic-link":
       if (!isSafeUrl(p.signInUrl)) throw new PermanentOutboxError();
       return { to: p.to, email: renderMagicLinkEmail({ signInUrl: p.signInUrl }) };
+    case "repair-request":
+      if (![p.spaceName, p.itemName, p.title].every((value) => isBoundedString(value, 200)) || !isBoundedString(p.reference, 16) || !isBoundedString(p.severity, 16) || !isSafeUrl(p.linkUrl)) throw new PermanentOutboxError();
+      return { to: p.to, email: renderRepairRequestEmail({ spaceName: p.spaceName as string, reference: p.reference, itemName: p.itemName as string, title: p.title as string, severity: p.severity, linkUrl: p.linkUrl, expiresAt: new Date(p.expiresAt as string), assigned: p.assigned === true }) };
     default:
       throw new PermanentOutboxError();
   }
@@ -143,6 +159,14 @@ async function runWebhookJob(payload: Prisma.JsonValue): Promise<{ status: "done
   } catch (error) {
     return { status: "retry", delayMs: 60_000, error: describeOperationalError(error) };
   }
+}
+
+/** Must equal REPAIR_CHAT_KIND in lib/repairs/chat.ts (kept literal to avoid an import cycle). */
+const REPAIR_CHAT_KIND = "repair-chat";
+
+async function runChatJob(payload: Prisma.JsonValue) {
+  const { runRepairChatJob } = await import("@/lib/repairs/chat");
+  return runRepairChatJob(payload);
 }
 
 /** Deliver a small batch. Safe to run concurrently: each row is claimed with a conditional update. */
@@ -172,9 +196,15 @@ export async function deliverOutboxBatch(limit = 20, scope: { ids?: string[] } =
     const mine = { id: message.id, status: OutboxStatus.PROCESSING, lockedAt: claimTime };
     const isCapability = CAPABILITY_KINDS.has(message.kind);
 
-    if (message.kind === WEBHOOK_JOB_KIND) {
-      const outcome = await runWebhookJob(message.payload);
-      if (outcome.status === "done") {
+    if (message.kind === WEBHOOK_JOB_KIND || message.kind === REPAIR_CHAT_KIND) {
+      const outcome = message.kind === WEBHOOK_JOB_KIND ? await runWebhookJob(message.payload) : await runChatJob(message.payload);
+      const gaveUp = outcome.status === "failed" || (isCapability && message.attempts + 1 >= MAX_ATTEMPTS);
+      if (isCapability && (outcome.status === "done" || gaveUp)) {
+        // A chat message may carry a bearer link: never keep it once it is sent or abandoned.
+        await prisma.outboxMessage.deleteMany({ where: mine });
+        if (outcome.status === "done") sent += 1;
+        else failed += 1;
+      } else if (outcome.status === "done") {
         await prisma.outboxMessage.updateMany({ where: mine, data: { status: OutboxStatus.SENT, sentAt: new Date(), lockedAt: null, lastError: null } });
         sent += 1;
       } else {

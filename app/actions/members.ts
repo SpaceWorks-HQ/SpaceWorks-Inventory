@@ -23,7 +23,7 @@ const slugSchema = z.string().min(1).max(64);
 async function context(slug: unknown) {
   const parsed = slugSchema.safeParse(slug);
   if (!parsed.success) return null;
-  return getSpaceForAction(parsed.data, "MEMBER");
+  return getSpaceForAction(parsed.data, "TECHNICIAN");
 }
 
 function revalidateSettings(slug: string) {

@@ -40,7 +40,8 @@ export function LoginForm({ signupOpen = false }: { signupOpen?: boolean }) {
     setError(null);
     setLoading(true);
     try {
-      const result = await signIn("credentials", { email, password, totp: mfaStep ? code : undefined, redirect: false });
+      // Send totp only on the code step: signIn() posts an undefined value as the text "undefined".
+      const result = await signIn("credentials", { email, password, ...(mfaStep ? { totp: code } : {}), redirect: false });
       if (!result || result.error) {
         if (result?.code === "mfa_required") setMfaStep(true);
         else setError(mfaStep ? "That code didn't work. Check your authenticator app or use a recovery code." : "Wrong email or password. Try again, reset your password or use an email link.");

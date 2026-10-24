@@ -5,7 +5,7 @@ import { requireSpace } from "@/lib/permissions";
 
 export async function generateMetadata({ params }: LayoutProps<"/s/[spaceSlug]">): Promise<Metadata> {
   const { spaceSlug } = await params;
-  const { space } = await requireSpace(spaceSlug);
+  const { space } = await requireSpace(spaceSlug, "TECHNICIAN");
   return { title: { default: space.name, template: `%s · ${space.name}` } };
 }
 
@@ -15,7 +15,7 @@ export async function generateMetadata({ params }: LayoutProps<"/s/[spaceSlug]">
  */
 export default async function SpaceLayout({ children, params }: LayoutProps<"/s/[spaceSlug]">) {
   const { spaceSlug } = await params;
-  const { user, space, membership } = await requireSpace(spaceSlug);
+  const { user, space, membership } = await requireSpace(spaceSlug, "TECHNICIAN");
   const data = await getShellData(user, space, membership);
   return <AppShell data={data}>{children}</AppShell>;
 }

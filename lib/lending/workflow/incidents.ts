@@ -15,11 +15,13 @@ import type { Actor } from "./common";
  * a shelf; REPAIRED takes damaged units off the repair shelf; WRITTEN_OFF
  * scraps damaged units; WAIVED also waives the charge (with the note as
  * reason). Closing the last open incident lifts an automatic restriction.
+ * When the damaged units went to repair, the repair owns them: closing the
+ * repair releases the stock, so this only records the resolution.
  */
 export async function resolveIncident(tx: Tx, input: { spaceId: string; incidentId: string; resolution: IncidentResolution; note: string; locationId?: string | null }, actor: Actor) {
   const [row] = await tx.$queryRaw<{ id: string }[]>`SELECT "id" FROM "LoanIncident" WHERE "id" = ${input.incidentId} AND "spaceId" = ${input.spaceId} FOR UPDATE`;
   if (!row) throw new DomainError("That incident wasn't found.", "not_found");
-  const incident = await tx.loanIncident.findUniqueOrThrow({ where: { id: input.incidentId }, include: { line: { select: { itemId: true, locationId: true } } } });
+  const incident = await tx.loanIncident.findUniqueOrThrow({ where: { id: input.incidentId }, include: { line: { select: { itemId: true, locationId: true } }, repair: { select: { status: true } } } });
   if (incident.status !== "OPEN") throw new DomainError("That incident is already resolved.", "conflict");
   const note = input.note.trim();
   if (!note) throw new DomainError("Add a short note about how it was resolved.", "invalid");
@@ -30,7 +32,7 @@ export async function resolveIncident(tx: Tx, input: { spaceId: string; incident
     if (!locationId) throw new DomainError("Choose where the found item goes.", "invalid");
     if (incident.assetId) await changeAssetState(tx, { spaceId: input.spaceId, assetId: incident.assetId, action: "found", locationId }, actor, ref);
     else await putBack(tx, { spaceId: input.spaceId, itemId: incident.line.itemId, locationId, good: incident.quantity, damaged: 0, type: "RETURN" }, actor, ref);
-  } else if (incident.kind === "DAMAGED" && (input.resolution === "REPAIRED" || input.resolution === "WRITTEN_OFF")) {
+  } else if (incident.kind === "DAMAGED" && (input.resolution === "REPAIRED" || input.resolution === "WRITTEN_OFF") && (!incident.repair || incident.repair.status === "CANCELLED")) {
     if (incident.assetId) {
       await changeAssetState(tx, { spaceId: input.spaceId, assetId: incident.assetId, action: input.resolution === "REPAIRED" ? "repair" : "retire" }, actor, ref);
     } else if (locationId) {

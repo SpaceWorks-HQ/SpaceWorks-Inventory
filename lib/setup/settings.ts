@@ -29,7 +29,12 @@ export async function saveSettingsSection(client: Db, space: { id: string }, sec
     if (changed.length === 0) return { ok: true as const, changed };
     if (changed.includes("tagPrefix") && (await tagPrefixTaken(tx, String(data.tagPrefix), space.id))) {
       const error = "Another space already uses this prefix.";
-      return { ok: false as const, error, fieldErrors: { tagPrefix: [error] } };
+      return { ok: false as const, error, fieldErrors: { tagPrefix: [error] } as Record<string, string[]> };
+    }
+    // The books never mix currencies: once money is recorded the currency stays.
+    if (changed.includes("currency") && ((await tx.financeEntry.count({ where: { spaceId: space.id }, take: 1 })) > 0 || (await tx.payment.count({ where: { spaceId: space.id }, take: 1 })) > 0)) {
+      const error = "The currency can't change once money has been recorded in this space.";
+      return { ok: false as const, error, fieldErrors: { currency: [error] } as Record<string, string[]> };
     }
     await tx.space.update({ where: { id: space.id }, data: data as Prisma.SpaceUpdateInput });
     await recordAuditEvent({
@@ -62,15 +67,16 @@ export async function deleteSpace(spaceId: string, actorId: string | null): Prom
       },
     });
     if (openWithOthers > 0) throw new DomainError("Finish or cancel the open transfers with other spaces first.", "conflict");
-    const [images, photos] = await Promise.all([
+    const [images, photos, repairPhotos] = await Promise.all([
       tx.itemImage.findMany({ where: { spaceId }, select: { storageKey: true } }),
       tx.evidencePhoto.findMany({ where: { evidence: { spaceId } }, select: { storageKey: true } }),
+      tx.repairPhoto.findMany({ where: { spaceId }, select: { storageKey: true } }),
     ]);
     await recordAuditEvent({ client: tx, action: "space.deleted", spaceId: null, actorId, targetType: "Space", targetId: space.id, metadata: { slug: space.slug, name: space.name } });
     // Loans keep their borrower with NoAction, so they go before the space cascade.
     await tx.loan.deleteMany({ where: { spaceId } });
     await tx.space.delete({ where: { id: spaceId } });
-    const storageKeys = [...images, ...photos].map((row) => row.storageKey);
+    const storageKeys = [...images, ...photos, ...repairPhotos].map((row) => row.storageKey);
     if (space.logoKey) storageKeys.push(space.logoKey);
     return { storageKeys };
   }, { timeout: 60_000, maxWait: 10_000 });
