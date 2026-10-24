@@ -1,0 +1,4 @@
+name,code,kind,parent_code,description
+Fabrication lab,FAB,room,,Laser cutter and CNC area
+Material rack,FAB-RACK,shelf,FAB,Sheet stock and offcuts
+Bin 1,FAB-RACK-B1,bin,FAB-RACK,Small fasteners

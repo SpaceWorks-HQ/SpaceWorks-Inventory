@@ -1,0 +1,1859 @@
+// Space Works Inventory data model.
+//
+// `Space` (one makerspace) is the tenant boundary: every tenant row carries
+// `spaceId` (directly or through its parent) and every query must filter by
+// it after a membership check. One install runs several spaces; transfers
+// are the only flow that touches two spaces, and each side is checked
+// against its own membership.
+//
+// Quantities are whole numbers in the item's unit. Money is an integer in
+// minor units of the space currency. `lib/inventory/availability` is the only
+// writer of StockLevel, Asset.status/locationId and StockMovement; database
+// CHECK constraints (see the initial migration) keep every balance >= 0.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+// ───────────────────────────── Enums ─────────────────────────────
+
+enum SpaceRole {
+  MANAGER
+  STAFF
+  MEMBER
+  /// Repairs only: sees and works on the repairs sent to them.
+  TECHNICIAN
+}
+
+enum MembershipStatus {
+  ACTIVE
+  SUSPENDED
+}
+
+/// A member's lending standing. RESTRICTED blocks new loans while incidents
+/// or overdue items are open; SUSPENDED is set by a manager and stays until lifted.
+enum BorrowingStatus {
+  GOOD
+  RESTRICTED
+  SUSPENDED
+}
+
+enum OutboxStatus {
+  PENDING
+  PROCESSING
+  SENT
+  FAILED
+}
+
+enum LocationKind {
+  SITE
+  BUILDING
+  FLOOR
+  ROOM
+  AREA
+  CABINET
+  SHELF
+  BIN
+  OTHER
+}
+
+enum TrackingMode {
+  QUANTITY
+  SERIALIZED
+}
+
+enum AssetStatus {
+  AVAILABLE
+  RESERVED
+  ON_LOAN
+  IN_TRANSIT
+  MAINTENANCE
+  LOST
+  RETIRED
+}
+
+enum AssetCondition {
+  NEW
+  GOOD
+  FAIR
+  POOR
+  DAMAGED
+}
+
+enum MovementType {
+  RECEIPT
+  ADJUSTMENT
+  COUNT
+  ISSUE
+  RETURN
+  TRANSFER_OUT
+  TRANSFER_IN
+  TRANSFER_RETURN
+  TRANSFER_LOSS
+  MOVE
+  LOSS
+  DAMAGE
+  REPAIR
+  WRITE_OFF
+  RESERVE
+  RELEASE
+  IMPORT
+}
+
+enum AdjustmentReason {
+  RECEIVED
+  FOUND
+  CORRECTION
+  CONSUMED
+  LOST
+  DAMAGED
+  EXPIRED
+  STOLEN
+  DONATED
+  RETURNED_TO_SUPPLIER
+  OTHER
+}
+
+enum CountStatus {
+  IN_PROGRESS
+  SUBMITTED
+  POSTED
+  CANCELLED
+}
+
+enum TransferStatus {
+  REQUESTED
+  APPROVED
+  REJECTED
+  DISPATCHED
+  PARTIALLY_RECEIVED
+  RECEIVED
+  CANCELLED
+  RETURNING
+  RETURNED
+}
+
+enum TransferAssetState {
+  ASSIGNED
+  DISPATCHED
+  RECEIVED
+  DAMAGED
+  MISSING
+  RETURNING
+  RETURNED
+}
+
+enum LoanStatus {
+  REQUESTED
+  APPROVED
+  REJECTED
+  CANCELLED
+  ISSUED
+  PARTIALLY_RETURNED
+  RETURNED
+  CLOSED_WITH_ISSUE
+}
+
+enum DepositMode {
+  NONE
+  FIXED
+  PER_ITEM
+}
+
+enum RentalMode {
+  FREE
+  PER_DAY
+  PER_WEEK
+  FLAT
+}
+
+enum DamageChargeMode {
+  NONE
+  REPLACEMENT_COST
+  FIXED
+}
+
+enum PaymentProvider {
+  RAZORPAY
+  STRIPE
+  OFFLINE
+}
+
+enum PaymentStatus {
+  PENDING
+  AWAITING_CONFIRMATION
+  PAID
+  FAILED
+  CANCELLED
+}
+
+enum ChargeKind {
+  DEPOSIT
+  RENTAL
+  LATE_FEE
+  DAMAGE
+  LOSS
+}
+
+enum ChargeStatus {
+  DUE
+  PAID
+  WAIVED
+  CANCELLED
+}
+
+enum RefundStatus {
+  PENDING
+  PROCESSED
+  FAILED
+}
+
+enum LabelSize {
+  SMALL
+  MEDIUM
+  LARGE
+}
+
+enum PurchaseStatus {
+  REQUESTED
+  APPROVED
+  ORDERED
+  RECEIVED
+  CANCELLED
+}
+
+enum EvidenceKind {
+  ISSUE
+  RETURN
+  TRANSFER_DISPATCH
+  TRANSFER_RECEIPT
+  INCIDENT
+}
+
+enum IncidentKind {
+  LOST
+  DAMAGED
+}
+
+enum IncidentStatus {
+  OPEN
+  RESOLVED
+}
+
+enum IncidentResolution {
+  REPAIRED
+  REPLACED
+  PAID
+  FOUND
+  WAIVED
+  WRITTEN_OFF
+}
+
+enum WebhookDeliveryStatus {
+  PENDING
+  SUCCEEDED
+  FAILED
+}
+
+enum ImportStatus {
+  PREVIEWED
+  APPLIED
+  FAILED
+}
+
+// ───────────────────────────── Identity ─────────────────────────────
+
+model User {
+  id                 String    @id @default(cuid())
+  name               String?
+  email              String    @unique
+  emailVerified      DateTime?
+  /// Bcrypt hash for email + password sign-in. Null for magic-link-only accounts.
+  passwordHash       String?
+  image              String?
+  phone              String?
+  /// AES-GCM encrypted TOTP seed (lib/mfa.ts). Never expose or log it.
+  mfaSecretEncrypted String?
+  mfaEnabledAt       DateTime?
+  /// Incremented to invalidate every issued JWT session (password reset, sign out everywhere).
+  sessionVersion     Int       @default(0)
+  /// The instance administrator created by the first-run wizard.
+  isInstanceAdmin    Boolean   @default(false)
+  lastSeenAt         DateTime?
+  /// Set by the instance admin; disabled users cannot sign in.
+  disabledAt         DateTime?
+  createdAt          DateTime  @default(now())
+  updatedAt          DateTime  @updatedAt
+
+  accounts                Account[]
+  sessions                Session[]
+  mfaRecoveryCodes        MfaRecoveryCode[]
+  passwordResetTokens     PasswordResetToken[]
+  emailVerificationTokens EmailVerificationToken[]
+  magicLinkTokens         MagicLinkToken[]
+  memberships             Membership[]
+  invitationsSent         Invitation[]             @relation("InvitationInvitedBy")
+  invitationsAccepted     Invitation[]             @relation("InvitationAcceptedBy")
+  apiTokensCreated        ApiToken[]               @relation("ApiTokenCreatedBy")
+  auditEvents             AuditEvent[]             @relation("AuditActor")
+  notifications           Notification[]
+  instanceSettingsUpdated InstanceSetting[]
+  loansBorrowed           Loan[]                   @relation("LoanBorrower")
+  technicianEntries       Technician[]
+}
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String? @db.Text
+  access_token      String? @db.Text
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String? @db.Text
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+  @@index([userId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+}
+
+model MfaRecoveryCode {
+  id        String    @id @default(cuid())
+  userId    String
+  codeHash  String
+  usedAt    DateTime?
+  createdAt DateTime  @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, codeHash])
+}
+
+model PasswordResetToken {
+  id        String    @id @default(cuid())
+  userId    String
+  tokenHash String    @unique
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime  @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([expiresAt])
+}
+
+model EmailVerificationToken {
+  id        String    @id @default(cuid())
+  userId    String
+  tokenHash String    @unique
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime  @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([expiresAt])
+}
+
+/// One-use emailed sign-in link. Only the SHA-256 of the token is stored.
+model MagicLinkToken {
+  id        String    @id @default(cuid())
+  userId    String
+  tokenHash String    @unique
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime  @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([expiresAt])
+}
+
+// ───────────────────────────── Platform ─────────────────────────────
+
+model InstanceSetting {
+  key         String   @id
+  value       String
+  encrypted   Boolean  @default(false)
+  updatedById String?
+  updatedAt   DateTime @updatedAt
+
+  updatedBy User? @relation(fields: [updatedById], references: [id], onDelete: SetNull)
+}
+
+model OutboxMessage {
+  id          String       @id @default(cuid())
+  kind        String
+  payload     Json
+  status      OutboxStatus @default(PENDING)
+  attempts    Int          @default(0)
+  availableAt DateTime     @default(now())
+  lockedAt    DateTime?
+  sentAt      DateTime?
+  lastError   String?
+  createdAt   DateTime     @default(now())
+
+  @@index([status, availableAt])
+  @@index([createdAt])
+}
+
+model OperationalHeartbeat {
+  key             String    @id
+  lastStartedAt   DateTime?
+  lastSucceededAt DateTime?
+  lastSent        Int       @default(0)
+  lastFailed      Int       @default(0)
+  lastError       String?
+  updatedAt       DateTime  @updatedAt
+}
+
+model AuditEvent {
+  id              String   @id @default(cuid())
+  spaceId         String?
+  actorId         String?
+  actorApiTokenId String?
+  action          String
+  targetType      String?
+  targetId        String?
+  metadata        Json?
+  ip              String?
+  createdAt       DateTime @default(now())
+
+  space         Space?    @relation(fields: [spaceId], references: [id], onDelete: Cascade)
+  actor         User?     @relation("AuditActor", fields: [actorId], references: [id], onDelete: SetNull)
+  actorApiToken ApiToken? @relation(fields: [actorApiTokenId], references: [id], onDelete: SetNull)
+
+  @@index([spaceId, createdAt])
+  @@index([spaceId, targetType, targetId])
+  @@index([actorId, createdAt])
+  @@index([action, createdAt])
+}
+
+model Notification {
+  id        String    @id @default(cuid())
+  userId    String
+  spaceId   String?
+  kind      String
+  title     String
+  body      String?
+  url       String?
+  readAt    DateTime?
+  createdAt DateTime  @default(now())
+
+  user  User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  space Space? @relation(fields: [spaceId], references: [id], onDelete: Cascade)
+
+  @@index([userId, readAt, createdAt])
+  @@index([spaceId, createdAt])
+}
+
+// ───────────────────────────── Tenancy ─────────────────────────────
+
+model Space {
+  id           String  @id @default(cuid())
+  slug         String  @unique
+  name         String
+  tagline      String?
+  address      String?
+  contactEmail String?
+  timezone     String  @default("Asia/Kolkata")
+  currency     String  @default("INR")
+  /// Short code printed on asset tags, e.g. "TSK" → TSK-000042.
+  tagPrefix    String  @default("SW")
+
+  // Lending policy
+  lendingEnabled      Boolean @default(true)
+  /// The catalogue of lendable items is visible without signing in.
+  publicCatalogue     Boolean @default(false)
+  /// Members may check out items marked self-checkout without staff approval.
+  selfCheckoutEnabled Boolean @default(false)
+  defaultLoanDays     Int     @default(7)
+  maxLoanDays         Int     @default(30)
+  maxActiveLoans      Int     @default(5)
+  /// Most units a member may hold across active loans (0 = unlimited).
+  maxItemsOnLoan      Int     @default(0)
+  /// Renewals a member may make per loan (0 = renewals off) and how many days each adds.
+  maxRenewals         Int     @default(1)
+  renewalDays         Int     @default(7)
+  /// Remind borrowers this many days before the due date (0 = on the day).
+  reminderDaysBefore  Int     @default(1)
+  /// Repeat overdue reminders every N days.
+  overdueReminderDays Int     @default(2)
+  /// Overdue loans restrict the member from new loans until returned.
+  restrictWhenOverdue Boolean @default(true)
+  /// Lost or damaged items restrict the member until the incident is resolved.
+  restrictOnIncident  Boolean @default(true)
+
+  // Transfers between spaces of this install
+  acceptsTransfers     Boolean @default(true)
+  /// Other spaces may see item names and available counts when requesting stock.
+  shareStockWithSpaces Boolean @default(true)
+  /// Signed-in accounts may join as MEMBER from the public catalogue.
+  selfJoin             Boolean @default(false)
+
+  // Member eligibility
+  requireVerifiedEmail Boolean @default(true)
+  /// Staff must record a membership number before the member can borrow.
+  requireMemberNumber  Boolean @default(false)
+
+  // Evidence rules (a photo and a QR scan are always required; these tighten them)
+  /// Photos required at issue and at return (1–3).
+  minEvidencePhotos   Int     @default(1)
+  /// Loans must be packed in a scanned container.
+  requireContainer    Boolean @default(false)
+  requireIssueRemarks Boolean @default(false)
+
+  // Fees and payments (each item or category can override the money amounts)
+  depositMode        DepositMode      @default(NONE)
+  depositMinor       Int              @default(0)
+  rentalMode         RentalMode       @default(FREE)
+  rentalMinor        Int              @default(0)
+  lateFeePerDayMinor Int              @default(0)
+  lateFeeCapMinor    Int              @default(0)
+  lateFeeGraceDays   Int              @default(0)
+  damageChargeMode   DamageChargeMode @default(NONE)
+  damageChargeMinor  Int              @default(0)
+  /// Deposits and rental must be paid (or marked pay later) before issue.
+  paymentBeforeIssue Boolean          @default(true)
+  /// Members may choose "pay later"; charges stay pending and are shown on their account.
+  payLaterEnabled    Boolean          @default(false)
+
+  // Notifications
+  notifyStaffOnRequest Boolean @default(true)
+  notifyLowStock       Boolean @default(true)
+  /// Staff are alerted when a loan is this many days overdue (0 = off).
+  overdueEscalateDays  Int     @default(3)
+
+  // Inventory-manager settings
+  /// Transfers between locations of this space need a manager's approval.
+  internalTransferApproval Boolean   @default(true)
+  labelSize                LabelSize @default(MEDIUM)
+  labelShowName            Boolean   @default(true)
+  labelShowLocation        Boolean   @default(false)
+  defaultReorderPoint      Int?
+  countVarianceThreshold   Int?
+  /// Days a repair request (and an external technician's link) stays open.
+  repairRequestDays        Int       @default(14)
+
+  /// Space logo shown on the public catalogue and loan slips.
+  logoKey String?
+
+  setupCompletedAt DateTime?
+  archivedAt       DateTime?
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+
+  memberships       Membership[]
+  invitations       Invitation[]
+  apiTokens         ApiToken[]
+  counters          SpaceCounter[]
+  auditEvents       AuditEvent[]
+  notifications     Notification[]
+  locations         Location[]
+  categories        Category[]
+  units             Unit[]
+  items             Item[]
+  itemImages        ItemImage[]
+  assets            Asset[]
+  stockLevels       StockLevel[]
+  movements         StockMovement[]
+  reservations      StockReservation[]
+  counts            StockCount[]
+  kits              Kit[]
+  containers        Container[]
+  purchases         PurchaseItem[]
+  paymentConfig     SpacePaymentConfig?
+  charges           LoanCharge[]
+  payments          Payment[]
+  refunds           Refund[]
+  countSchedules    CountSchedule[]
+  transfersOut      Transfer[]          @relation("TransferSource")
+  transfersIn       Transfer[]          @relation("TransferDestination")
+  loans             Loan[]
+  evidence          Evidence[]
+  incidents         LoanIncident[]
+  webhookEndpoints  WebhookEndpoint[]
+  webhookDeliveries WebhookDelivery[]
+  importJobs        ImportJob[]
+  suppliers         Supplier[]
+  technicians       Technician[]
+  repairIssues      RepairIssue[]
+  repairRequests    RepairRequest[]
+  repairEvents      RepairEvent[]
+  repairPhotos      RepairPhoto[]
+  repairPayouts     RepairPayout[]
+  financeEntries    FinanceEntry[]
+  chatConfig        SpaceChatConfig?
+}
+
+model Membership {
+  id              String           @id @default(cuid())
+  userId          String
+  spaceId         String
+  role            SpaceRole        @default(MEMBER)
+  status          MembershipStatus @default(ACTIVE)
+  borrowingStatus BorrowingStatus  @default(GOOD)
+  /// Why borrowing is restricted or suspended (shown to the member).
+  borrowingNote   String?
+  /// True when the restriction was set automatically (overdue or open incident) and lifts itself.
+  borrowingAuto   Boolean          @default(false)
+  /// The space's own membership number, printed on loan slips.
+  memberNumber    String?
+  joinedAt        DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+
+  user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  space Space @relation(fields: [spaceId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, spaceId])
+  @@index([spaceId, role])
+  @@index([spaceId, borrowingStatus])
+}
+
+model Invitation {
+  id           String    @id @default(cuid())
+  spaceId      String
+  email        String
+  role         SpaceRole @default(MEMBER)
+  /// SHA-256 of the bearer token; the raw token only ever lives in the email.
+  tokenHash    String    @unique
+  expiresAt    DateTime
+  invitedById  String?
+  acceptedAt   DateTime?
+  acceptedById String?
+  revokedAt    DateTime?
+  lastSentAt   DateTime  @default(now())
+  createdAt    DateTime  @default(now())
+
+  space      Space @relation(fields: [spaceId], references: [id], onDelete: Cascade)
+  invitedBy  User? @relation("InvitationInvitedBy", fields: [invitedById], references: [id], onDelete: SetNull)
+  acceptedBy User? @relation("InvitationAcceptedBy", fields: [acceptedById], references: [id], onDelete: SetNull)
+
+  @@index([spaceId, createdAt])
+  @@index([email])
+}
+
+/// Space-bound REST API key. Only the hash of the secret is stored.
+model ApiToken {
+  id          String    @id @default(cuid())
+  spaceId     String
+  name        String
+  prefix      String    @unique
+  secretHash  String
+  scopes      String[]  @default([])
+  lastUsedAt  DateTime?
+  expiresAt   DateTime?
+  revokedAt   DateTime?
+  createdById String?
+  createdAt   DateTime  @default(now())
+
+  space       Space        @relation(fields: [spaceId], references: [id], onDelete: Cascade)
+  createdBy   User?        @relation("ApiTokenCreatedBy", fields: [createdById], references: [id], onDelete: SetNull)
+  auditEvents AuditEvent[]
+
+  @@index([spaceId, createdAt])
+}
+
+model SpaceCounter {
+  spaceId String
+  name    String
+  value   Int    @default(0)
+
+  space Space @relation(fields: [spaceId], references: [id], onDelete: Cascade)
+
+  @@id([spaceId, name])
+}
+
+// ───────────────────────────── Catalogue ─────────────────────────────
+
+/// Building → room → shelf → bin hierarchy inside one space.
+model Location {
+  id          String       @id @default(cuid())
+  spaceId     String
+  parentId    String?
+  kind        LocationKind @default(OTHER)
+  name        String
+  /// Short human code, unique in the space (e.g. "B1-R2-S3").
+  code        String
+  /// Opaque QR value, unique in the install.
+  qrCode      String       @unique
+  description String?
+  sortOrder   Int          @default(0)
+  archivedAt  DateTime?
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+
+  space    Space      @relation(fields: [spaceId], references: [id], onDelete: Cascade)
+  parent   Location?  @relation("LocationTree", fields: [parentId], references: [id], onDelete: Cascade)
+  children Location[] @relation("LocationTree")
+
+  stockLevels StockLevel[]
+  assets      Asset[]
+
+  @@unique([spaceId, code])
+  @@index([spaceId, parentId])
+}
+
+model Category {
+  id                 String      @id @default(cuid())
+  spaceId            String
+  parentId           String?
+  name               String
+  description        String?
+  // Lending overrides for every item in the category (null = the space setting).
+  loanDays           Int?
+  depositMinor       Int?
+  rentalMode         RentalMode?
+  rentalMinor        Int?
+  lateFeePerDayMinor Int?
+  archivedAt         DateTime?
+  createdAt          DateTime    @default(now())
+
+  space    Space      @relation(fields: [spaceId], references: [id], onDelete: Cascade)
+  parent   Category?  @relation("CategoryTree", fields: [parentId], references: [id], onDelete: Cascade)
+  children Category[] @relation("CategoryTree")
+  items    Item[]
+
+  @@unique([spaceId, name])
+  @@index([spaceId, parentId])
+}
+
+model Unit {
+  id        String   @id @default(cuid())
+  spaceId   String
+  name      String
+  symbol    String
+  createdAt DateTime @default(now())
+
+  space Space  @relation(fields: [spaceId], references: [id], onDelete: Cascade)
+  items Item[]
+
+  @@unique([spaceId, name])
+}
+
+model Supplier {
+  id         String    @id @default(cuid())
+  spaceId    String
+  name       String
+  email      String?
+  phone      String?
+  website    String?
+  notes      String?
+  archivedAt DateTime?
+  createdAt  DateTime  @default(now())
+
+  space Space  @relation(fields: [spaceId], references: [id], onDelete: Cascade)
+  items Item[]
+
+  @@unique([spaceId, name])
+}
+
+/// A catalogue entry. QUANTITY items keep counts per location; SERIALIZED
+/// items have one Asset row per physical unit, each with its own QR tag.
+model Item {
+  id                 String       @id @default(cuid())
+  spaceId            String
+  sku                String
+  name               String
+  description        String?
+  categoryId         String?
+  unitId             String?
+  supplierId         String?
+  tracking           TrackingMode @default(QUANTITY)
+  /// Opaque QR value, unique in the install.
+  qrCode             String       @unique
+  barcode            String?
+  brand              String?
+  model              String?
+  tags               String[]     @default([])
+  /// Last purchase cost per unit and the weighted average used for valuation.
+  unitCostMinor      Int          @default(0)
+  avgCostMinor       Int          @default(0)
+  /// Low-stock threshold on available quantity across the space (null = off).
+  reorderPoint       Int?
+  reorderQuantity    Int?
+  /// Set when the low-stock alert fired; cleared when stock recovers.
+  lowStockAlertAt    DateTime?
+  // Lending
+  lendable           Boolean      @default(false)
+  /// Consumables are issued and never returned (e.g. resistors, filament).
+  consumable         Boolean      @default(false)
+  selfCheckout       Boolean      @default(false)
+  requiresApproval   Boolean      @default(true)
+  /// Loan length for this item (null = the space default). A loan uses the shortest.
+  loanDays           Int?
+  /// Replacement cost charged for loss or damage (null = unit cost).
+  replacementMinor   Int?
+  // Lending overrides (null = the category, then the space setting).
+  depositMinor       Int?
+  rentalMode         RentalMode?
+  rentalMinor        Int?
+  lateFeePerDayMinor Int?
+  notes              String?
+  archivedAt         DateTime?
+  createdAt          DateTime     @default(now())
+  updatedAt          DateTime     @updatedAt
+
+  space         Space              @relation(fields: [spaceId], references: [id], onDelete: Cascade)
+  category      Category?          @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+  unit          Unit?              @relation(fields: [unitId], references: [id], onDelete: SetNull)
+  supplier      Supplier?          @relation(fields: [supplierId], references: [id], onDelete: SetNull)
+  images        ItemImage[]
+  assets        Asset[]
+  repairIssues  RepairIssue[]
+  stockLevels   StockLevel[]
+  movements     StockMovement[]
+  reservations  StockReservation[]
+  countLines    StockCountLine[]
+  kitLines      KitLine[]
+  transferLines TransferLine[]     @relation("TransferLineItem")
+  transferDest  TransferLine[]     @relation("TransferLineDestItem")
+  loanLines     LoanLine[]
+  purchases     PurchaseItem[]
+
+  @@unique([spaceId, sku])
+  @@index([spaceId, categoryId])
+  @@index([spaceId, lendable])
+  @@index([spaceId, archivedAt])
+}
+
+model ItemImage {
+  id          String   @id @default(cuid())
+  spaceId     String
+  itemId      String
+  storageKey  String   @unique
+  contentType String
+  width       Int
+  height      Int
+  sortOrder   Int      @default(0)
+  createdAt   DateTime @default(now())
+
+  space Space @relation(fields: [spaceId], references: [id], onDelete: Cascade)
+  item  Item  @relation(fields: [itemId], references: [id], onDelete: Cascade)
+
+  @@index([itemId, sortOrder])
+}
+
+/// One physical unit of a SERIALIZED item.
+model Asset {
+  id                String         @id @default(cuid())
+  spaceId           String
+  itemId            String
+  /// Human tag printed on the label, unique in the install (e.g. TSK-000042).
+  assetTag          String         @unique
+  /// Opaque QR value, unique in the install.
+  qrCode            String         @unique
+  serialNumber      String?
+  locationId        String?
+  status            AssetStatus    @default(AVAILABLE)
+  condition         AssetCondition @default(GOOD)
+  purchasedAt       DateTime?
+  purchaseCostMinor Int?
+  warrantyUntil     DateTime?
+  notes             String?
+  createdAt         DateTime       @default(now())
+  updatedAt         DateTime       @updatedAt
+
+  space          Space               @relation(fields: [spaceId], references: [id], onDelete: Cascade)
+  item           Item                @relation(fields: [itemId], references: [id], onDelete: Cascade)
+  location       Location?           @relation(fields: [locationId], references: [id], onDelete: SetNull)
+  movements      StockMovement[]
+  reservations   StockReservation[]
+  loanLines      LoanLine[]
+  transferAssets TransferLineAsset[]
+  countScans     StockCountScan[]
+  incidents      LoanIncident[]
+  repairIssues   RepairIssue[]
+
+  @@index([spaceId, itemId, status])
+  @@index([locationId])
+}
+
+// ───────────────────────────── Stock ─────────────────────────────
+
+/// Materialised balance per item and location. Written only by the
+/// availability module. available = onHand - reserved - quarantined.
+model StockLevel {
+  id          String   @id @default(cuid())
+  spaceId     String
+  itemId      String
+  locationId  String
+  onHand      Int      @default(0)
+  reserved    Int      @default(0)
+  /// Present but unusable (damaged returns, maintenance) until repaired or written off.
+  quarantined Int      @default(0)
+  updatedAt   DateTime @updatedAt
+
+  space    Space    @relation(fields: [spaceId], references: [id], onDelete: Cascade)
+  item     Item     @relation(fields: [itemId], references: [id], onDelete: Cascade)
+  location Location @relation(fields: [locationId], references: [id], onDelete: Cascade)
+
+  @@unique([itemId, locationId])
+  @@index([spaceId, locationId])
+}
+
+/// Append-only stock ledger. Every change to a StockLevel writes one row.
+model StockMovement {
+  id               String            @id @default(cuid())
+  spaceId          String
+  itemId           String
+  locationId       String?
+  assetId          String?
+  type             MovementType
+  /// Signed change to on-hand, reserved and quarantined at the location.
+  quantity         Int               @default(0)
+  reservedDelta    Int               @default(0)
+  quarantinedDelta Int               @default(0)
+  /// On-hand at the location after this movement.
+  balanceAfter     Int               @default(0)
+  unitCostMinor    Int?
+  reason           AdjustmentReason?
+  note             String?
+  /// What caused it: "Loan", "Transfer", "StockCount", "Import", "Adjustment".
+  refType          String?
+  refId            String?
+  actorId          String?
+  actorApiTokenId  String?
+  createdAt        DateTime          @default(now())
+
+  space Space  @relation(fields: [spaceId], references: [id], onDelete: Cascade)
+  item  Item   @relation(fields: [itemId], references: [id], onDelete: Cascade)
+  asset Asset? @relation(fields: [assetId], references: [id], onDelete: SetNull)
+
+  @@index([spaceId, createdAt])
+  @@index([itemId, createdAt])
+  @@index([refType, refId])
+}
+
+/// A hold on stock at one location for an approved loan or transfer line.
+/// StockLevel.reserved always equals the sum of open reservations.
+model StockReservation {
+  id             String   @id @default(cuid())
+  spaceId        String
+  itemId         String
+  locationId     String
+  assetId        String?
+  quantity       Int
+  loanLineId     String?
+  transferLineId String?
+  createdAt      DateTime @default(now())
+
+  space Space  @relation(fields: [spaceId], references: [id], onDelete: Cascade)
+  item  Item   @relation(fields: [itemId], references: [id], onDelete: Cascade)
+  asset Asset? @relation(fields: [assetId], references: [id], onDelete: SetNull)
+
+  @@index([spaceId, itemId])
+  @@index([loanLineId])
+  @@index([transferLineId])
+}
+
+model StockCount {
+  id                String      @id @default(cuid())
+  spaceId           String
+  number            Int
+  name              String
+  status            CountStatus @default(IN_PROGRESS)
+  /// Lines with |variance| above this need a second person to post (null = always).
+  varianceThreshold Int?
+  /// Count everything under this location (null = the whole space).
+  locationId        String?
+  categoryId        String?
+  /// Counters do not see expected quantities.
+  blind             Boolean     @default(true)
+  note              String?
+  startedById       String?
+  submittedAt       DateTime?
+  postedAt          DateTime?
+  postedById        String?
+  createdAt         DateTime    @default(now())
+  updatedAt         DateTime    @updatedAt
+
+  space Space            @relation(fields: [spaceId], references: [id], onDelete: Cascade)
+  lines StockCountLine[]
+  scans StockCountScan[]
+
+  @@unique([spaceId, number])
+  @@index([spaceId, status])
+}
+
+model StockCountLine {
+  id          String    @id @default(cuid())
+  countId     String
+  itemId      String
+  locationId  String
+  /// On-hand snapshot when the count started.
+  expectedQty Int
+  countedQty  Int?
+  countedById String?
+  countedAt   DateTime?
+  note        String?
+
+  count StockCount @relation(fields: [countId], references: [id], onDelete: Cascade)
+  item  Item       @relation(fields: [itemId], references: [id], onDelete: Cascade)
+
+  @@unique([countId, itemId, locationId])
+}
+
+/// Serialized items are counted by scanning each asset's QR tag.
+model StockCountScan {
+  id          String   @id @default(cuid())
+  countId     String
+  assetId     String
+  locationId  String
+  scannedById String?
+  createdAt   DateTime @default(now())
+
+  count StockCount @relation(fields: [countId], references: [id], onDelete: Cascade)
+  asset Asset      @relation(fields: [assetId], references: [id], onDelete: Cascade)
+
+  @@unique([countId, assetId])
+}
+
+/// A named bundle of items lent or transferred together (e.g. "Arduino starter kit").
+model Kit {
+  id          String    @id @default(cuid())
+  spaceId     String
+  name        String
+  description String?
+  qrCode      String    @unique
+  lendable    Boolean   @default(true)
+  archivedAt  DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  space Space     @relation(fields: [spaceId], references: [id], onDelete: Cascade)
+  lines KitLine[]
+
+  @@unique([spaceId, name])
+}
+
+model KitLine {
+  id       String @id @default(cuid())
+  kitId    String
+  itemId   String
+  quantity Int
+
+  kit  Kit  @relation(fields: [kitId], references: [id], onDelete: Cascade)
+  item Item @relation(fields: [itemId], references: [id], onDelete: Cascade)
+
+  @@unique([kitId, itemId])
+}
+
+/// A QR-labelled bag, tray or box that a loan is packed into. Scanned at
+/// issue and again at return; one active loan per container.
+model Container {
+  id         String    @id @default(cuid())
+  spaceId    String
+  /// Short human code printed on the label (e.g. BOX-012), unique in the space.
+  code       String
+  qrCode     String    @unique
+  name       String?
+  archivedAt DateTime?
+  createdAt  DateTime  @default(now())
+
+  space Space  @relation(fields: [spaceId], references: [id], onDelete: Cascade)
+  loans Loan[]
+
+  @@unique([spaceId, code])
+}
+
+/// "To buy": a purchase request that is approved, ordered and received into stock.
+model PurchaseItem {
+  id                 String         @id @default(cuid())
+  spaceId            String
+  number             Int
+  itemId             String?
+  /// Free-text name when the item is not in the catalogue yet.
+  name               String
+  quantity           Int
+  supplierId         String?
+  unitCostMinor      Int?
+  status             PurchaseStatus @default(REQUESTED)
+  link               String?
+  note               String?
+  requestedById      String?
+  approvedById       String?
+  orderedAt          DateTime?
+  receivedAt         DateTime?
+  receivedById       String?
+  /// Where received stock went; set once it is in inventory.
+  receivedLocationId String?
+  /// What was actually spent, recorded when it was bought (posted to the finance ledger once).
+  paidMinor          Int?
+  paidMethod         PayoutMethod?
+  paidReference      String?
+  paidAt             DateTime?
+  /// The repair these parts are for.
+  repairIssueId      String?
+  createdAt          DateTime       @default(now())
+  updatedAt          DateTime       @updatedAt
+
+  space       Space        @relation(fields: [spaceId], references: [id], onDelete: Cascade)
+  item        Item?        @relation(fields: [itemId], references: [id], onDelete: SetNull)
+  repairIssue RepairIssue? @relation(fields: [repairIssueId], references: [id], onDelete: SetNull)
+
+  @@unique([spaceId, number])
+  @@index([spaceId, status])
+}
+
+// ───────────────────────────── Transfers ─────────────────────────────
+
+/// Moves stock between two locations of one space, or between two spaces of
+/// this install. Numbered per source space (TR-0001).
+model Transfer {
+  id                 String         @id @default(cuid())
+  number             Int
+  sourceSpaceId      String
+  destSpaceId        String
+  sourceLocationId   String
+  /// May be chosen when receiving for transfers between spaces.
+  destLocationId     String?
+  status             TransferStatus @default(REQUESTED)
+  /// Which side raised it: the source pushing stock, or the destination pulling it.
+  initiatedBySpaceId String
+  reason             String?
+  note               String?
+  neededBy           DateTime?
+  requestedById      String?
+  approvedById       String?
+  approvedAt         DateTime?
+  rejectedById       String?
+  rejectedAt         DateTime?
+  rejectionReason    String?
+  dispatchedById     String?
+  dispatchedAt       DateTime?
+  carrier            String?
+  trackingRef        String?
+  expectedAt         DateTime?
+  receivedAt         DateTime?
+  cancelledById      String?
+  cancelledAt        DateTime?
+  cancelReason       String?
+  returnReason       String?
+  returnedAt         DateTime?
+  createdAt          DateTime       @default(now())
+  updatedAt          DateTime       @updatedAt
+
+  sourceSpace Space           @relation("TransferSource", fields: [sourceSpaceId], references: [id], onDelete: Cascade)
+  destSpace   Space           @relation("TransferDestination", fields: [destSpaceId], references: [id], onDelete: Cascade)
+  lines       TransferLine[]
+  events      TransferEvent[]
+
+  @@unique([sourceSpaceId, number])
+  @@index([sourceSpaceId, status])
+  @@index([destSpaceId, status])
+}
+
+model TransferLine {
+  id                 String  @id @default(cuid())
+  transferId         String
+  itemId             String
+  /// Destination catalogue item (same item for transfers inside a space).
+  destItemId         String?
+  quantityRequested  Int
+  quantityApproved   Int     @default(0)
+  quantityDispatched Int     @default(0)
+  quantityReceived   Int     @default(0)
+  quantityDamaged    Int     @default(0)
+  quantityMissing    Int     @default(0)
+  /// Sent back to the source (return to sender), then received there.
+  quantityReturning  Int     @default(0)
+  quantityReturned   Int     @default(0)
+  note               String?
+
+  transfer Transfer            @relation(fields: [transferId], references: [id], onDelete: Cascade)
+  item     Item                @relation("TransferLineItem", fields: [itemId], references: [id], onDelete: Cascade)
+  destItem Item?               @relation("TransferLineDestItem", fields: [destItemId], references: [id], onDelete: SetNull)
+  assets   TransferLineAsset[]
+
+  @@unique([transferId, itemId])
+}
+
+model TransferLineAsset {
+  id      String             @id @default(cuid())
+  lineId  String
+  assetId String
+  state   TransferAssetState @default(ASSIGNED)
+
+  line  TransferLine @relation(fields: [lineId], references: [id], onDelete: Cascade)
+  asset Asset        @relation(fields: [assetId], references: [id], onDelete: Cascade)
+
+  @@unique([lineId, assetId])
+}
+
+/// Per-transfer audit trail shown on the transfer page (both spaces see it).
+model TransferEvent {
+  id         String   @id @default(cuid())
+  transferId String
+  spaceId    String
+  type       String
+  actorId    String?
+  note       String?
+  metadata   Json?
+  evidenceId String?
+  createdAt  DateTime @default(now())
+
+  transfer Transfer @relation(fields: [transferId], references: [id], onDelete: Cascade)
+
+  @@index([transferId, createdAt])
+}
+
+// ───────────────────────────── Lending ─────────────────────────────
+
+model Loan {
+  id             String     @id @default(cuid())
+  spaceId        String
+  number         Int
+  borrowerId     String
+  status         LoanStatus @default(REQUESTED)
+  purpose        String?
+  neededFrom     DateTime?
+  dueAt          DateTime
+  selfCheckout   Boolean    @default(false)
+  /// The container packed for this loan (scanned at issue and at return).
+  containerId    String?
+  renewalCount   Int        @default(0)
+  approvedById   String?
+  approvedAt     DateTime?
+  rejectedById   String?
+  rejectedAt     DateTime?
+  rejectReason   String?
+  cancelledAt    DateTime?
+  issuedById     String?
+  issuedAt       DateTime?
+  returnedAt     DateTime?
+  closedAt       DateTime?
+  lastReminderAt DateTime?
+  remindersSent  Int        @default(0)
+  /// Set once the due-soon reminder went out (cleared when the due date changes).
+  dueReminderAt  DateTime?
+  /// Set once the loan.overdue event and staff escalation fired (cleared when the due date changes).
+  overdueAt      DateTime?
+  escalatedAt    DateTime?
+  staffNote      String?
+  createdAt      DateTime   @default(now())
+  updatedAt      DateTime   @updatedAt
+
+  space     Space          @relation(fields: [spaceId], references: [id], onDelete: Cascade)
+  borrower  User           @relation("LoanBorrower", fields: [borrowerId], references: [id], onDelete: NoAction)
+  container Container?     @relation(fields: [containerId], references: [id], onDelete: SetNull)
+  lines     LoanLine[]
+  evidence  Evidence[]
+  incidents LoanIncident[]
+  charges   LoanCharge[]
+  payments  Payment[]
+
+  @@unique([spaceId, number])
+  @@index([spaceId, status, dueAt])
+  @@index([borrowerId, status])
+}
+
+model LoanLine {
+  id                String  @id @default(cuid())
+  loanId            String
+  itemId            String
+  /// Serialized items: the asset issued (chosen by scanning at issue time).
+  assetId           String?
+  /// Where the stock is held or was issued from.
+  locationId        String?
+  quantityRequested Int
+  quantityApproved  Int     @default(0)
+  quantityIssued    Int     @default(0)
+  quantityReturned  Int     @default(0)
+  quantityDamaged   Int     @default(0)
+  quantityLost      Int     @default(0)
+  /// Consumables are used up at issue and never come back.
+  quantityConsumed  Int     @default(0)
+
+  loan      Loan           @relation(fields: [loanId], references: [id], onDelete: Cascade)
+  item      Item           @relation(fields: [itemId], references: [id], onDelete: Cascade)
+  asset     Asset?         @relation(fields: [assetId], references: [id], onDelete: SetNull)
+  incidents LoanIncident[]
+
+  @@index([loanId])
+}
+
+/// Proof captured at issue, return, dispatch or receipt: the QR codes that
+/// were scanned, photos and remarks. Required for every issue and return.
+model Evidence {
+  id           String       @id @default(cuid())
+  spaceId      String
+  kind         EvidenceKind
+  loanId       String?
+  transferId   String?
+  remarks      String
+  scannedCodes String[]     @default([])
+  actorId      String?
+  createdAt    DateTime     @default(now())
+
+  space  Space           @relation(fields: [spaceId], references: [id], onDelete: Cascade)
+  loan   Loan?           @relation(fields: [loanId], references: [id], onDelete: Cascade)
+  photos EvidencePhoto[]
+
+  @@index([spaceId, createdAt])
+  @@index([loanId])
+  @@index([transferId])
+}
+
+model EvidencePhoto {
+  id          String   @id @default(cuid())
+  evidenceId  String
+  storageKey  String   @unique
+  contentType String
+  sizeBytes   Int
+  sha256      String
+  createdAt   DateTime @default(now())
+
+  evidence Evidence @relation(fields: [evidenceId], references: [id], onDelete: Cascade)
+}
+
+/// A lost or damaged loan line. While open it can restrict the borrower.
+model LoanIncident {
+  id             String              @id @default(cuid())
+  spaceId        String
+  loanId         String
+  lineId         String
+  borrowerId     String
+  assetId        String?
+  kind           IncidentKind
+  quantity       Int
+  description    String
+  status         IncidentStatus      @default(OPEN)
+  resolution     IncidentResolution?
+  chargeMinor    Int?
+  resolvedById   String?
+  resolvedAt     DateTime?
+  resolutionNote String?
+  createdAt      DateTime            @default(now())
+
+  space  Space        @relation(fields: [spaceId], references: [id], onDelete: Cascade)
+  loan   Loan         @relation(fields: [loanId], references: [id], onDelete: Cascade)
+  line   LoanLine     @relation(fields: [lineId], references: [id], onDelete: Cascade)
+  asset  Asset?       @relation(fields: [assetId], references: [id], onDelete: SetNull)
+  repair RepairIssue?
+
+  @@index([spaceId, status])
+  @@index([borrowerId, status])
+}
+
+// ───────────────────────────── Payments ─────────────────────────────
+
+/// Per-space payment providers. Secrets are encrypted (lib/crypto purpose
+/// "payment-secrets") and write-only in the UI.
+model SpacePaymentConfig {
+  spaceId             String   @id
+  /// Opaque id in the provider webhook URL (/api/payments/<provider>/<code>), so the URL never names the space.
+  webhookPublicCode   String   @unique
+  razorpayEnabled     Boolean  @default(false)
+  razorpayKeyId       String?
+  razorpaySecretEnc   String?
+  razorpayWebhookEnc  String?
+  stripeEnabled       Boolean  @default(false)
+  stripeSecretEnc     String?
+  stripeWebhookEnc    String?
+  testMode            Boolean  @default(true)
+  /// Cash, UPI to the space's account, bank transfer: staff confirm receipt.
+  offlineEnabled      Boolean  @default(true)
+  offlineInstructions String?
+  updatedAt           DateTime @updatedAt
+
+  space Space @relation(fields: [spaceId], references: [id], onDelete: Cascade)
+}
+
+/// One amount owed on a loan. Deposits are refundable; everything else is a fee.
+model LoanCharge {
+  id            String       @id @default(cuid())
+  spaceId       String
+  loanId        String
+  kind          ChargeKind
+  description   String
+  amountMinor   Int
+  currency      String
+  status        ChargeStatus @default(DUE)
+  paymentId     String?
+  /// Deposits only: how much has been returned to the member so far.
+  refundedMinor Int          @default(0)
+  waivedReason  String?
+  waivedById    String?
+  incidentId    String?
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
+
+  space   Space    @relation(fields: [spaceId], references: [id], onDelete: Cascade)
+  loan    Loan     @relation(fields: [loanId], references: [id], onDelete: Cascade)
+  payment Payment? @relation(fields: [paymentId], references: [id], onDelete: SetNull)
+
+  @@index([loanId])
+  @@index([spaceId, status])
+}
+
+model Payment {
+  id               String          @id @default(cuid())
+  spaceId          String
+  loanId           String
+  payerId          String
+  provider         PaymentProvider
+  status           PaymentStatus   @default(PENDING)
+  /// upi, card, cash, bank_transfer…
+  method           String?
+  amountMinor      Int
+  currency         String
+  /// Razorpay order id or Stripe Checkout Session id.
+  gatewayOrderId   String?         @unique
+  /// Razorpay payment id or Stripe PaymentIntent id.
+  gatewayPaymentId String?
+  /// Offline receipt reference (UTR, cash slip number).
+  reference        String?
+  note             String?
+  /// The member chose to pay later; the loan shows "payment pending".
+  payLater         Boolean         @default(false)
+  paidAt           DateTime?
+  recordedById     String?
+  createdAt        DateTime        @default(now())
+  updatedAt        DateTime        @updatedAt
+
+  space   Space        @relation(fields: [spaceId], references: [id], onDelete: Cascade)
+  loan    Loan         @relation(fields: [loanId], references: [id], onDelete: Cascade)
+  charges LoanCharge[]
+  refunds Refund[]
+
+  @@index([spaceId, status])
+  @@index([loanId])
+}
+
+model Refund {
+  id              String       @id @default(cuid())
+  spaceId         String
+  paymentId       String
+  amountMinor     Int
+  reason          String
+  status          RefundStatus @default(PENDING)
+  gatewayRefundId String?
+  createdById     String?
+  processedAt     DateTime?
+  failureReason   String?
+  createdAt       DateTime     @default(now())
+
+  space   Space   @relation(fields: [spaceId], references: [id], onDelete: Cascade)
+  payment Payment @relation(fields: [paymentId], references: [id], onDelete: Cascade)
+
+  @@index([paymentId])
+}
+
+/// Provider webhook de-duplication: each signed event is applied once.
+model GatewayEvent {
+  id         String          @id
+  provider   PaymentProvider
+  spaceId    String
+  receivedAt DateTime        @default(now())
+}
+
+/// Recurring cycle count: the beat opens a count when one is due.
+model CountSchedule {
+  id         String   @id @default(cuid())
+  spaceId    String
+  name       String
+  locationId String?
+  categoryId String?
+  everyDays  Int
+  blind      Boolean  @default(true)
+  nextRunAt  DateTime
+  active     Boolean  @default(true)
+  createdAt  DateTime @default(now())
+
+  space Space @relation(fields: [spaceId], references: [id], onDelete: Cascade)
+
+  @@index([active, nextRunAt])
+}
+
+// ───────────────────────────── Integrations ─────────────────────────────
+
+/// Outbound webhook target. The signing secret is encrypted at rest and
+/// shown once on creation.
+model WebhookEndpoint {
+  id            String    @id @default(cuid())
+  spaceId       String
+  url           String
+  description   String?
+  secretEnc     String
+  /// Event types ("loan.issued") or "*" for all.
+  events        String[]  @default([])
+  enabled       Boolean   @default(true)
+  failureCount  Int       @default(0)
+  disabledAt    DateTime?
+  lastSuccessAt DateTime?
+  createdById   String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  space      Space             @relation(fields: [spaceId], references: [id], onDelete: Cascade)
+  deliveries WebhookDelivery[]
+
+  @@index([spaceId])
+}
+
+model WebhookDelivery {
+  id             String                @id @default(cuid())
+  endpointId     String
+  spaceId        String
+  eventType      String
+  eventId        String
+  payload        Json
+  status         WebhookDeliveryStatus @default(PENDING)
+  attempts       Int                   @default(0)
+  responseStatus Int?
+  lastError      String?
+  deliveredAt    DateTime?
+  createdAt      DateTime              @default(now())
+
+  endpoint WebhookEndpoint @relation(fields: [endpointId], references: [id], onDelete: Cascade)
+  space    Space           @relation(fields: [spaceId], references: [id], onDelete: Cascade)
+
+  @@index([endpointId, createdAt])
+  @@index([spaceId, createdAt])
+}
+
+/// A bulk CSV/XLSX import: parsed and validated rows are kept until applied.
+model ImportJob {
+  id            String       @id @default(cuid())
+  spaceId       String
+  kind          String
+  fileName      String
+  status        ImportStatus @default(PREVIEWED)
+  rows          Json
+  /// { total, valid, invalid, created, updated }
+  stats         Json?
+  requestedById String?
+  appliedAt     DateTime?
+  createdAt     DateTime     @default(now())
+
+  space Space @relation(fields: [spaceId], references: [id], onDelete: Cascade)
+
+  @@index([spaceId, createdAt])
+}
+
+// ───────────────────────────── Repairs and finance ─────────────────────────────
+
+enum RepairSeverity {
+  LOW
+  MEDIUM
+  HIGH
+  CRITICAL
+}
+
+enum RepairStatus {
+  /// Reported; no technician has it yet.
+  REPORTED
+  /// A technician accepted it (or a manager assigned one) and is working on it.
+  ASSIGNED
+  /// The technician says it is fixed; a manager verifies.
+  FIXED
+  CLOSED
+  CANCELLED
+}
+
+enum RepairOutcome {
+  FIXED
+  SCRAPPED
+}
+
+enum TechnicianKind {
+  STAFF
+  EXTERNAL
+}
+
+enum TechnicianChannel {
+  EMAIL
+  WHATSAPP
+  TELEGRAM
+}
+
+enum RepairRequestStatus {
+  SENT
+  ACCEPTED
+  DECLINED
+  EXPIRED
+  /// Someone else took it, the repair closed, or a manager withdrew it.
+  CLOSED
+}
+
+enum PayoutMethod {
+  CASH
+  BANK_TRANSFER
+  UPI
+  OTHER
+}
+
+enum FinanceDirection {
+  IN
+  OUT
+}
+
+enum FinanceMethod {
+  GATEWAY_RAZORPAY
+  GATEWAY_STRIPE
+  CASH
+  BANK_TRANSFER
+  UPI
+  OTHER
+}
+
+enum FinanceCategory {
+  LOAN_FEES
+  DEPOSIT
+  RENTAL
+  LATE_FEE
+  DAMAGE
+  LOSS
+  REFUND
+  DEPOSIT_REFUND
+  REPAIR
+  PURCHASE
+  RENT
+  UTILITIES
+  SUPPLIES
+  OTHER_INCOME
+  OTHER_EXPENSE
+}
+
+/// A technician in a space's directory: a member with the Technician (or staff) role, or an external contact.
+model Technician {
+  id               String             @id @default(cuid())
+  spaceId          String
+  kind             TechnicianKind
+  /// Staff technicians only.
+  userId           String?
+  name             String
+  email            String?
+  phone            String?
+  /// Full number with country code, for WhatsApp messages.
+  whatsapp         String?
+  telegramChatId   String?
+  skills           String[]           @default([])
+  preferredChannel TechnicianChannel?
+  notes            String?
+  active           Boolean            @default(true)
+  createdAt        DateTime           @default(now())
+  updatedAt        DateTime           @updatedAt
+
+  space    Space           @relation(fields: [spaceId], references: [id], onDelete: Cascade)
+  user     User?           @relation(fields: [userId], references: [id], onDelete: SetNull)
+  requests RepairRequest[]
+  assigned RepairIssue[]
+  payouts  RepairPayout[]
+
+  @@unique([spaceId, userId])
+  @@index([spaceId, active])
+}
+
+/// A damaged or broken item or asset, from report to verified fix.
+model RepairIssue {
+  id                   String         @id @default(cuid())
+  spaceId              String
+  number               Int
+  itemId               String
+  assetId              String?
+  /// Raised from a lost-or-damaged loan incident.
+  incidentId           String?        @unique
+  title                String
+  description          String
+  severity             RepairSeverity @default(MEDIUM)
+  status               RepairStatus   @default(REPORTED)
+  reportedById         String?
+  /// Stock this repair keeps out of use (quarantined through lib/inventory/availability).
+  heldQuantity         Int            @default(0)
+  heldLocationId       String?
+  /// The hold was already there (returned damaged) and goes back to the incident if the repair is cancelled.
+  holdAdopted          Boolean        @default(false)
+  assignedTechnicianId String?
+  fixRemarks           String?
+  partsUsed            String?
+  amountAskedMinor     Int?
+  fixedAt              DateTime?
+  approvedMinor        Int?
+  approvedById         String?
+  approvedAt           DateTime?
+  approvalNote         String?
+  outcome              RepairOutcome?
+  closedAt             DateTime?
+  closedById           String?
+  closeNote            String?
+  createdAt            DateTime       @default(now())
+  updatedAt            DateTime       @updatedAt
+
+  space      Space           @relation(fields: [spaceId], references: [id], onDelete: Cascade)
+  item       Item            @relation(fields: [itemId], references: [id], onDelete: NoAction)
+  asset      Asset?          @relation(fields: [assetId], references: [id], onDelete: NoAction)
+  incident   LoanIncident?   @relation(fields: [incidentId], references: [id], onDelete: SetNull)
+  technician Technician?     @relation(fields: [assignedTechnicianId], references: [id], onDelete: NoAction)
+  requests   RepairRequest[]
+  events     RepairEvent[]
+  photos     RepairPhoto[]
+  payouts    RepairPayout[]
+  purchases  PurchaseItem[]
+
+  @@unique([spaceId, number])
+  @@index([spaceId, status])
+  @@index([itemId])
+}
+
+/// One technician asked to take one repair. External technicians get a link (only its SHA-256 is stored).
+model RepairRequest {
+  id           String              @id @default(cuid())
+  spaceId      String
+  issueId      String
+  technicianId String
+  status       RepairRequestStatus @default(SENT)
+  tokenHash    String?             @unique
+  expiresAt    DateTime
+  /// Where it was sent: EMAIL, WHATSAPP, TELEGRAM, INBOX.
+  channels     String[]            @default([])
+  sentById     String?
+  sentAt       DateTime            @default(now())
+  respondedAt  DateTime?
+
+  space      Space       @relation(fields: [spaceId], references: [id], onDelete: Cascade)
+  issue      RepairIssue @relation(fields: [issueId], references: [id], onDelete: Cascade)
+  technician Technician  @relation(fields: [technicianId], references: [id], onDelete: NoAction)
+
+  @@unique([issueId, technicianId])
+  @@index([spaceId, status])
+}
+
+/// Append-only timeline of a repair (who was asked, on which channel, and every step).
+model RepairEvent {
+  id           String   @id @default(cuid())
+  spaceId      String
+  issueId      String
+  kind         String
+  actorId      String?
+  technicianId String?
+  channel      String?
+  text         String?
+  createdAt    DateTime @default(now())
+
+  space Space       @relation(fields: [spaceId], references: [id], onDelete: Cascade)
+  issue RepairIssue @relation(fields: [issueId], references: [id], onDelete: Cascade)
+
+  @@index([issueId, createdAt])
+}
+
+model RepairPhoto {
+  id           String   @id @default(cuid())
+  spaceId      String
+  issueId      String
+  /// REPORT or FIX.
+  stage        String
+  storageKey   String   @unique
+  contentType  String
+  sizeBytes    Int
+  sha256       String
+  uploadedById String?
+  technicianId String?
+  createdAt    DateTime @default(now())
+
+  space Space       @relation(fields: [spaceId], references: [id], onDelete: Cascade)
+  issue RepairIssue @relation(fields: [issueId], references: [id], onDelete: Cascade)
+
+  @@index([issueId])
+}
+
+/// Money paid to a technician for a repair. Append-only; partial payouts add up to the approved amount.
+model RepairPayout {
+  id           String       @id @default(cuid())
+  spaceId      String
+  issueId      String
+  technicianId String
+  amountMinor  Int
+  currency     String
+  method       PayoutMethod
+  reference    String?
+  paidAt       DateTime
+  paidById     String?
+  note         String?
+  createdAt    DateTime     @default(now())
+
+  space      Space       @relation(fields: [spaceId], references: [id], onDelete: Cascade)
+  issue      RepairIssue @relation(fields: [issueId], references: [id], onDelete: NoAction)
+  technician Technician  @relation(fields: [technicianId], references: [id], onDelete: NoAction)
+
+  @@index([spaceId, paidAt])
+  @@index([issueId])
+}
+
+/// Every money movement of a space, posted once per source in the source's own transaction. Append-only;
+/// a correction is a reversing entry. Item, asset, technician and supplier ids are kept as plain values.
+model FinanceEntry {
+  id           String           @id @default(cuid())
+  spaceId      String
+  direction    FinanceDirection
+  category     FinanceCategory
+  amountMinor  Int
+  currency     String
+  method       FinanceMethod
+  reference    String?
+  occurredAt   DateTime
+  /// Payment, Refund, RepairPayout, PurchaseItem, Manual or Reversal.
+  sourceType   String
+  sourceId     String
+  actorId      String?
+  note         String?
+  itemId       String?
+  assetId      String?
+  technicianId String?
+  supplierId   String?
+  reversesId   String?          @unique
+  createdAt    DateTime         @default(now())
+
+  space Space @relation(fields: [spaceId], references: [id], onDelete: Cascade)
+
+  @@unique([sourceType, sourceId])
+  @@index([spaceId, occurredAt])
+  @@index([spaceId, category])
+}
+
+/// Credentials for messaging technicians directly. Secrets are encrypted ("chat-secrets") and write-only.
+model SpaceChatConfig {
+  spaceId               String   @id
+  telegramBotTokenEnc   String?
+  whatsappPhoneNumberId String?
+  whatsappTokenEnc      String?
+  whatsappTemplate      String   @default("repair_request")
+  whatsappLanguage      String   @default("en")
+  updatedAt             DateTime @updatedAt
+
+  space Space @relation(fields: [spaceId], references: [id], onDelete: Cascade)
+}

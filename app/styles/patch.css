@@ -1,0 +1,100 @@
+/* Easter eggs and small motion (docs/DESIGN.md "Easter eggs"). Everything here is
+   decorative and rests under reduced motion (bottom of this file, plus the global
+   reduced-motion rule in global-elements.css). */
+
+/* The 404 pet (components/feedback/NotFoundPet.tsx), from Space Works Events via
+   Machines. Each direction is one sheet of the design system's eight-frame walk
+   cycle (public/brand/patch/, built from SpaceWorks-Design mascot/compressed/walk);
+   heading left uses the approved left-facing sheet, Patch is never flipped. Frame N
+   sits at N/7 of the sheet. Motion is driven by data-state, data-facing, data-happy. */
+@keyframes sw-patch-walk { from { background-position: 0 0; } to { background-position: calc(800% / 7) 0; } }
+.sw-pet { will-change: transform; }
+.sw-pet-sprite {
+  aspect-ratio: 256 / 176;
+  width: 100%;
+  background: url("/brand/patch/patch-walk-right.webp") 0 0 / 800% 100% no-repeat;
+}
+.sw-pet[data-facing="left"] .sw-pet-sprite { background-image: url("/brand/patch/patch-walk-left.webp"); }
+.sw-pet[data-state="walk"] .sw-pet-sprite { animation: sw-patch-walk 0.96s steps(8) infinite; }
+.sw-pet[data-state="run"] .sw-pet-sprite { animation: sw-patch-walk 0.48s steps(8) infinite; }
+/* Asleep or patted: frame 6, Patch's eyes closed happily as drawn on the walk sheet. */
+.sw-pet[data-state="sleep"] .sw-pet-sprite,
+.sw-pet[data-happy] .sw-pet-sprite { animation: none; background-position: calc(500% / 7) 0; }
+.sw-pet[data-happy] { animation: sw-pet-bounce 0.22s ease-in-out 4 alternate; }
+
+.sw-pet-zzz {
+  position: absolute;
+  right: 10%;
+  top: -6px;
+  font-weight: 800;
+  font-size: 14px;
+  color: var(--color-ink-muted, currentColor);
+  opacity: 0;
+  pointer-events: none;
+}
+.sw-pet[data-facing="left"] .sw-pet-zzz { right: auto; left: 10%; }
+.sw-pet[data-state="sleep"] .sw-pet-zzz { animation: sw-pet-zzz 2.8s ease-out infinite; }
+.sw-pet[data-state="sleep"] .sw-pet-zzz:nth-of-type(2) { animation-delay: 1.4s; font-size: 11px; }
+
+/* Hearts are small Workshop Orange fills (never text). */
+.sw-pet-heart {
+  position: absolute;
+  top: -4px;
+  width: 14px;
+  height: 13px;
+  background: var(--sw-orange);
+  -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 14 13'%3E%3Cpath d='M7 13 1.2 7.2A3.6 3.6 0 0 1 7 2.4a3.6 3.6 0 0 1 5.8 4.8Z'/%3E%3C/svg%3E") center / contain no-repeat;
+  mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 14 13'%3E%3Cpath d='M7 13 1.2 7.2A3.6 3.6 0 0 1 7 2.4a3.6 3.6 0 0 1 5.8 4.8Z'/%3E%3C/svg%3E") center / contain no-repeat;
+  pointer-events: none;
+  animation: sw-pet-heart 1.2s ease-out forwards;
+}
+
+/* Fading paw prints in the muted ink. */
+.sw-pet-paw {
+  position: absolute;
+  bottom: 6px;
+  width: 9px;
+  height: 7px;
+  border-radius: 50% 50% 45% 45%;
+  background: var(--color-ink-muted);
+  opacity: 0;
+  pointer-events: none;
+  animation: sw-pet-paw 1.8s ease-out forwards;
+}
+
+@keyframes sw-pet-bounce { from { translate: 0 0; } to { translate: 0 -3px; } }
+@keyframes sw-pet-zzz { 0% { opacity: 0; transform: translate(0, 0) scale(0.7); } 25% { opacity: 0.8; } 100% { opacity: 0; transform: translate(14px, -26px) scale(1.2); } }
+@keyframes sw-pet-heart { 0% { opacity: 0; transform: translateY(0) scale(0.6); } 20% { opacity: 1; } 100% { opacity: 0; transform: translateY(-34px) scale(1.15); } }
+@keyframes sw-pet-paw { 0% { opacity: 0.35; } 100% { opacity: 0; } }
+
+/* Mood tiles (components/brand/MoodTile.tsx): the icon gives one quick wiggle on hover
+   of its tile or of a `.group` card. The tile itself never moves. Mouse only. */
+@keyframes sw-wiggle {
+  0%, 100% { transform: none; }
+  35% { transform: rotate(-14deg) scale(1.12); }
+  70% { transform: rotate(9deg) scale(1.04); }
+}
+@media (hover: hover) and (prefers-reduced-motion: no-preference) {
+  .sw-wiggle-host:hover .sw-wiggle,
+  .group:hover .sw-wiggle {
+    animation: sw-wiggle 200ms cubic-bezier(0.34, 1.4, 0.64, 1) both;
+  }
+}
+
+/* An empty shelf (components/brand/PatchInBin.tsx): Patch peeks up over the rim once. */
+@keyframes sw-peek { from { transform: translateY(46%); } to { transform: none; } }
+.sw-peek > * { animation: sw-peek 640ms cubic-bezier(0.34, 1.3, 0.64, 1) 240ms both; }
+
+/* Skeletons (components/ui/skeleton.tsx): a quiet pulse in the final layout's geometry. */
+@keyframes sw-skeleton { 50% { opacity: 0.55; } }
+.sw-skeleton { animation: sw-skeleton 1.4s ease-in-out infinite; }
+
+@media (prefers-reduced-motion: reduce) {
+  .sw-pet,
+  .sw-pet-sprite,
+  .sw-peek > *,
+  .sw-skeleton { animation: none !important; }
+  .sw-pet-zzz,
+  .sw-pet-heart,
+  .sw-pet-paw { display: none; }
+}

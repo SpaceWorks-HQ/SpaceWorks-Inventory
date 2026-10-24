@@ -1,0 +1,74 @@
+[
+  {
+    "module": "lib/queue/admin",
+    "name": "JobsHealth",
+    "id": "Shared0",
+    "value": false
+  },
+  {
+    "module": "lib/appShell",
+    "name": "ShellData",
+    "id": "Shared1",
+    "value": false
+  },
+  {
+    "module": "lib/desk/countsDetail",
+    "name": "CountLineView",
+    "id": "Shared2",
+    "value": false
+  },
+  {
+    "module": "lib/desk/scan",
+    "name": "ScanTarget",
+    "id": "Shared3",
+    "value": false
+  },
+  {
+    "module": "lib/finance/report",
+    "name": "FinanceReport",
+    "id": "Shared4",
+    "value": false
+  },
+  {
+    "module": "lib/setup/home",
+    "name": "MemberHome",
+    "id": "Shared5",
+    "value": false
+  },
+  {
+    "module": "lib/setup/home",
+    "name": "StaffHome",
+    "id": "Shared6",
+    "value": false
+  },
+  {
+    "module": "lib/payments/config",
+    "name": "PaymentConfigView",
+    "id": "Shared7",
+    "value": false
+  },
+  {
+    "module": "lib/setup/publicCatalogue",
+    "name": "PublicItem",
+    "id": "Shared8",
+    "value": false
+  },
+  {
+    "module": "lib/repairs/chat",
+    "name": "ChatSettingsView",
+    "id": "Shared9",
+    "value": false
+  },
+  {
+    "module": "lib/repairs/views",
+    "name": "RepairDetail",
+    "id": "Shared10",
+    "value": false
+  },
+  {
+    "module": "lib/desk/loansQueue",
+    "name": "LoanTab",
+    "id": "Shared11",
+    "value": false
+  }
+]
