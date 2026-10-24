@@ -2,6 +2,9 @@
 
 The integration PR is the review boundary. Running its branch locally proves
 the code can be tested; it does not activate production stock or lending writes.
+Read [hosting and module placement](AGENTS-HOSTING.md) first: existing Docker
+and Render manifests do not yet package the Telegram worker or install the
+Codex/GitHub CLIs. Their normal jobs services do not start this bot.
 
 1. Review the exact PR into `dev`, its migration, permissions, model access and
    test results. A maintainer merges it. Preserve the PR number, reviewed head
@@ -13,8 +16,9 @@ the code can be tested; it does not activate production stock or lending writes.
 3. Keep the normal Inventory authentication and database configuration. Set
    `NEXT_PUBLIC_BASE_URL` to the reachable trusted Inventory origin. Staff and
    inventory managers must already have active memberships in the intended space.
-4. For local Codex mentoring, sign in to the installed Codex CLI as the worker
-   OS account. Set `AGENTS_MENTOR=codex`,
+4. For local Codex mentoring, sign in to the installed Codex CLI as the actual
+   web/backend and/or bot OS account. Each handling process launches the CLI
+   locally; a separate model RPC service is not implemented. Set `AGENTS_MENTOR=codex`,
    `AGENTS_CODEX_LOCAL_PROCESS_ACK=true`, an existing absolute mode-0700
    `AGENTS_CODEX_SCRATCH_DIR`, and
    `AGENTS_CODEX_MENTOR_MODEL=gpt-6-luna`. Code generation in the reusable

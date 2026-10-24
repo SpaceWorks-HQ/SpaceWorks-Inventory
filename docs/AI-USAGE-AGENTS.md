@@ -1,5 +1,12 @@
 # AI assistance for the Inventory adapter
 
+Hosting documentation phase: Codex inspected the actual adapter, activation,
+worker build and Docker/Compose/Render definitions and updated the README,
+hosting guide and runbook. It distinguishes verified local behavior from the
+additional image, service and credential provisioning needed for production.
+Only documentation changed; relative links and diffs were checked. No production
+deployment, bot delivery or new runtime verification is claimed by this phase.
+
 This phase was implemented and reviewed with a Codex sub-agent in the owner's
 selected Inventory checkout. Existing owner decisions and native authorization,
 availability, evidence and lending services were read before edits. Next.js 16's

@@ -118,6 +118,42 @@ More: [items](docs/screenshots/items.webp), [locations](docs/screenshots/locatio
 [a repair](docs/screenshots/repair.webp), [lending fees](docs/screenshots/settings-fees.webp), [payments](docs/screenshots/settings-payments.webp)
 and the [public catalogue](docs/screenshots/public-catalogue.webp).
 
+## Where the agent modules run
+
+**The agent adapter is part of this app's backend, not a separate hosted
+SpaceWorks service.** Its npm dependency is pinned to the Agents v0.3.1 release
+tarball. The implementation is currently in the reviewed integration branch;
+merge and deploy that code before expecting it in a production release image.
+
+| Module | Location and hosting |
+| --- | --- |
+| Project mentor and private bot linking | `app/s/[spaceSlug]/mentor/`, `components/agents/`; served by Inventory's web app |
+| Native adapter, permissions and mentor | `lib/agents/`; runs in the backend using current membership and real PostgreSQL stock/lending services |
+| Agent API | `app/api/ops/v1/[spaceSlug]/[...path]/route.ts`; host-authenticated routes under `/api/ops/v1/<spaceSlug>` |
+| Private Telegram link API | `app/api/ops/telegram/[spaceSlug]/route.ts`; signed-in account link issue/revocation |
+| Telegram bot | Separately supervised Node.js polling worker loading `dist/inventory-telegram.mjs`, built from `lib/agents/telegram/` |
+| Model mentoring | Optional signed-in local Codex CLI launched by the handling backend or bot process; defaults to `gpt-6-luna` |
+| State | Inventory PostgreSQL owns business records/receipts; a shared private durable volume owns bot links, conversations and delivery cursor |
+
+Source integration/code generation runs separately in a maintainer checkout,
+defaults to `gpt-6.1-sol`, and opens a reviewed PR to `dev`. The runtime bot
+cannot rewrite or deploy this app. GitHub distributes source/packages; it does
+not host the running bot.
+
+**The Docker/VPS and Render deployment definitions below do not yet provision
+the complete agent runtime.** Their existing jobs/beat workers are not Telegram
+workers. The Dockerfile does not run `build:telegram` or install `codex`/`gh`.
+Extend the build/image and explicitly configure a bot service, private shared
+storage and CLI authentication before enabling these optional features.
+Deterministic mentoring needs no model login; native agent business writes
+require authenticated `gh` merge inspection and verified deployment settings.
+
+Read [Agent hosting and installation](docs/AGENTS-HOSTING.md) for exact module
+paths, environment placement, worker commands, persistent volumes and what must
+be verified. Follow the [activation runbook](docs/AGENTS-RUNBOOK.md) after human
+merge. Local verification used disposable data; production rollout and live
+Telegram delivery remain operator steps.
+
 ## Host it on a VPS with Docker
 
 **The complete application runs on your own Linux server, installed with one line.** It ships as a

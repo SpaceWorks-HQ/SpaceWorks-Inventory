@@ -8,6 +8,10 @@ build is tagged `v<version>-main.<run>.<commit>`; see
 
 ## [Unreleased]
 
+- Document embedded agent hosting, native module locations, separate bot/model
+  processes, persistent state and deployment verification. Explicitly identify
+  the Telegram build/service and CLI additions missing from current images.
+
 - Add a separate Inventory Telegram worker with authenticated single-use account
   linking/revocation, private durable web/worker stores, fresh host membership
   checks and the native integration merge gate. The Project mentor page exposes

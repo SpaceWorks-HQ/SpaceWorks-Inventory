@@ -29,6 +29,7 @@ reports, an audit log, webhooks and a REST API.
 | [Roles and permissions](RBAC.md) | Inventory manager, staff and member, and the role matrix |
 | [REST API](API.md) | API keys, scopes, endpoints and webhooks |
 | [Inventory Telegram worker](TELEGRAM.md) | Separate bot configuration, private account linking, durable storage and reviewed activation |
+| [Agent hosting and installation](AGENTS-HOSTING.md) | Module locations, web/bot processes, environment placement, persistent storage and current image limitations |
 | [Project mentor and Agents adapter](AGENTS-INTEGRATION.md) | Catalogue-backed local mentoring, reviewed integration, permitted native operations and evidence handoffs |
 | [Design system](DESIGN.md) | Tokens, type, components and the Space Works look |
 | [Testing](TESTING.md) | Test suites and what to run when |
