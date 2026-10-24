@@ -15,11 +15,16 @@ run-name: Release ${{ github.event_name == 'workflow_run' && 'main' || github.re
 # each VERSION (or a manual run on main); the VPS installer installs the latest
 # release, so bumping VERSION is how a change reaches installations.
 # A manual run on any other branch publishes a pre-release for testing.
+# Every push to dev runs the Quality gate first and, when it passes, publishes
+# images only (0.1.0-dev.<run>.<commit>, sha-<commit> and the rolling tag dev):
+# no GitHub Release and never a deploy.
 on:
   workflow_run:
     workflows: [Quality gate]
     types: [completed]
     branches: [main]
+  push:
+    branches: [dev]
   workflow_dispatch:
 
 permissions:
@@ -30,13 +35,23 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
+  # dev pushes have no workflow_run gate (that trigger only fires from main's copy
+  # of this file), so they run the same Quality gate here first.
+  quality:
+    if: github.event_name == 'push' && github.ref == 'refs/heads/dev'
+    uses: ./.github/workflows/quality.yml
+
   prepare:
+    needs: quality
     # Never expose publishing credentials to a pull request or fork workflow.
     if: >-
-      github.event_name == 'workflow_dispatch' ||
-      (github.event.workflow_run.conclusion == 'success' &&
-       github.event.workflow_run.event == 'push' &&
-       github.event.workflow_run.head_repository.full_name == github.repository)
+      !cancelled() &&
+      (github.event_name == 'workflow_dispatch' ||
+       (github.event_name == 'push' && github.ref == 'refs/heads/dev' &&
+        needs.quality.result == 'success') ||
+       (github.event.workflow_run.conclusion == 'success' &&
+        github.event.workflow_run.event == 'push' &&
+        github.event.workflow_run.head_repository.full_name == github.repository))
     runs-on: ubuntu-latest
     outputs:
       sha: ${{ steps.release.outputs.sha }}
@@ -45,6 +60,7 @@ jobs:
       owner: ${{ steps.release.outputs.owner }}
       release: ${{ steps.release.outputs.release }}
       prerelease: ${{ steps.release.outputs.prerelease }}
+      channel: ${{ steps.release.outputs.channel }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -68,8 +84,11 @@ jobs:
             echo "::error file=VERSION::VERSION must be a version like 1.2.3 (got '$base')"
             exit 1
           fi
+          channel=""
           # A full-ref test: a tag named main never counts as the main branch.
-          if [[ "$EVENT" != workflow_run && "$REF" != refs/heads/main ]]; then
+          if [[ "$EVENT" == push && "$REF" == refs/heads/dev ]]; then
+            label=dev release=false prerelease=true channel=dev
+          elif [[ "$EVENT" != workflow_run && "$REF" != refs/heads/main ]]; then
             label=$(printf '%s' "$BRANCH" | tr '[:upper:]' '[:lower:]' | sed -E 's/[^a-z0-9]+/-/g; s/^-+//; s/-+$//' | cut -c1-30)
             label=${label%-}
             release=true prerelease=true
@@ -90,6 +109,7 @@ jobs:
             echo "owner=$(printf '%s' "$OWNER" | tr '[:upper:]' '[:lower:]')"
             echo "release=$release"
             echo "prerelease=$prerelease"
+            echo "channel=$channel"
           } >> "$GITHUB_OUTPUT"
           echo "Version $version (GitHub Release: $release, pre-release: $prerelease)"
 
@@ -215,17 +235,21 @@ jobs:
           BASE: ${{ needs.prepare.outputs.base }}
           SHA: ${{ needs.prepare.outputs.sha }}
           PRERELEASE: ${{ needs.prepare.outputs.prerelease }}
+          CHANNEL: ${{ needs.prepare.outputs.channel }}
         run: |
           set -euo pipefail
           # For this product, the rolling tags (main, latest and the series, e.g.
-          # 0.1) move only for main builds that are still the head of main.
+          # 0.1) move only for main builds that are still the head of main, and
+          # the rolling tag dev only for dev builds that are still the head of dev.
           head=$(gh api "repos/$GITHUB_REPOSITORY/commits/main" --jq .sha)
+          if [[ "$CHANNEL" == dev ]]; then dev_head=$(gh api "repos/$GITHUB_REPOSITORY/commits/dev" --jq .sha); fi
           for image in spaceworks-inventory-backend spaceworks-inventory-frontend; do
             name="ghcr.io/$OWNER/$image"
             tags=(--tag "$name:$VERSION" --tag "$name:sha-${SHA:0:12}")
             if [[ "$PRERELEASE" == false && "$SHA" == "$head" ]]; then
               tags+=(--tag "$name:main" --tag "$name:latest" --tag "$name:${BASE%.*}")
             fi
+            if [[ "$CHANNEL" == dev && "$SHA" == "$dev_head" ]]; then tags+=(--tag "$name:dev"); fi
             sources=()
             for digest in digests/"$image"/*; do sources+=("$name@sha256:$(basename "$digest")"); done
             docker buildx imagetools create "${tags[@]}" "${sources[@]}"

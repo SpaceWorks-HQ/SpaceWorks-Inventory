@@ -18,6 +18,11 @@ roles:
 | `ghcr.io/spaceworks-hq/spaceworks-inventory-backend` | `runner` | `node server.js` (default): the whole application and API. `migrate`: apply pending database migrations once and exit. `node dist/worker.js`: the BullMQ worker (email and webhook delivery, reminders, count schedules, payment reconciliation, retention). `node dist/beat.js`: the scheduler that keeps the periodic jobs registered. `node docker/vps/<tool>.mjs` and `node scripts/<tool>.mjs`: the operator tools (VPS setup, SMTP and external-storage configuration, certificate renewal, super-admin recovery, production preflight, checks, SMTP check, smoke test), run as root. |
 | `ghcr.io/spaceworks-hq/spaceworks-inventory-frontend` | `frontend` | `node frontend/server.js`: the website alone (the `frontend/` workspace), for the [split layouts](DEPLOYMENT_SPLIT.md). It holds no database, Redis, storage or mail credentials and calls the backend through the authenticated gateway. |
 
+A push to `dev` runs the same `Quality gate` inside the `Release` workflow and,
+when it passes, publishes the same two images as test builds tagged
+`<VERSION>-dev.<run>.<commit>`, `sha-<commit>` and the rolling tag `dev` (newest
+dev build only). Dev builds never create a GitHub Release and never deploy.
+
 Pull requests and forks' pull requests never publish.
 
 ## Versions and releases

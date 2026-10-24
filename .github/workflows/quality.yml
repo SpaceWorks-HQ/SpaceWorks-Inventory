@@ -3,6 +3,8 @@ on:
   pull_request:
   push:
     branches: [main, dev]
+  # Release runs this gate itself before it publishes dev images.
+  workflow_call:
 permissions:
   contents: read
 jobs:
