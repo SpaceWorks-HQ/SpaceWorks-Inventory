@@ -65,3 +65,9 @@ The final public-0.3.1 production build passed without tracing or database
 configuration warnings. All 222 emitted trace manifests (server and standalone)
 contained zero private runtime references. The compiled Telegram module built
 and imported successfully, exporting `configureTelegram`.
+
+Frontend compatibility phase: `typecheck:frontend` and the separate frontend
+production build passed, including the backend dependency boundary and trace
+checks. The required generator refreshed only the contracts source-hash comment
+after the finished host source changes; no DTO types changed. This metadata
+refresh is a separate follow-up commit after the native and Telegram phases.
