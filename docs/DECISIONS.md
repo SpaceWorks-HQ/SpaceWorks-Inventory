@@ -112,6 +112,14 @@ only from [SpaceWorks-Design](https://spaceworks-hq.github.io/SpaceWorks-Design/
 
 ### Agent integration phase (2026-10-25)
 
+The owner's current instruction supersedes the earlier exclusive build-tool and
+co-author defaults for this work: Codex assistance is permitted, code generation
+uses GPT-6.1 Sol and runtime mentoring uses GPT-6 Luna. New commits use only
+Shaan Shoukath's verified identity, with no additional co-author trailers. AI
+usage and required third-party notices remain truthful. No hackathon starter
+template is imported; SpaceWorks conventions and the supplied track guidelines
+apply. Historical implementation records above remain historical.
+
 At the owner's request, SpaceWorks Agents is embedded against this app's own
 accounts, memberships and native availability/lending services. Codex assists
 implementation; runtime project mentoring may use the installed Codex CLI with
@@ -120,7 +128,10 @@ discussion and links to native workflows. The existing QR, photo, payment and
 role rules are preserved. Reviewed dev integration and deployed-revision checks
 gate adapter mutations; PostgreSQL command receipts commit with domain effects.
 See [the integration guide](AGENTS-INTEGRATION.md) and
-[AI assistance record](AI-USAGE-AGENTS.md).
+[AI assistance record](AI-USAGE-AGENTS.md). The dedicated
+[Inventory Telegram worker](TELEGRAM.md) uses its own bot token and shared private
+durable state. Authenticated users issue or revoke their own single-use links;
+Telegram messages cannot supply host identity or activation.
 
 | Decision | Why |
 | --- | --- |
@@ -132,7 +143,7 @@ See [the integration guide](AGENTS-INTEGRATION.md) and
 | In dark mode the 404 pet sits on a cream chip | The brand pet art is drawn for light backgrounds |
 | Easter eggs and the colour-mode reveal are off under reduced motion | Accessibility first; they are decoration |
 | A new repair notifies the inventory managers; technicians hear about it only when a manager sends it to them | Owner update 11 (selected technicians) replaces "email every active technician" from update 7 |
-| Inventory has no team chat channels; Telegram and WhatsApp are used only to message technicians directly, configured on the Technicians page | Inventory never had team channels; this is the smallest setup that reaches technicians where they are |
+| Inventory has no team chat channels. Repair Telegram/WhatsApp technician delivery remains separate; the owner's 2026-10-25 request adds a dedicated Inventory mentor/staff Telegram bot | Supersedes the earlier technician-only Telegram default: private host account links, fresh membership checks and the native integration review gate govern the new bot |
 | A payment for one kind of charge is filed under it; a payment covering several is "Loan fees" | One ledger entry per payment keeps "each source posts once" exact |
 | Stock received without a buy-list purchase (adjustments, imports) does not post to finance | It carries no payment details; buy anything through the buy list to record its cost |
 | Backfilled purchases are estimated from unit cost × quantity with method "Other" | The real amount was never recorded before the ledger |

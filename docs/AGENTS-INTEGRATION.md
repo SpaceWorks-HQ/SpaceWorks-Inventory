@@ -1,5 +1,8 @@
 # Project mentor and staff operations adapter
 
+For the exact post-review configuration sequence, see the
+[activation runbook](AGENTS-RUNBOOK.md).
+
 Space Works Inventory embeds SpaceWorks Agents against this application's own
 authentication, memberships, PostgreSQL catalogue, stock and lending workflows.
 It does not use the Agents demonstration ledger.
@@ -78,9 +81,11 @@ serialized unit/container needs its real QR scan, and at least
 `Space.minEvidencePhotos` decoded, tenant-bound photos are required. Return
 remarks are always mandatory. The adapter never invents scans, uploads or proof.
 
-This change does not activate a Telegram bot or create account links. The
-optional inventory bot must be configured with a trusted host account-link
-implementation; recheck current users/memberships on every message. Repair
-technician messaging credentials are a separate feature and are not silently
-reused. External payments, email delivery and hardware handovers are not
-demonstrated by local fixture tests.
+The optional [Inventory Telegram worker](TELEGRAM.md) supplies a compiled trusted
+binding and authenticated account-link issue/revoke controls on the Project
+mentor page. It shares this adapter and activation gate, uses durable private
+stores across web and worker, and reloads current host membership for each
+message. It requires a separate operator-configured bot token and explicit
+worker launch. Repair technician messaging credentials remain separate.
+External payments, email delivery and hardware handovers are not demonstrated
+by local fixture tests.

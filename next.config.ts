@@ -17,6 +17,8 @@ const nextConfig: NextConfig = {
   // Prisma must not be bundled by Turbopack or model delegates can be missing at runtime.
   serverExternalPackages: ["@prisma/client", "sharp"],
   output: "standalone",
+  // Private mounted runtime state must never enter standalone deployment artifacts.
+  outputFileTracingExcludes: { "/*": ["./.data/**/*", "./.git/**/*"] },
   poweredByHeader: false,
   allowedDevOrigins,
   experimental: {

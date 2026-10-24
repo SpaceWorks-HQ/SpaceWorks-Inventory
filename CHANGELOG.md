@@ -8,6 +8,11 @@ build is tagged `v<version>-main.<run>.<commit>`; see
 
 ## [Unreleased]
 
+- Add a separate Inventory Telegram worker with authenticated single-use account
+  linking/revocation, private durable web/worker stores, fresh host membership
+  checks and the native integration merge gate. The Project mentor page exposes
+  private link controls; operators explicitly configure and start the bot.
+
 - Add a staff project mentor backed by the space's actual catalogue capability
   tags and current availability, with read-only local Codex planning and native
   item/lending handoffs.

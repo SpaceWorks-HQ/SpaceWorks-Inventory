@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { requireSpace } from "@/lib/permissions";
 import { PageHeader } from "@/components/ui/display";
 import { ListLayout } from "@/components/ui/layouts";
+import { InventoryTelegramLink } from "@/components/agents/InventoryTelegramLink";
 import { InventoryMentor } from "@/components/agents/InventoryMentor";
 
 export const metadata: Metadata = { title: "Project mentor" };
@@ -11,6 +12,7 @@ export default async function MentorPage({ params }: PageProps<"/s/[spaceSlug]/m
   const { space } = await requireSpace(spaceSlug, "STAFF");
   const slug = space.slug;
   return <ListLayout header={<PageHeader title="Project mentor" description="Describe a project, compare real catalogue capabilities and available alternatives, then continue through the inventory desk." />}>
+    <InventoryTelegramLink slug={slug} />
     <InventoryMentor slug={slug} />
   </ListLayout>;
 }

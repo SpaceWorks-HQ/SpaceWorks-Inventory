@@ -278,7 +278,9 @@ project, compare real catalogue capabilities and available alternatives, and
 continue through native inventory/lending workflows. The
 [Agents integration guide](docs/AGENTS-INTEGRATION.md) explains optional local
 Codex mentoring, authenticated endpoints, reviewed activation and the preserved
-QR/photo handover requirements.
+QR/photo handover requirements. The separate [Inventory Telegram worker](docs/TELEGRAM.md)
+provides the same authorized catalogue and operations through privately linked
+host accounts after explicit operator configuration.
 
 | Read this | When you want to |
 | --- | --- |

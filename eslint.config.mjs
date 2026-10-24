@@ -10,6 +10,8 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "dist/**",
+    // Private runtime state and generated local verification bundles.
+    ".data/**",
         "coverage/**",
     // Separate package with its own toolchain (Cloudflare Worker).
     "deploy/**",

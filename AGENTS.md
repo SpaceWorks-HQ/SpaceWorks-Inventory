@@ -194,6 +194,10 @@ regenerated files.
   or merges to `main`. Never push to `main`.
 - Commit in small logical steps with conventional messages
   (`feat(loans): …`, `test(transfers): …`) and explicit paths.
-- Phases I1–I5 (2026-10-23) were built by Claude Code driving Codex; from 2026-10-24 (I6 on) the
-  build is Claude Code alone, which writes, tests and reviews everything. Commits carry
-  `Co-Authored-By` trailers for Shaan-Shoukath and Claude. See `docs/DECISIONS.md`.
+- Historical build tooling is recorded in `docs/DECISIONS.md`. The owner's
+  2026-10-25 instruction permits Codex assistance, with GPT-6.1 Sol for code
+  generation and GPT-6 Luna for runtime mentoring. New commits are authored only
+  by Shaan Shoukath's verified identity, without additional co-author trailers.
+  Keep truthful AI usage records and required third-party notices. Do not import
+  a hackathon starter template; follow SpaceWorks conventions and the supplied
+  track guidelines.

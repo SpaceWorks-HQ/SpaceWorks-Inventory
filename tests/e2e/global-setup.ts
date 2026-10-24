@@ -8,7 +8,7 @@ const SPACE = "/s/tinkerspace-kochi";
 // reloads that detach the page mid-test.
 const ROUTES = ["/login", "/", "/c/tinkerspace-kochi", "/login/link/warm-up", SPACE, ...[
   "items", "items/new", "items/warm-up", "stock", "locations", "kits", "reports", "members", "settings", "settings/inventory",
-  "settings/integrations", "purchases", "audit", "loans", "loans/warm-up", "my-loans", "my-loans/warm-up", "catalogue",
+  "settings/integrations", "purchases", "audit", "mentor", "loans", "loans/warm-up", "my-loans", "my-loans/warm-up", "catalogue",
   "catalogue/self-checkout", "transfers", "transfers/new", "transfers/warm-up", "counts", "counts/new", "counts/warm-up", "scan", "notifications",
 ].map((path) => `${SPACE}/${path}`)];
 
