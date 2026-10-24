@@ -49,8 +49,10 @@ hardware. Confirmation, policy versions, transactional command receipts and
 audit still apply after activation. Unlinking or membership changes revoke
 access, including results from model requests that were already in flight.
 
-The demonstrated database is disposable synthetic data. No production stock,
-live Telegram delivery, payment or physical handover was used in verification.
-The operator must verify actual delivery and service supervision after supplying
-their bot configuration. Existing dependency advisories are recorded in the PR;
+The demonstrated database is disposable synthetic data. Actual @mentortsbot
+linking and Luna mentoring were verified in Telegram Web. A separate normal
+native desk journey issued one synthetic item on loan LN-0010 (8 → 7 available),
+using explicitly synthetic scan/photo evidence. No production stock, payment
+or physical hardware handover is claimed. Agent writes remain awaiting-merge.
+Operators must still verify their own deployment, delivery and supervision. Existing dependency advisories are recorded in the PR;
 they are not hidden by a passing domain test suite.

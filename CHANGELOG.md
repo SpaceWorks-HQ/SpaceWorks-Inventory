@@ -8,6 +8,12 @@ build is tagged `v<version>-main.<run>.<commit>`; see
 
 ## [Unreleased]
 
+- Add first-use instructions to Project mentor before private Telegram linking,
+  project questions, catalogue alternatives and native desk handoff.
+- Link native mentor recordings, sanitized agent evidence and the bot checklist.
+  Verify actual local @mentortsbot mentoring and normal synthetic loan LN-0010;
+  suggestions do not issue stock and agent writes still await human merge.
+
 - Document embedded agent hosting, native module locations, separate bot/model
   processes, persistent state and deployment verification. Explicitly identify
   the Telegram build/service and CLI additions missing from current images.

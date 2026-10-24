@@ -152,5 +152,10 @@ Manager stock operations, staff approvals and native evidence remain enforced.
 
 As of 25 October 2026, this integration is in PR #3 awaiting human merge. Local
 verification used disposable PostgreSQL and actual signed-in Luna planning.
-No live bot token was supplied; production rollout, live Telegram delivery and
-agent-specific hosting extensions have not been verified.
+Actual @mentortsbot account linking and Luna mentoring were delivered to a
+signed-in Telegram client using synthetic catalogue stock. Normal native desk
+approval and issue of demo loan LN-0010 reduced sensor availability 8 → 7;
+agent operation receipts remained zero. The local app runs at localhost:4319
+with a separate polling worker and signed-in Codex. This is a local development
+run, not a production deployment. Production rollout, activation and the
+image/service extensions above remain unverified.

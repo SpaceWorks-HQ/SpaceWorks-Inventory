@@ -151,8 +151,28 @@ require authenticated `gh` merge inspection and verified deployment settings.
 Read [Agent hosting and installation](docs/AGENTS-HOSTING.md) for exact module
 paths, environment placement, worker commands, persistent volumes and what must
 be verified. Follow the [activation runbook](docs/AGENTS-RUNBOOK.md) after human
-merge. Local verification used disposable data; production rollout and live
-Telegram delivery remain operator steps.
+merge. Local verification includes actual @mentortsbot delivery with synthetic
+stock. Production rollout and activation remain operator steps.
+
+### Video and agent-run proof
+
+Watch the [unedited native mentor recording](https://github.com/SpaceWorks-HQ/SpaceWorks-Agents/releases/download/v0.3.1/inventory-native-codex-2026-10-25.webm):
+an actual local Luna request, catalogue suggestions/alternatives and a native
+item handoff using disposable PostgreSQL data. Twelve assertions confirm that
+mentoring changes no stock, movements, loans, reservations or command receipts.
+The [full evidence index](https://github.com/SpaceWorks-HQ/SpaceWorks-Agents/blob/main/docs/PROOF.md)
+includes sanitized model/process logs, discovery/Sol proposal evidence, exact
+revisions, CI, video hashes and clearly labelled edited reference walkthroughs.
+
+For your new Telegram bot, configure its token privately, run the separate
+worker, and link an existing staff/manager account from Project mentor. See
+[what the Telegram demo needs](https://github.com/SpaceWorks-HQ/SpaceWorks-Agents/blob/main/docs/TELEGRAM-DEMO.md)
+and [this app's worker guide](docs/TELEGRAM.md). No Gemini key is needed for the
+signed-in Codex workflow. The complete local demonstration includes actual
+@mentortsbot delivery and normal native loan LN-0010: one synthetic sensor
+issued, availability 8 → 7. Mentor suggestions themselves change no stock;
+agent writes remain inactive while PR #3 awaits human merge. No production
+stock, payment or physical hardware handover is claimed.
 
 ## Host it on a VPS with Docker
 

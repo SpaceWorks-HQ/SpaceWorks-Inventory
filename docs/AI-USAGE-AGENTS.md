@@ -1,5 +1,32 @@
 # AI assistance for the Inventory adapter
 
+Local demo and onboarding phase (25 October 2026): GPT-6.1 Sol added the
+existing Space Works Callout with first-use instructions on the guarded mentor
+page. It preserved STAFF access and business services; frontend catalogue
+metadata was regenerated. Targeted ESLint, TypeScript and 1,270 unit tests passed.
+The owner supplied the separate @mentortsbot credential privately; an actual
+linked synthetic manager conversation invoked signed-in local gpt-6-luna and
+delivered catalogue alternatives/native links in Telegram Web. Six labelled
+synthetic items were seeded through native catalogue/availability services in
+the disposable demo database. A separate normal native member request, manager
+approval and scan/photo/remark desk issue completed loan LN-0010: primary sensor
+availability 8 → 7, alternative 4. Scan/photo evidence is explicitly synthetic;
+no physical handover is claimed. No mentor call changed stock or loans, agent
+operation receipts remained zero, and PR #3 still awaits human merge. Public
+video/log evidence omits tokens, account-link codes and personal chat identifiers.
+A fresh isolated release installation verified package imports/CLI and native
+lockfile integrity; it did not reinstall the host. Production activation and
+image/service provisioning remain operator work.
+
+Historical proof phase: the owner requested video/log evidence and Telegram demo inputs.
+Codex recorded a fresh native UI journey at revision 08f5385 using the installed
+Agents 0.3.1 and actual local gpt-6-luna. A Codex subprocess was observed under
+the app server; HTTP planning succeeded, alternatives/native handoff rendered,
+and 12 assertions included unchanged native business state. Login is excluded
+from the video; public logs omit credentials and raw model reasoning. The README
+links the shared proof bundle and checklist. That proof capture changed only documentation; live Telegram was still pending
+at that checkpoint. See the later local demo phase above for actual delivery.
+
 Hosting documentation phase: Codex inspected the actual adapter, activation,
 worker build and Docker/Compose/Render definitions and updated the README,
 hosting guide and runbook. It distinguishes verified local behavior from the
