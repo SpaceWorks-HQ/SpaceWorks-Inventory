@@ -40,6 +40,8 @@ test("a manager starts a new count", async ({ page }) => {
   await signIn(page, DEMO.manager, `${SPACE}/counts/new`);
   await expect(page.getByRole("heading", { name: "New count", level: 1 })).toBeVisible();
   const name = `Whole space review ${Date.now().toString(36)}`;
+  // A hydration recovery can briefly show the server and client forms together.
+  await expect(page.getByLabel("Name", { exact: true })).toHaveCount(1);
   await page.getByLabel("Name", { exact: true }).fill(name);
   await expect(page.getByRole("switch", { name: /^Blind count/ })).toBeChecked();
   await page.getByRole("button", { name: "Start count", exact: true }).click();

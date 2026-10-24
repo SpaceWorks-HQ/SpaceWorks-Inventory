@@ -191,11 +191,22 @@ Prefer `rounded-md` over `rounded-control` inside `cn()`: `tailwind-merge` does 
 
 - Colour changes 120ms. Expand 200ms. Dialog enter 240ms, exit 160ms. Easing `ease-yy`
   (`cubic-bezier(.2,.8,.2,1)`).
-- **No translate, scale or shadow on hover.** Buttons change colour only.
+- **No translate, scale or shadow on hover.** Buttons change colour on hover; when pressed they settle to
+  98 % (icon buttons 95 %) for 120ms, a press-only cue that is off under reduced motion.
 - Content is visible by default; scroll reveals only enhance.
 - `prefers-reduced-motion: reduce` → no translate/scale, fades ≤ 120ms.
-- Colour-mode switch (`components/providers.tsx`): the new mode grows from the toggle as a soft circle
-  (View Transitions); without them colours cross-fade; reduced motion switches instantly.
+- Colour-mode switch (`components/providers.tsx`, maths in `lib/colorModeReveal.ts`, ported from Space
+  Works Events): the new mode grows from the pressed toggle or Appearance option as a circle over 720ms
+  (`cubic-bezier(0.45,0,0.2,1)`, `fill: forwards`), with a 160px feathered edge where masks can animate
+  the registered `--sw-reveal` property (`.sw-theme-reveal-soft`), a hard clip-path circle otherwise
+  (`.sw-theme-reveal`); without View Transitions colours cross-fade over 420ms (`.sw-theme-fade`);
+  reduced motion switches instantly. The mode is still stored in the cookie.
+- Dialogs and toasts fade and rise in (240ms). Content a client fetches shows a skeleton in its final
+  geometry (`components/ui/skeleton.tsx`, for example the QR plate). Pages inside a space have no
+  route-level `loading.tsx` on purpose: a loading boundary streams the page, which commits a 200 before
+  the page's own guard can answer not-found, and tenancy requires the same 404 for every refusal.
+- Desk flows are paged steppers (`components/desk/DeskStepper.tsx`): one step on screen, Next once the
+  step is ready, focus moves to the new step's heading, and the record page shows a "done" card after.
 - Restart-safe sequences: React runs effects twice in development. An imperative `animate()` sequence
   must check it is still the current run after each `await` (see `AGENTS.md`).
 
@@ -351,6 +362,21 @@ the account menu at the bottom (Account settings, Instance admin for the operato
 Sign out). Below `md` the sidebar becomes a sheet behind a top bar. Content max width 1200px. Page title pattern: optional kicker (muted) + `h1` +
 one-line description. Settings pages: label column / field column rows separated by hairlines.
 Instance admin pages (`SimpleShell` + underline tabs) stay restrained: panel cards, metric rows, small charts, capped tables, no accents.
+
+### 4.14 Easter eggs
+
+Small, decorative moments. Every one is `aria-hidden`, never covers or blocks a control (the 404 pet's
+layer is click-through), rests under `prefers-reduced-motion`, and follows the Patch rules (never
+recoloured, mirrored, scaled past native size or placed beside the box logo; the screen's one bold moment).
+
+| Egg | Where | What happens | Code and test |
+| --- | --- | --- | --- |
+| Patch on the 404 | `app/not-found.tsx` | Patch trots to the pointer (or a tap), leaves fading paw prints, wanders and naps when ignored, and closes its eyes with hearts when patted. Sits still near the right edge under reduced motion; walks on a Warm Cream chip in dark mode. | `components/feedback/NotFoundPet.tsx`, `lib/patch/pet.ts`, `app/styles/patch.css`; `tests/unit/eggs-and-motion.test.ts` |
+| Hopping loader | Every `BrandLoader` | The three brand dots hop one after another. | `components/brand/BrandLoader.tsx` |
+| Mood-tile wiggle | Mood tiles in empty states and activity rows | The icon gives one quick wiggle on hover of its tile or card; the tile never moves. Mouse only. | `components/brand/MoodTile.tsx`, `.sw-wiggle` |
+| Patch in the bin | Stock filtered to one shelf that holds nothing | Patch peeks once over the rim of an empty bin. | `components/brand/PatchInBin.tsx`, `showsEmptyBin` in `lib/desk/eggs.ts` |
+| The perfect count | A posted count where every counted line matched | Patch's sneeze, kept for collective success, with "Every line matched". | `perfectCount` in `lib/desk/eggs.ts`, count page |
+| Home again | The "done" card after a return that closes the whole loan | Patch trots across the card. | `trotsHome` in `lib/desk/eggs.ts`, `components/desk/HandoverDone.tsx` |
 
 ### 4.15 Dialogs, toasts, menus
 

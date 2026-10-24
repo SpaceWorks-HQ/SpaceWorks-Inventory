@@ -1,5 +1,5 @@
 import { expect, test } from "@playwright/test";
-import { DEMO, PNG, SPACE, expectNoHorizontalScroll, needsDemo, signIn } from "./helpers";
+import { DEMO, PNG, SPACE, expectNoHorizontalScroll, needsDemo, nextStep, signIn } from "./helpers";
 import { loanLabelCodes, recordId } from "./labels";
 
 needsDemo();
@@ -27,18 +27,24 @@ test("staff issue the ready loan with item scans, a photo and remarks", async ({
   const codes = await loanLabelCodes(recordId(page.url()), "issue");
   expect(codes).toHaveLength(2);
   const handover = page.getByRole("region", { name: "Hand over", exact: true });
-  await expect(handover.getByRole("button", { name: "Issue loan", exact: true })).toBeDisabled();
+  await expect(handover.getByRole("button", { name: /^Next: / })).toBeDisabled();
+  await expect(handover.locator('li[aria-current="step"]')).toContainText("Scan");
   for (const code of codes) {
     await handover.getByLabel("Code under the label", { exact: true }).fill(code);
     await handover.getByRole("button", { name: "Add code", exact: true }).click();
   }
+  await nextStep(handover);
   await expect(handover.getByRole("list", { name: "Still to scan" }).getByText("Done", { exact: true })).toHaveCount(2);
+  await nextStep(handover);
+  await expect(handover.getByRole("button", { name: "Issue loan", exact: true })).toBeDisabled();
   await handover.getByLabel("Take photo", { exact: true }).setInputFiles({ name: "issue.png", mimeType: "image/png", buffer: PNG });
   const remarks = "Arduino and wire stripper checked with the borrower.";
   await handover.getByRole("textbox", { name: /^Remarks/ }).fill(remarks);
   await handover.getByRole("button", { name: "Issue loan", exact: true }).click();
   await expect(page.getByRole("heading", { level: 1 })).toContainText("On loan");
   await expect(handover).toBeHidden();
+  await expect(page).toHaveURL(/\?done=issue$/);
+  await expect(page.getByRole("region", { name: "Handed over", exact: true }).getByRole("status")).toContainText("The loan is on loan now.");
   const evidence = page.getByRole("region", { name: "Evidence", exact: true });
   await expect(evidence.getByText(remarks, { exact: true })).toBeVisible();
   await expect(evidence.getByText("2 labels scanned", { exact: true })).toBeVisible();
@@ -58,11 +64,13 @@ test("staff renew and return the seeded issued loan with asset and item scans", 
   const codes = await loanLabelCodes(recordId(page.url()), "return");
   expect(codes).toHaveLength(2);
   const takeBack = page.getByRole("region", { name: "Take back", exact: true });
+  await nextStep(takeBack);
   for (const code of codes) {
     await takeBack.getByLabel("Code under the label", { exact: true }).fill(code);
     await takeBack.getByRole("button", { name: "Add code", exact: true }).click();
   }
   await expect(takeBack.getByRole("list", { name: "Still to scan" }).getByText("Done", { exact: true })).toHaveCount(2);
+  await nextStep(takeBack);
   await takeBack.getByLabel("Take photo", { exact: true }).setInputFiles({ name: "return.png", mimeType: "image/png", buffer: PNG });
   await expect(takeBack.getByRole("button", { name: "Record return", exact: true })).toBeDisabled();
   const remarks = "Multimeter and pliers returned in good condition.";
@@ -70,6 +78,7 @@ test("staff renew and return the seeded issued loan with asset and item scans", 
   await takeBack.getByRole("button", { name: "Record return", exact: true }).click();
   await expect(page.getByRole("heading", { level: 1 })).toContainText("Returned");
   await expect(takeBack).toBeHidden();
+  await expect(page.getByRole("region", { name: "Return recorded", exact: true })).toBeVisible();
   const evidence = page.getByRole("region", { name: "Evidence", exact: true });
   await expect(evidence.getByText(remarks, { exact: true })).toBeVisible();
   await expect(evidence.getByRole("img", { name: /^Returned photo 1,/ })).toBeVisible();

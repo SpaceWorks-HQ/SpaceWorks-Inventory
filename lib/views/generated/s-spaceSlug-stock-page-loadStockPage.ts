@@ -4,6 +4,7 @@ import { viewDto } from "@/lib/frontend/view";
 import type { Prisma } from "@prisma/client";
 import { descendantIds, locationOptions, PAGE_SIZE, pageOf, param } from "@/lib/catalogue/views";
 import { prisma } from "@/lib/db";
+import { showsEmptyBin } from "@/lib/desk/eggs";
 import { canAdjustStock, canViewReports, requireSpace } from "@/lib/permissions";
 const place = (location: { name: string; code: string } | null) => (location ? `${location.name} (${location.code})` : null);
 async function balances(spaceId: string, q: string, locationId: string, page: number) {
@@ -54,5 +55,6 @@ const filtered = Boolean(q || locationId);
 const rows = stock.rows;
 const total = stock.total;
 const pageCount = Math.max(1, Math.ceil(total / PAGE_SIZE));
-return viewDto({ view, q, locationId, page, locations, shelf, slug, canAct, canExport, filtered, rows, total, pageCount } as const);
+const emptyBin = showsEmptyBin({ locationId, q }, rows.length);
+return viewDto({ view, q, locationId, page, locations, shelf, slug, canAct, canExport, filtered, rows, total, pageCount, emptyBin } as const);
 }

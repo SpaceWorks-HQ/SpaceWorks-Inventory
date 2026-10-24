@@ -11,6 +11,8 @@ import { countFormOptions } from "@/lib/desk/counts";
 import { countDetail } from "@/lib/desk/countsDetail";
 import { groupByLocation } from "@/lib/desk/countsLogic";
 import { formatDayTime } from "@/lib/format/datetime";
+import { Patch } from "@/components/brand/Patch";
+import { perfectCount } from "@/lib/desk/eggs";
 import { canCountStock, canManageCounts, requireSpace } from "@/lib/permissions";
 
 function notice(count: { status: string; blind: boolean; threshold: number | null; fourEyes: { blocked: boolean }; totals: { stale: number } }, canManage: boolean) {
@@ -44,6 +46,7 @@ export default async function CountPage({ params }: PageProps<"/s/[spaceSlug]/co
   ];
   const header = { reference: count.reference, name: count.name, status: count.status, blind: count.blind, threshold: count.threshold, blocked: count.fourEyes.blocked, stale: count.totals.stale };
   const lines = count.lines;
+  const perfect = perfectCount({ status: count.status, lines });
 
   return (
     <DetailLayout
@@ -54,6 +57,13 @@ export default async function CountPage({ params }: PageProps<"/s/[spaceSlug]/co
       <div className="flex flex-col gap-6">
         {callout ? <Callout tone={callout.tone} title={callout.title}>{callout.text}</Callout> : null}
         <CountActions slug={slug} countId={countId} status={header.status} canCount={canCount} canManage={canManage} blocked={header.blocked} staleLines={header.stale} recordedLines={count.totals.counted} missingTools={count.missingTools} />
+        {perfect ? (
+          <Card as="section" aria-label="Every line matched" className="flex flex-col items-center gap-2 text-center" data-egg="perfect-count">
+            <Patch pose="sneeze" size={96} />
+            <h2 className="text-h4 text-ink">Every line matched</h2>
+            <p className="text-body-ui text-ink-secondary">Nothing to adjust: what&rsquo;s on the shelves is what the books say.</p>
+          </Card>
+        ) : null}
         {showVariances ? <VarianceTable lines={lines} threshold={header.threshold} /> : null}
         {editable ? <ScanCountCard slug={slug} countId={countId} locations={locations} /> : null}
         <CountSheet slug={slug} countId={countId} groups={groups} editable={editable} />

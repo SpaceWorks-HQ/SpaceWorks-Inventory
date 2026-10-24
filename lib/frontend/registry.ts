@@ -158,37 +158,40 @@ import { addSuggestionAction as endpoint154 } from "@/app/actions/purchases";
 import { movePurchaseAction as endpoint155 } from "@/app/actions/purchases";
 import { receivePurchaseAction as endpoint156 } from "@/app/actions/purchases";
 import { resolveScanAction as endpoint157 } from "@/app/actions/scan";
-import { updateSettingsSection as endpoint158 } from "@/app/actions/settings";
-import { uploadSpaceLogoAction as endpoint159 } from "@/app/actions/settings";
-import { removeSpaceLogoAction as endpoint160 } from "@/app/actions/settings";
-import { deleteSpaceAction as endpoint161 } from "@/app/actions/settings";
-import { saveCategoryAction as endpoint162 } from "@/app/actions/settings";
-import { deleteCategoryAction as endpoint163 } from "@/app/actions/settings";
-import { saveUnitAction as endpoint164 } from "@/app/actions/settings";
-import { deleteUnitAction as endpoint165 } from "@/app/actions/settings";
-import { saveSupplierAction as endpoint166 } from "@/app/actions/settings";
-import { setSupplierArchivedAction as endpoint167 } from "@/app/actions/settings";
-import { saveLocationPlanAction as endpoint168 } from "@/app/actions/setup";
-import { addCategoriesAction as endpoint169 } from "@/app/actions/setup";
-import { addUnitAction as endpoint170 } from "@/app/actions/setup";
-import { finishSetupAction as endpoint171 } from "@/app/actions/setup";
-import { joinSpaceAction as endpoint172 } from "@/app/actions/spaces";
-import { receiveStockAction as endpoint173 } from "@/app/actions/stock";
-import { adjustStockAction as endpoint174 } from "@/app/actions/stock";
-import { moveStockAction as endpoint175 } from "@/app/actions/stock";
-import { quarantineStockAction as endpoint176 } from "@/app/actions/stock";
-import { resolveQuarantineAction as endpoint177 } from "@/app/actions/stock";
-import { changeAssetStateAction as endpoint178 } from "@/app/actions/stock";
-import { moveAssetAction as endpoint179 } from "@/app/actions/stock";
-import { requestTransferAction as endpoint180 } from "@/app/actions/transfers";
-import { approveTransferAction as endpoint181 } from "@/app/actions/transfers";
-import { rejectTransferAction as endpoint182 } from "@/app/actions/transfers";
-import { cancelTransferAction as endpoint183 } from "@/app/actions/transfers";
-import { dispatchTransferAction as endpoint184 } from "@/app/actions/transfers";
-import { receiveTransferAction as endpoint185 } from "@/app/actions/transfers";
-import { declareMissingAction as endpoint186 } from "@/app/actions/transfers";
-import { sendBackAction as endpoint187 } from "@/app/actions/transfers";
-import { receiveReturnAction as endpoint188 } from "@/app/actions/transfers";
+import { resolveIssueScanAction as endpoint158 } from "@/app/actions/scan";
+import { resolveDispatchScanAction as endpoint159 } from "@/app/actions/scan";
+import { resolveSelfCheckoutScanAction as endpoint160 } from "@/app/actions/scan";
+import { updateSettingsSection as endpoint161 } from "@/app/actions/settings";
+import { uploadSpaceLogoAction as endpoint162 } from "@/app/actions/settings";
+import { removeSpaceLogoAction as endpoint163 } from "@/app/actions/settings";
+import { deleteSpaceAction as endpoint164 } from "@/app/actions/settings";
+import { saveCategoryAction as endpoint165 } from "@/app/actions/settings";
+import { deleteCategoryAction as endpoint166 } from "@/app/actions/settings";
+import { saveUnitAction as endpoint167 } from "@/app/actions/settings";
+import { deleteUnitAction as endpoint168 } from "@/app/actions/settings";
+import { saveSupplierAction as endpoint169 } from "@/app/actions/settings";
+import { setSupplierArchivedAction as endpoint170 } from "@/app/actions/settings";
+import { saveLocationPlanAction as endpoint171 } from "@/app/actions/setup";
+import { addCategoriesAction as endpoint172 } from "@/app/actions/setup";
+import { addUnitAction as endpoint173 } from "@/app/actions/setup";
+import { finishSetupAction as endpoint174 } from "@/app/actions/setup";
+import { joinSpaceAction as endpoint175 } from "@/app/actions/spaces";
+import { receiveStockAction as endpoint176 } from "@/app/actions/stock";
+import { adjustStockAction as endpoint177 } from "@/app/actions/stock";
+import { moveStockAction as endpoint178 } from "@/app/actions/stock";
+import { quarantineStockAction as endpoint179 } from "@/app/actions/stock";
+import { resolveQuarantineAction as endpoint180 } from "@/app/actions/stock";
+import { changeAssetStateAction as endpoint181 } from "@/app/actions/stock";
+import { moveAssetAction as endpoint182 } from "@/app/actions/stock";
+import { requestTransferAction as endpoint183 } from "@/app/actions/transfers";
+import { approveTransferAction as endpoint184 } from "@/app/actions/transfers";
+import { rejectTransferAction as endpoint185 } from "@/app/actions/transfers";
+import { cancelTransferAction as endpoint186 } from "@/app/actions/transfers";
+import { dispatchTransferAction as endpoint187 } from "@/app/actions/transfers";
+import { receiveTransferAction as endpoint188 } from "@/app/actions/transfers";
+import { declareMissingAction as endpoint189 } from "@/app/actions/transfers";
+import { sendBackAction as endpoint190 } from "@/app/actions/transfers";
+import { receiveReturnAction as endpoint191 } from "@/app/actions/transfers";
 export const viewReaders = Object.freeze({
 "account-page:loadAccountPage": endpoint0,
 "admin-mfa-page:loadAdminMfaPage": endpoint1,
@@ -350,35 +353,38 @@ export const backendActions = Object.freeze({
 "purchases:movePurchaseAction": endpoint155,
 "purchases:receivePurchaseAction": endpoint156,
 "scan:resolveScanAction": endpoint157,
-"settings:updateSettingsSection": endpoint158,
-"settings:uploadSpaceLogoAction": endpoint159,
-"settings:removeSpaceLogoAction": endpoint160,
-"settings:deleteSpaceAction": endpoint161,
-"settings:saveCategoryAction": endpoint162,
-"settings:deleteCategoryAction": endpoint163,
-"settings:saveUnitAction": endpoint164,
-"settings:deleteUnitAction": endpoint165,
-"settings:saveSupplierAction": endpoint166,
-"settings:setSupplierArchivedAction": endpoint167,
-"setup:saveLocationPlanAction": endpoint168,
-"setup:addCategoriesAction": endpoint169,
-"setup:addUnitAction": endpoint170,
-"setup:finishSetupAction": endpoint171,
-"spaces:joinSpaceAction": endpoint172,
-"stock:receiveStockAction": endpoint173,
-"stock:adjustStockAction": endpoint174,
-"stock:moveStockAction": endpoint175,
-"stock:quarantineStockAction": endpoint176,
-"stock:resolveQuarantineAction": endpoint177,
-"stock:changeAssetStateAction": endpoint178,
-"stock:moveAssetAction": endpoint179,
-"transfers:requestTransferAction": endpoint180,
-"transfers:approveTransferAction": endpoint181,
-"transfers:rejectTransferAction": endpoint182,
-"transfers:cancelTransferAction": endpoint183,
-"transfers:dispatchTransferAction": endpoint184,
-"transfers:receiveTransferAction": endpoint185,
-"transfers:declareMissingAction": endpoint186,
-"transfers:sendBackAction": endpoint187,
-"transfers:receiveReturnAction": endpoint188,
+"scan:resolveIssueScanAction": endpoint158,
+"scan:resolveDispatchScanAction": endpoint159,
+"scan:resolveSelfCheckoutScanAction": endpoint160,
+"settings:updateSettingsSection": endpoint161,
+"settings:uploadSpaceLogoAction": endpoint162,
+"settings:removeSpaceLogoAction": endpoint163,
+"settings:deleteSpaceAction": endpoint164,
+"settings:saveCategoryAction": endpoint165,
+"settings:deleteCategoryAction": endpoint166,
+"settings:saveUnitAction": endpoint167,
+"settings:deleteUnitAction": endpoint168,
+"settings:saveSupplierAction": endpoint169,
+"settings:setSupplierArchivedAction": endpoint170,
+"setup:saveLocationPlanAction": endpoint171,
+"setup:addCategoriesAction": endpoint172,
+"setup:addUnitAction": endpoint173,
+"setup:finishSetupAction": endpoint174,
+"spaces:joinSpaceAction": endpoint175,
+"stock:receiveStockAction": endpoint176,
+"stock:adjustStockAction": endpoint177,
+"stock:moveStockAction": endpoint178,
+"stock:quarantineStockAction": endpoint179,
+"stock:resolveQuarantineAction": endpoint180,
+"stock:changeAssetStateAction": endpoint181,
+"stock:moveAssetAction": endpoint182,
+"transfers:requestTransferAction": endpoint183,
+"transfers:approveTransferAction": endpoint184,
+"transfers:rejectTransferAction": endpoint185,
+"transfers:cancelTransferAction": endpoint186,
+"transfers:dispatchTransferAction": endpoint187,
+"transfers:receiveTransferAction": endpoint188,
+"transfers:declareMissingAction": endpoint189,
+"transfers:sendBackAction": endpoint190,
+"transfers:receiveReturnAction": endpoint191,
 });

@@ -12,6 +12,26 @@ build is tagged `v<version>-main.<run>.<commit>`; see
 
 ### Added
 
+- **Paged desk flows.** Issue, return, self-return, self-checkout, dispatch,
+  receive and receive-return are a stepper: one step at a time, Next only
+  when the step is ready, earlier steps reachable from the indicator, and a
+  "done" card on the record page afterwards.
+- **Scans beyond the preloaded list.** Issue and dispatch scanners ask the
+  server about codes they didn't preload, so large spaces are no longer
+  capped at 500 tags or 300 containers.
+- **Self-checkout switched off** now explains why to members (and links to
+  the catalogue) instead of answering not-found; its scanner also resolves
+  codes beyond the 300 items and 100 tags it preloads.
+- **Easter eggs** (docs/DESIGN.md): Patch walks the 404 page (trots to the
+  pointer, paw prints, naps, hearts when patted), mood tiles wiggle, Patch
+  peeks out of an empty shelf's bin, sneezes at a count with no variance and
+  trots home when a loan comes back in full.
+- **Motion:** the colour-mode switch grows the new mode as a feathered circle
+  from the pressed toggle or Appearance option (720ms; a cross-fade without
+  View Transitions; instant under reduced motion), buttons settle when
+  pressed, and the QR dialog shows a skeleton plate while it loads.
+- README in the Space Works Events layout: hosting, updates, split hosting,
+  free cloud hosting, commands and licence.
 - **Desk and member UI** for lending (approve, issue and return with scans,
   photos and remarks; renewals; incidents), "My loans", the borrow catalogue
   with a request tray and self-checkout, transfers (approve, dispatch,
@@ -35,6 +55,11 @@ build is tagged `v<version>-main.<run>.<commit>`; see
   correctly to screen readers; the inbox badge no longer covers its label.
 - The split frontend build: the missing `frontend/pure-exports.json`, Windows
   paths in its scripts, and a contract hash that depended on line endings.
+- The first-run setup browser test had never passed (it looked for the wrong
+  element and was skipped on retry); browser sign-ins now retry a click that
+  landed before the page hydrated, and the development server is warmed up
+  before the journeys start. The split-hosting guide's stale page-coverage
+  limitation is corrected.
 
 ## [0.1.0] - Unreleased (first release candidate)
 

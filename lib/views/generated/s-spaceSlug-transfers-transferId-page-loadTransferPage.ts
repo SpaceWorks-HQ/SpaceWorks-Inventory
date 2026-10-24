@@ -8,9 +8,11 @@ import { allowedTransferActions } from "@/lib/desk/transferLogic";
 import { pickableAssets, transferDetail } from "@/lib/desk/transfers";
 import { formatDayShort, formatDayTime, formatRelativeTime } from "@/lib/format/datetime";
 import { findSpaceForUser, requireSpace } from "@/lib/permissions";
+import { doneFor } from "@/lib/desk/stepper";
 const SIDE_WORD = { source: "Sending", destination: "Receiving", both: "Sending and receiving" } as const;
-export async function loadTransferPage({ params }: PageProps<"/s/[spaceSlug]/transfers/[transferId]">) {
+export async function loadTransferPage({ params, searchParams }: PageProps<"/s/[spaceSlug]/transfers/[transferId]">) {
 const { spaceSlug, transferId } = await params;
+const query = await searchParams;
 const { space, membership, user } = await requireSpace(spaceSlug, "STAFF");
 const transfer = await transferDetail(space.slug, space.id, transferId);
 if (!transfer) notFound();
@@ -46,8 +48,9 @@ const notice = transfer.status === "REJECTED" ? `Rejected: ${transfer.rejectionR
 const timeline = transfer.events.map((event) => ({ id: event.id, title: event.title, detail: event.detail, actorName: transfer.betweenSpaces ? `${event.actorName}, ${event.spaceName}` : event.actorName, whenLabel: formatRelativeTime(event.createdAt, tz) }));
 const evidence = transfer.evidence.map((item) => ({ id: item.id, kindLabel: item.kindLabel, remarks: item.remarks, scannedCount: item.scannedCount, actorName: item.actorName, whenLabel: formatDayTime(item.createdAt, tz), photos: item.photos }));
 const status = transfer.status;
+const done = doneFor(query.done, ["dispatch", "receive", "receive-return"], status);
 const transferIdValue = transfer.id;
 const destLocationId = transfer.destLocationId;
 const sourceLocationId = transfer.sourceLocationId;
-return viewDto({ transfer, slug, allowed, lines, locations, pickable, minPhotos, otherHref, otherName, reference, facts, notice, timeline, evidence, status, transferIdValue, destLocationId, sourceLocationId } as const);
+return viewDto({ transfer, slug, allowed, lines, locations, pickable, minPhotos, otherHref, otherName, reference, facts, notice, timeline, evidence, status, done, transferIdValue, destLocationId, sourceLocationId } as const);
 }

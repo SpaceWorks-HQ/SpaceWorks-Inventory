@@ -25,6 +25,13 @@ the release workflows, the background job runtime and the split-frontend
 gateway) was adapted from the Space Works Workspace project, which is also
 licensed AGPL-3.0-or-later and copyright Space Works contributors.
 
+The colour-mode reveal (components/providers.tsx, lib/colorModeReveal.ts) and
+Patch's walk on the 404 page (components/feedback/NotFoundPet.tsx,
+lib/patch/pet.ts, app/styles/patch.css) were adapted from the Space Works
+Events project (via Space Works Machines), also AGPL-3.0-or-later and copyright
+Space Works contributors. Patch's artwork comes from the Space Works design
+system (SpaceWorks-Design, mascot/compressed/walk).
+
 
 Fonts
 -----

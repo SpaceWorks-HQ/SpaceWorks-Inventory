@@ -46,9 +46,9 @@ Brand and UI rules come only from [SpaceWorks-Design](https://spaceworks-hq.gith
   (branch protection + `.github/CODEOWNERS`). Branch from `dev`, open PRs into `dev`.
 - Work in phases; each phase ends with lint, typecheck and tests green, a commit and a push to `dev`.
 - `CLAUDE.md` and `AGENTS.md` are byte-identical; edit one, copy it over the other.
-- The original build was done by Claude Code sessions. Since 2026-10-23 (phases I1–I5) Claude Code drives
-  Codex: Codex implements and reviews (`codex exec review --uncommitted`), Claude verifies every step and
-  runs the gates. Any coding agent can continue from this file plus `CLAUDE.md`.
+- The original build was done by Claude Code sessions. Phases I1–I5 (2026-10-23) were Claude Code driving
+  Codex; from 2026-10-24 (I6 on) the rest of the build is Claude Code alone, which writes all code and
+  tests and reviews every phase adversarially. Any coding agent can continue from this file plus `CLAUDE.md`.
 
 ## Status (2026-10-24, version 0.2.0)
 
@@ -117,15 +117,25 @@ endings.
 5. ~~VERSION and CHANGELOG~~ Done in I5 (0.2.0). Push `dev` and open the `dev → main` PR when the owner
    has done QA (commits since 2026-10-23 are local only).
 
-## Open questions (conservative choices made, owner to confirm)
+**Phase I6 (2026-10-24, Claude only):** desk flows are paged (`components/desk/DeskStepper.tsx`: one step
+at a time, Next when ready, a "done" card on the record page via `?done=<kind>`, guarded by the record's
+status); issue and dispatch scanners resolve codes they didn't preload on the server
+(`lib/desk/handoverScans.ts`, tenant-scoped, rate limited), so large spaces are no longer capped at 500
+tags; self-checkout explains itself when it is switched off and its scanner resolves codes on demand
+too. Also in I6 (owner update 2): the README in the Events layout, Patch easter eggs (404 walk, mood-tile
+wiggle, empty bin, perfect count, home again; `docs/DESIGN.md` 4.14), the Events colour-mode reveal on the
+toggle and the Appearance card (`lib/colorModeReveal.ts`, `sw-` names), pressed buttons and a skeleton
+primitive (no route-level `loading.tsx` inside spaces: streaming would turn not-found refusals into 200s). Every e2e test now really runs: 00-setup had always failed (and been skipped on retry).
 
-- 0.1.0 was never released; this work is versioned 0.2.0. Fold it into 0.1.0 if preferred.
-- Self-checkout answers not-found when it is switched off (the catalogue only links to it when on), as
-  other disabled areas do, rather than explaining.
-- Issue scan catalogues hold up to 500 eligible tags per loan; codes beyond that are not resolved on demand.
+## Decisions (owner, 2026-10-24)
+
+- This work is version 0.2.0 (0.1.0 was never released); decided, not folded into 0.1.0.
+- Everything is built in full without pausing for owner decisions; commits stay local until owner QA.
 - `npm run test:e2e` on Windows runs `npm run dev`, whose Fast Refresh can reload pages mid-test; the
   production harness (`test:e2e:vps` / `test:e2e:split -- --external-services --demo`, in a Linux
-  container) is the authoritative browser gate.
+  container) is the authoritative browser gate. Every e2e test runs in at least one mode: 00-setup on a
+  fresh database (`--external-services` without `--demo`), the magic link on the dev server,
+  split-hosting in split mode.
 
 ## Run it locally
 

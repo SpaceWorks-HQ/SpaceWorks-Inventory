@@ -13,11 +13,14 @@ import { allowedTransferActions } from "@/lib/desk/transferLogic";
 import { pickableAssets, transferDetail } from "@/lib/desk/transfers";
 import { formatDayShort, formatDayTime, formatRelativeTime } from "@/lib/format/datetime";
 import { findSpaceForUser, requireSpace } from "@/lib/permissions";
+import { HandoverDone } from "@/components/desk/HandoverDone";
+import { doneFor } from "@/lib/desk/stepper";
 
 const SIDE_WORD = { source: "Sending", destination: "Receiving", both: "Sending and receiving" } as const;
 
-export default async function TransferPage({ params }: PageProps<"/s/[spaceSlug]/transfers/[transferId]">) {
+export default async function TransferPage({ params, searchParams }: PageProps<"/s/[spaceSlug]/transfers/[transferId]">) {
   const { spaceSlug, transferId } = await params;
+  const query = await searchParams;
   const { space, membership, user } = await requireSpace(spaceSlug, "STAFF");
   const transfer = await transferDetail(space.slug, space.id, transferId);
   if (!transfer) notFound();
@@ -53,6 +56,7 @@ export default async function TransferPage({ params }: PageProps<"/s/[spaceSlug]
   const timeline = transfer.events.map((event) => ({ id: event.id, title: event.title, detail: event.detail, actorName: transfer.betweenSpaces ? `${event.actorName}, ${event.spaceName}` : event.actorName, whenLabel: formatRelativeTime(event.createdAt, tz) }));
   const evidence = transfer.evidence.map((item) => ({ id: item.id, kindLabel: item.kindLabel, remarks: item.remarks, scannedCount: item.scannedCount, actorName: item.actorName, whenLabel: formatDayTime(item.createdAt, tz), photos: item.photos }));
   const status = transfer.status;
+  const done = doneFor(query.done, ["dispatch", "receive", "receive-return"], status);
   const transferIdValue = transfer.id;
   const destLocationId = transfer.destLocationId;
   const sourceLocationId = transfer.sourceLocationId;
@@ -72,6 +76,7 @@ export default async function TransferPage({ params }: PageProps<"/s/[spaceSlug]
       }
     >
       <div className="flex flex-col gap-6">
+        {done ? <HandoverDone kind={done} dismissHref={`/s/${slug}/transfers/${transferIdValue}`} /> : null}
         {notice ? <Callout tone={status === "REJECTED" || status === "CANCELLED" ? "warning" : "info"}>{notice}</Callout> : null}
         <TransferSteps slug={slug} transferId={transferIdValue} allowed={allowed} lines={lines} locations={locations} pickable={pickable} minPhotos={minPhotos} destLocationId={destLocationId} sourceLocationId={sourceLocationId} />
         <TransferLinesTable lines={lines} />

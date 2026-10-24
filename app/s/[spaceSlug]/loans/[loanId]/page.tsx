@@ -1,5 +1,6 @@
 import { notFound } from "next/navigation";
 import { EvidenceGallery } from "@/components/desk/EvidenceGallery";
+import { HandoverDone } from "@/components/desk/HandoverDone";
 import { Timeline } from "@/components/desk/Timeline";
 import { LoanStatusChip } from "@/components/inventory/StatusChips";
 import { ApproveCard } from "@/components/loans/ApproveCard";
@@ -15,6 +16,8 @@ import { DetailLayout } from "@/components/ui/layouts";
 import { loanRef } from "@/lib/catalogue/references";
 import { prisma } from "@/lib/db";
 import { dateInputValue } from "@/lib/desk/dates";
+import { doneFor } from "@/lib/desk/stepper";
+import { trotsHome } from "@/lib/desk/eggs";
 import { evidenceFor } from "@/lib/desk/evidence";
 import { issueScanCatalog, loanDetail, loanTimeline } from "@/lib/desk/loansDetail";
 import { incidentViews, lineRows, loanFacts } from "@/lib/desk/loansView";
@@ -29,8 +32,9 @@ import { issuePaymentReady } from "@/lib/payments/readiness";
 import { getLoanPaymentView } from "@/lib/payments/view";
 import { canApproveLoans, canIssueLoans, canResolveIncidents, requireSpace } from "@/lib/permissions";
 
-export default async function LoanPage({ params }: PageProps<"/s/[spaceSlug]/loans/[loanId]">) {
+export default async function LoanPage({ params, searchParams }: PageProps<"/s/[spaceSlug]/loans/[loanId]">) {
   const { spaceSlug, loanId } = await params;
+  const query = await searchParams;
   const { space, membership } = await requireSpace(spaceSlug, "STAFF");
   const loan = await loanDetail(space.id, loanId);
   if (!loan) notFound();
@@ -39,6 +43,7 @@ export default async function LoanPage({ params }: PageProps<"/s/[spaceSlug]/loa
   const slug = space.slug;
   const reference = loanRef(loan.number);
   const status = loan.status;
+  const done = doneFor(query.done, ["issue", "return"], status);
   const overdue = isOverdue(loan, now);
   const approver = canApproveLoans(membership);
   const desk = canIssueLoans(membership);
@@ -97,6 +102,7 @@ export default async function LoanPage({ params }: PageProps<"/s/[spaceSlug]/loa
       }
     >
       <div className="flex flex-col gap-6">
+        {done ? <HandoverDone kind={done} dismissHref={`/s/${slug}/loans/${loan.id}`} homeAgain={trotsHome(done, status)} /> : null}
         {closedNote ? <Callout tone="info" title={status === "REJECTED" ? "Rejected" : "Cancelled"}>{closedNote}</Callout> : null}
         {status === "REQUESTED" && approver ? <ApproveCard slug={slug} loanId={loan.id} lines={approveLines} eligibility={eligibilityProblem} /> : null}
         {status === "APPROVED" && desk && catalog ? (

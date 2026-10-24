@@ -37,7 +37,8 @@ test("a member opens self-checkout", async ({ page }) => {
   await expect(page.getByRole("heading", { name: "Self-checkout", level: 1 })).toBeVisible();
   const checkout = page.getByRole("region", { name: "Self-checkout", exact: true });
   await expect(checkout.getByLabel("Code under the label", { exact: true })).toBeVisible();
-  await expect(checkout.getByRole("button", { name: "Check out", exact: true })).toBeDisabled();
+  await expect(checkout.getByText("Step 1 of 3", { exact: true })).toBeVisible();
+  await expect(checkout.getByRole("button", { name: "Next: Check the lines", exact: true })).toBeDisabled();
 });
 
 test("member loans work at phone width without sideways scroll", async ({ page }) => {

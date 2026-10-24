@@ -6,6 +6,7 @@ import { createContext, useContext, useEffect, useMemo, useSyncExternalStore } f
 import { flushSync } from "react-dom";
 import { ToastProvider } from "@/components/feedback/ToastProvider";
 import { TooltipProvider } from "@/components/ui/menu";
+import { FADE_MS, REVEAL_DURATION_MS, REVEAL_EASING, revealOrigin, revealPlan, revealRadius } from "@/lib/colorModeReveal";
 import { COLOR_MODE_COOKIE, COLOR_MODE_STORAGE_KEY, type ColorMode } from "@/lib/colorMode";
 
 export type ColorModePreference = ColorMode | "system";
@@ -57,56 +58,55 @@ function applyColorMode(next: ColorMode) {
   root.style.colorScheme = next;
 }
 
-function prefersReducedMotion() {
-  return window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-}
-
-/** The feathered edge animates a registered custom property (see globals.css). */
+/** The feathered edge animates a registered custom property (see app/styles/global-elements.css). */
 function supportsFeatheredReveal() {
   return typeof CSS !== "undefined" && typeof CSS.registerProperty === "function" && CSS.supports("mask-image", "radial-gradient(circle, currentColor, transparent)");
 }
 
 /**
- * Switch modes in a single frame, then animate: a soft-edged circle grows from
- * the toggle where View Transitions are supported, otherwise a gentle colour
- * cross-fade. Reduced-motion users get an instant switch.
+ * Switch modes in a single frame, then animate (lib/colorModeReveal.ts): a
+ * soft-edged circle grows from the pressed control where View Transitions are
+ * supported, otherwise a gentle colour cross-fade. Reduced motion: instant.
  */
 function transitionColorMode(commit: () => void, origin?: ColorModeOrigin) {
   const root = document.documentElement;
-  if (prefersReducedMotion()) {
-    commit();
-    return;
-  }
   type ViewTransitionDocument = Document & { startViewTransition?: (update: () => void | Promise<void>) => { ready: Promise<void>; finished: Promise<void> } };
   const doc = document as ViewTransitionDocument;
-  if (typeof doc.startViewTransition !== "function") {
-    root.classList.add("yy-theme-fade");
+  const plan = revealPlan({
+    reducedMotion: window.matchMedia("(prefers-reduced-motion: reduce)").matches,
+    viewTransitions: typeof doc.startViewTransition === "function",
+    featheredMask: supportsFeatheredReveal(),
+  });
+  if (plan === "instant") {
     commit();
-    window.setTimeout(() => root.classList.remove("yy-theme-fade"), 160);
     return;
   }
-  const x = origin?.x ?? window.innerWidth - 40;
-  const y = origin?.y ?? 32;
-  const feather = 160;
-  const radius = Math.hypot(Math.max(x, window.innerWidth - x), Math.max(y, window.innerHeight - y)) + feather;
-  const feathered = supportsFeatheredReveal();
-  root.style.setProperty("--yy-reveal-x", `${x}px`);
-  root.style.setProperty("--yy-reveal-y", `${y}px`);
-  root.classList.add(feathered ? "yy-theme-reveal-soft" : "yy-theme-reveal");
+  if (plan === "fade" || !doc.startViewTransition) {
+    root.classList.add("sw-theme-fade");
+    commit();
+    window.setTimeout(() => root.classList.remove("sw-theme-fade"), FADE_MS + 40);
+    return;
+  }
+  const viewport = { width: window.innerWidth, height: window.innerHeight };
+  const { x, y } = revealOrigin(origin, viewport);
+  const radius = revealRadius({ x, y }, viewport);
+  root.style.setProperty("--sw-reveal-x", `${x}px`);
+  root.style.setProperty("--sw-reveal-y", `${y}px`);
+  root.classList.add(plan === "reveal-soft" ? "sw-theme-reveal-soft" : "sw-theme-reveal");
   const cleanUp = () => {
-    root.classList.remove("yy-theme-reveal", "yy-theme-reveal-soft");
-    root.style.removeProperty("--yy-reveal-x");
-    root.style.removeProperty("--yy-reveal-y");
+    root.classList.remove("sw-theme-reveal", "sw-theme-reveal-soft");
+    root.style.removeProperty("--sw-reveal-x");
+    root.style.removeProperty("--sw-reveal-y");
   };
   const transition = doc.startViewTransition(commit);
   // Hold the final frame: without fill the mask snaps back to 0 for a frame
   // before the transition tears down, flashing the old mode.
-  const timing: KeyframeAnimationOptions = { duration: 240, easing: "cubic-bezier(0.45, 0, 0.2, 1)", fill: "forwards", pseudoElement: "::view-transition-new(root)" };
+  const timing: KeyframeAnimationOptions = { duration: REVEAL_DURATION_MS, easing: REVEAL_EASING, fill: "forwards", pseudoElement: "::view-transition-new(root)" };
   transition.ready
     .then(() => {
       root.animate(
-        feathered
-          ? { "--yy-reveal": ["0px", `${radius}px`] }
+        plan === "reveal-soft"
+          ? { "--sw-reveal": ["0px", `${radius}px`] }
           : { clipPath: [`circle(0px at ${x}px ${y}px)`, `circle(${radius}px at ${x}px ${y}px)`] },
         timing,
       );

@@ -1,5 +1,5 @@
 import { expect, test } from "@playwright/test";
-import { DEMO, PNG, SPACE, needsDemo, signIn } from "./helpers";
+import { DEMO, PNG, SPACE, needsDemo, nextStep, signIn } from "./helpers";
 import { recordId, transferLabelCodes } from "./labels";
 
 needsDemo();
@@ -23,15 +23,18 @@ test("a manager approves an internal transfer and staff dispatch and receive it"
   expect(codes).toHaveLength(1);
   const code = codes[0]!;
   const dispatch = page.getByRole("region", { name: "Dispatch", exact: true });
-  await expect(dispatch.getByRole("button", { name: "Dispatch 2 units", exact: true })).toBeDisabled();
+  await nextStep(dispatch);
+  await expect(dispatch.getByRole("button", { name: /^Next: / })).toBeDisabled();
   await dispatch.getByLabel("Code under the label", { exact: true }).fill(code);
   await dispatch.getByRole("button", { name: "Add code", exact: true }).click();
   await expect(dispatch.getByText("Ready", { exact: true })).toBeVisible();
+  await nextStep(dispatch);
   await dispatch.getByLabel("Take photo", { exact: true }).setInputFiles({ name: "dispatch.png", mimeType: "image/png", buffer: PNG });
   const dispatchRemarks = "Two sealed spools checked before moving to the electronics shelf.";
   await dispatch.getByRole("textbox", { name: /^Remarks/ }).fill(dispatchRemarks);
   await dispatch.getByLabel("Carrier").fill("Hand carry");
   await dispatch.getByRole("button", { name: "Dispatch 2 units", exact: true }).click();
+  await expect(page.getByRole("region", { name: "Dispatched", exact: true }).getByRole("status")).toContainText("in transit");
   await expect(page.getByRole("heading", { level: 1 }).locator("..").getByText("In transit", { exact: true })).toBeVisible();
   await expect(page.getByRole("region", { name: "Timeline", exact: true }).getByText("Dispatched (2 units)", { exact: true })).toBeVisible();
   await expect(page.getByRole("region", { name: "Evidence", exact: true }).getByText(dispatchRemarks, { exact: true })).toBeVisible();
@@ -39,12 +42,15 @@ test("a manager approves an internal transfer and staff dispatch and receive it"
   const receive = page.getByRole("region", { name: "Receive", exact: true });
   await receive.getByLabel("Code under the label", { exact: true }).fill(code);
   await receive.getByRole("button", { name: "Add code", exact: true }).click();
+  await nextStep(receive);
   await expect(receive.getByLabel("Good PLA filament, black, 1 kg received", { exact: true })).toHaveValue("2");
+  await nextStep(receive);
   await expect(receive.getByRole("combobox", { name: "Put it on", exact: true })).toContainText("ELAB-SA");
   await receive.getByLabel("Take photo", { exact: true }).setInputFiles({ name: "receipt.png", mimeType: "image/png", buffer: PNG });
   const receiveRemarks = "Both spools received intact on the destination shelf.";
   await receive.getByRole("textbox", { name: /^Remarks/ }).fill(receiveRemarks);
   await receive.getByRole("button", { name: "Receive 2 units", exact: true }).click();
+  await expect(page.getByRole("region", { name: "Received", exact: true }).getByRole("status")).toContainText("in stock");
   await expect(page.getByRole("heading", { level: 1 }).locator("..").getByText("Received", { exact: true })).toBeVisible();
   await expect(receive).toBeHidden();
   await expect(page.getByRole("region", { name: "Timeline", exact: true }).getByText("Received 2", { exact: true })).toBeVisible();

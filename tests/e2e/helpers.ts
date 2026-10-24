@@ -1,7 +1,7 @@
 import "./localEnv";
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import path from "node:path";
-import { expect, test, type APIRequestContext, type Page } from "@playwright/test";
+import { expect, test, type Locator, type Page } from "@playwright/test";
 
 export const SPACE = "/s/tinkerspace-kochi";
 export const DEMO = { owner: "anjali", admin: "rahul", manager: "meera", staff: "joel", member: "fathima", member2: "vivek", member3: "nisha" } as const;
@@ -33,10 +33,15 @@ export async function signIn(page: Page, who: string, callbackUrl?: string) {
   // The login page redirects authenticated users, so drop the previous role.
   await page.context().clearCookies();
   await page.goto(callbackUrl ? `/login?callbackUrl=${encodeURIComponent(callbackUrl)}` : "/login");
-  await page.getByLabel("Email", { exact: true }).fill(`${who}@tinkerspace.test`);
-  await page.getByLabel("Password", { exact: true }).fill(process.env.DEMO_PASSWORD!);
-  await page.getByRole("button", { name: "Sign in", exact: true }).click();
-  await page.waitForURL(callbackUrl ? `**${callbackUrl}` : "**/s/**");
+  // A click before the form hydrates does nothing (the fields have no names, so
+  // nothing is ever submitted natively); fill and sign in again until it goes through.
+  await expect(async () => {
+    if (!new URL(page.url()).pathname.startsWith("/login")) return;
+    await page.getByLabel("Email", { exact: true }).fill(`${who}@tinkerspace.test`);
+    await page.getByLabel("Password", { exact: true }).fill(process.env.DEMO_PASSWORD!);
+    await page.getByRole("button", { name: "Sign in", exact: true }).click();
+    await page.waitForURL(callbackUrl ? `**${callbackUrl}` : "**/s/**", { timeout: 15_000 });
+  }).toPass({ timeout: 50_000 });
   mkdirSync(AUTH_DIR, { recursive: true });
   writeFileSync(file, JSON.stringify(await page.context().cookies()), { mode: 0o600 });
 }
@@ -53,16 +58,12 @@ export async function expectNoHorizontalScroll(page: Page) {
   expect(overflow, `${new URL(page.url()).pathname} scrolls sideways by ${overflow}px; first culprit ${culprit}`).toBeLessThanOrEqual(1);
 }
 
+/** Move a paged desk flow (components/desk/DeskStepper.tsx) to its next step. */
+export async function nextStep(flow: Locator) {
+  const next = flow.getByRole("button", { name: /^Next: / });
+  await expect(next).toBeEnabled();
+  await next.click();
+}
+
 /** A tiny valid PNG for photo evidence uploads. */
 export const PNG = Buffer.from("iVBORw0KGgoAAAANSUhEUgAAAAgAAAAICAIAAABLbSncAAAAEklEQVR4nGP4z8CAFWEXHbQSACj/P8Fu7N9hAAAAAElFTkSuQmCC", "base64");
-
-/**
- * Deliver queued email now, the way the free-hosting cron does
- * (`POST /api/internal/outbox?run=inline`), instead of waiting up to a minute
- * for the development worker's next run.
- */
-export async function deliverOutbox(request: APIRequestContext) {
-  const secret = process.env.CRON_SECRET;
-  if (!secret) return;
-  await request.post("/api/internal/outbox?run=inline", { headers: { authorization: `Bearer ${secret}` } });
-}

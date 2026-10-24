@@ -1,10 +1,8 @@
-import "./localEnv";
-import { PrismaClient } from "@prisma/client";
+import { prisma } from "./demoDb";
 
 // The codes printed under the QR labels. At the desk a person types them off
 // the label when the camera can't read it; the journeys read them from the
 // seeded database instead (Playwright has no physical labels to look at).
-const prisma = new PrismaClient();
 
 /** The record id at the end of the current page's path. */
 export function recordId(url: string) {

@@ -1,21 +1,27 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { resolveDispatchScanAction } from "@/app/actions/scan";
 import { dispatchTransferAction } from "@/app/actions/transfers";
+import { DeskStepper } from "@/components/desk/DeskStepper";
 import { handoverFormData } from "@/components/desk/handoverForm";
 import { PhotoCapture } from "@/components/desk/PhotoCapture";
 import { QuantityInput } from "@/components/desk/QuantityInput";
 import { Scanner } from "@/components/desk/Scanner";
-import { StepHeading } from "@/components/desk/StepHeading";
 import { useActionRunner } from "@/components/desk/useActionRunner";
+import { useShowDone } from "@/components/desk/useShowDone";
 import { Button } from "@/components/ui/button";
-import { Callout, Card, CardHeader, Chip } from "@/components/ui/display";
+import { Chip } from "@/components/ui/display";
 import { Field, Input, Textarea } from "@/components/ui/field";
+import { evidenceHint } from "@/lib/desk/stepper";
 import { scanIndex, type PickableAsset, type TransferLineView } from "./types";
 
-/** Pick list → scan every label → photos → carrier details → dispatch. */
+type Extra = { code: string; label: string; itemId: string };
+
+/** Pick list → scan every label → photos and shipping → done. */
 export function DispatchFlow({ slug, transferId, lines, assets, minPhotos }: { slug: string; transferId: string; lines: TransferLineView[]; assets: PickableAsset[]; minPhotos: number }) {
   const { run, pending, error } = useActionRunner();
+  const showDone = useShowDone();
   const approved = lines.filter((line) => line.approved > 0);
   const [quantities, setQuantities] = useState<Record<string, number>>(() => Object.fromEntries(approved.map((line) => [line.id, line.approved])));
   const [codes, setCodes] = useState<string[]>([]);
@@ -24,13 +30,25 @@ export function DispatchFlow({ slug, transferId, lines, assets, minPhotos }: { s
   const [trackingRef, setTrackingRef] = useState("");
   const [expectedAt, setExpectedAt] = useState("");
   const [remarks, setRemarks] = useState("");
+  // Tags the server resolved on demand: the page preloads at most 500 pickable tags.
+  const [extra, setExtra] = useState<{ assets: Extra[]; unavailable: Record<string, string> }>({ assets: [], unavailable: {} });
 
   const { known, lineOf } = useMemo(() => {
+    const lineFor = (itemId: string) => approved.find((line) => line.itemId === itemId)?.id ?? "";
     return scanIndex([
       ...approved.filter((line) => line.tracking === "QUANTITY").map((line) => ({ code: line.itemCode, label: `${line.itemName} (${line.sku})`, lineId: line.id })),
-      ...assets.map((asset) => ({ code: asset.code, label: `${asset.itemName} · ${asset.tag}`, lineId: approved.find((line) => line.itemId === asset.itemId)?.id ?? "" })),
+      ...assets.map((asset) => ({ code: asset.code, label: `${asset.itemName} · ${asset.tag}`, lineId: lineFor(asset.itemId) })),
+      ...extra.assets.map((asset) => ({ code: asset.code, label: asset.label, lineId: lineFor(asset.itemId) })),
     ]);
-  }, [approved, assets]);
+  }, [approved, assets, extra.assets]);
+  const resolve = async (code: string) => {
+    const result = await resolveDispatchScanAction(slug, { recordId: transferId, code });
+    const scan = result.ok ? result.data : null;
+    if (!scan?.itemId) return null;
+    const itemId = scan.itemId;
+    setExtra((current) => scan.unavailable ? { ...current, unavailable: { ...current.unavailable, [code]: scan.label } } : { ...current, assets: [...current.assets, { code, label: scan.label, itemId }] });
+    return { label: scan.label, unavailable: scan.unavailable };
+  };
 
   const progress = approved.map((line) => {
     const scanned = codes.filter((code) => lineOf[code] === line.id).length;
@@ -40,58 +58,78 @@ export function DispatchFlow({ slug, transferId, lines, assets, minPhotos }: { s
     return { line, scanned, sending, ready };
   });
   const units = progress.reduce((sum, entry) => sum + entry.sending, 0);
-  const completed = [units > 0, units > 0 && progress.every((entry) => entry.ready || entry.sending === 0), photos.length >= Math.max(1, minPhotos)];
-  const canSend = completed.every(Boolean);
+  const plannedUnits = approved.reduce((sum, line) => sum + (line.tracking === "QUANTITY" ? quantities[line.id] ?? 0 : line.approved), 0);
+  const scansReady = units > 0 && progress.every((entry) => entry.ready || entry.sending === 0);
+  const photosReady = photos.length >= Math.max(1, minPhotos);
+
+  const pickList = (
+    <ul className="divide-y divide-line rounded-lg border border-line">
+      {progress.map(({ line, scanned, ready }) => (
+        <li key={line.id} className="flex min-h-14 flex-wrap items-center justify-between gap-3 px-4 py-2">
+          <span className="min-w-0">
+            <span className="block text-body-ui text-ink">{line.itemName}</span>
+            <span className="block text-caption text-ink-muted">
+              {line.tracking === "SERIALIZED" ? `${scanned} of ${line.approved} tags scanned` : `${line.approved} approved · ${scanned ? "label scanned" : "scan the label"}`}
+            </span>
+          </span>
+          <span className="flex items-center gap-2">
+            {line.tracking === "QUANTITY" ? (
+              <QuantityInput label={`Send how many ${line.itemName}`} value={quantities[line.id] ?? 0} max={line.approved} onChange={(value) => setQuantities((current) => ({ ...current, [line.id]: value }))} />
+            ) : null}
+            <Chip tone={ready ? "success" : "warning"} size="sm">{ready ? "Ready" : "To scan"}</Chip>
+          </span>
+        </li>
+      ))}
+    </ul>
+  );
 
   return (
-    <Card as="section" aria-label="Dispatch" className="flex flex-col gap-6">
-      <CardHeader title="Pick and dispatch" description="Scan each item label as you pick it, and the asset tag of every tool. Units you don't send are released." className="mb-0" />
-      <section className="flex flex-col gap-3">
-        <StepHeading step={1} completed={completed}>Pick list</StepHeading>
-        <ul className="divide-y divide-line rounded-lg border border-line">
-          {progress.map(({ line, scanned, ready }) => (
-            <li key={line.id} className="flex min-h-14 flex-wrap items-center justify-between gap-3 px-4 py-2">
-              <span className="min-w-0">
-                <span className="block text-body-ui text-ink">{line.itemName}</span>
-                <span className="block text-caption text-ink-muted">
-                  {line.tracking === "SERIALIZED" ? `${scanned} of ${line.approved} tags scanned` : `${line.approved} approved · ${scanned ? "label scanned" : "scan the label"}`}
-                </span>
-              </span>
-              <span className="flex items-center gap-2">
-                {line.tracking === "QUANTITY" ? (
-                  <QuantityInput label={`Send how many ${line.itemName}`} value={quantities[line.id] ?? 0} max={line.approved} onChange={(value) => setQuantities((current) => ({ ...current, [line.id]: value }))} />
-                ) : null}
-                <Chip tone={ready ? "success" : "warning"} size="sm">{ready ? "Ready" : "To scan"}</Chip>
-              </span>
-            </li>
-          ))}
-        </ul>
-      </section>
-      <section className="flex flex-col gap-3">
-        <StepHeading step={2} completed={completed}>Scan labels</StepHeading>
-        <Scanner codes={codes} onChange={setCodes} known={known} disabled={pending} />
-      </section>
-      <section className="flex flex-col gap-4">
-        <StepHeading step={3} completed={completed}>Photos and shipping</StepHeading>
-        <PhotoCapture files={photos} onChange={setPhotos} min={minPhotos} disabled={pending} />
-        <div className="grid gap-4 sm:grid-cols-2">
-          <Field label="Carrier" optional><Input value={carrier} maxLength={80} onChange={(event) => setCarrier(event.target.value)} placeholder="e.g. Hand carry, Blue Dart" /></Field>
-          <Field label="Tracking reference" optional><Input value={trackingRef} maxLength={80} onChange={(event) => setTrackingRef(event.target.value)} /></Field>
-          <Field label="Expected arrival" optional><Input type="date" value={expectedAt} onChange={(event) => setExpectedAt(event.target.value)} /></Field>
-        </div>
-        <Field label="Remarks" optional><Textarea rows={3} maxLength={1000} value={remarks} onChange={(event) => setRemarks(event.target.value)} placeholder="Packing, condition, anything the receiver should know" /></Field>
-      </section>
-      {error ? <Callout tone="danger" role="alert">{error}</Callout> : null}
-      <div>
+    <DeskStepper
+      label="Dispatch"
+      title="Pick and dispatch"
+      description="Scan each item label as you pick it, and the asset tag of every tool. Units you don't send are released."
+      error={error}
+      steps={[
+        { title: "Pick list", ready: plannedUnits > 0, hint: "Send at least one unit.", content: pickList },
+        {
+          title: "Scan labels",
+          ready: scansReady,
+          hint: "Scan each item label you send and the tag of every tool.",
+          content: (
+            <>
+              <Scanner codes={codes} onChange={setCodes} known={known} unavailable={extra.unavailable} disabled={pending} resolve={resolve} />
+              {pickList}
+            </>
+          ),
+        },
+        {
+          title: "Photos and shipping",
+          ready: photosReady,
+          hint: evidenceHint(minPhotos, false),
+          content: (
+            <>
+              <PhotoCapture files={photos} onChange={setPhotos} min={minPhotos} disabled={pending} />
+              <div className="grid gap-4 sm:grid-cols-2">
+                <Field label="Carrier" optional><Input value={carrier} maxLength={80} onChange={(event) => setCarrier(event.target.value)} placeholder="e.g. Hand carry, Blue Dart" /></Field>
+                <Field label="Tracking reference" optional><Input value={trackingRef} maxLength={80} onChange={(event) => setTrackingRef(event.target.value)} /></Field>
+                <Field label="Expected arrival" optional><Input type="date" value={expectedAt} onChange={(event) => setExpectedAt(event.target.value)} /></Field>
+              </div>
+              <Field label="Remarks" optional><Textarea rows={3} maxLength={1000} value={remarks} onChange={(event) => setRemarks(event.target.value)} placeholder="Packing, condition, anything the receiver should know" /></Field>
+            </>
+          ),
+        },
+      ]}
+      finishHint={scansReady ? null : "Go back and scan what you're sending."}
+      finish={(
         <Button
           variant="primary"
           loading={pending}
-          disabled={!canSend}
-          onClick={() => void run(() => dispatchTransferAction(slug, handoverFormData({ transferId, quantities, scannedCodes: codes, carrier, trackingRef, expectedAt, remarks }, photos)), "Dispatched. The receiving side has been told.")}
+          disabled={!scansReady || !photosReady}
+          onClick={() => void run(() => dispatchTransferAction(slug, handoverFormData({ transferId, quantities, scannedCodes: codes, carrier, trackingRef, expectedAt, remarks }, photos)), "Dispatched. The receiving side has been told.", () => showDone("dispatch"))}
         >
           Dispatch {units} {units === 1 ? "unit" : "units"}
         </Button>
-      </div>
-    </Card>
+      )}
+    />
   );
 }

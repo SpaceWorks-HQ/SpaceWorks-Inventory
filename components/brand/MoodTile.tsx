@@ -31,7 +31,7 @@ export function MoodTile({ mood, size = 48, className }: { mood: Mood; size?: nu
       className={cn("sw-wiggle-host inline-flex shrink-0 items-center justify-center text-sw-ink", fill, className)}
       style={{ width: size, height: size, borderRadius: Math.max(6, Math.round(size / 4)) }}
     >
-      <Icon size={20} strokeWidth={2} />
+      <Icon size={20} strokeWidth={2} className="sw-wiggle" />
     </span>
   );
 }

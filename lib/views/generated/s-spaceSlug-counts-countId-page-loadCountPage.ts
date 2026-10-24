@@ -6,6 +6,7 @@ import { countFormOptions } from "@/lib/desk/counts";
 import { countDetail } from "@/lib/desk/countsDetail";
 import { groupByLocation } from "@/lib/desk/countsLogic";
 import { formatDayTime } from "@/lib/format/datetime";
+import { perfectCount } from "@/lib/desk/eggs";
 import { canCountStock, canManageCounts, requireSpace } from "@/lib/permissions";
 function notice(count: { status: string; blind: boolean; threshold: number | null; fourEyes: { blocked: boolean }; totals: { stale: number } }, canManage: boolean) {
   if (count.fourEyes.blocked && canManage) return { tone: "warning" as const, title: "Someone else must post this count", text: `You started or counted it, and some differences are larger than ${count.threshold ?? 0}. Ask another manager who didn't count it to post.` };
@@ -37,5 +38,6 @@ const facts = [
   ];
 const header = { reference: count.reference, name: count.name, status: count.status, blind: count.blind, threshold: count.threshold, blocked: count.fourEyes.blocked, stale: count.totals.stale };
 const lines = count.lines;
-return viewDto({ count, canCount, canManage, editable, locations, items, slug, groups, showVariances, callout, facts, header, lines } as const);
+const perfect = perfectCount({ status: count.status, lines });
+return viewDto({ count, canCount, canManage, editable, locations, items, slug, groups, showVariances, callout, facts, header, lines, perfect } as const);
 }

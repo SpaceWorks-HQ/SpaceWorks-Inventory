@@ -9,7 +9,8 @@ import { ScanField } from "./ScanField";
 type Props = {
   /** Codes scanned so far (bare codes, deduplicated). */
   codes: string[];
-  onChange: (codes: string[]) => void;
+  /** A React state setter (functional updates keep concurrent scans). */
+  onChange: (update: string[] | ((current: string[]) => string[])) => void;
   /** What this flow expects, code → label ("Drill · TSK-000042"). Codes outside it are flagged. */
   known?: Record<string, string>;
   unavailable?: Record<string, string>;
@@ -17,6 +18,11 @@ type Props = {
   helper?: ReactNode;
   disabled?: boolean;
   max?: number;
+  /**
+   * Ask the server about a code missing from `known` (large spaces preload only
+   * part of their tags). Null: not a label of this handover.
+   */
+  resolve?: (code: string) => Promise<{ label: string; unavailable: boolean } | null>;
 };
 
 /**
@@ -24,16 +30,24 @@ type Props = {
  * is added once to a list the person can check, remove from or clear. The
  * server resolves the codes again when the step is saved.
  */
-export function Scanner({ codes, onChange, known, unavailable, title = "Scanned labels", helper, disabled, max = 300 }: Props) {
+export function Scanner({ codes, onChange, known, unavailable, title = "Scanned labels", helper, disabled, max = 300, resolve }: Props) {
   const describe = (code: string) => known?.[code] ?? `${SCAN_KIND_WORD[scanKindOf(code) ?? "item"]} ${code}`;
   return (
     <div className="flex flex-col gap-4">
       <ScanField
         helper={helper}
         disabled={disabled}
-        onCode={(code) => {
+        onCode={async (code) => {
           if (unavailable?.[code]) return { tone: "warning", text: `${unavailable[code]} is not available right now.` };
           if (codes.length >= max && !codes.includes(code)) return { tone: "warning", text: `Scan at most ${max} labels at once.` };
+          if (resolve && known && !known[code] && !codes.includes(code)) {
+            const found = await resolve(code);
+            if (found?.unavailable) return { tone: "warning", text: `${found.label} is not available right now.` };
+            if (found) {
+              onChange((current) => addScan(current, code).list);
+              return { tone: "success", text: `Scanned ${found.label}.` };
+            }
+          }
           const next = addScan(codes, code);
           if (!next.added) return { tone: "success", text: `Already scanned: ${describe(code)}.` };
           onChange(next.list);

@@ -180,5 +180,6 @@ regenerated files.
 - `main` is production; only @Shaan-Shoukath merges to it. Never push to `main`.
 - `dev` is the integration branch. Commit in small logical steps with
   conventional messages (`feat(loans): …`, `test(transfers): …`) and explicit paths.
-- Since 2026-10-23 Claude Code drives Codex for implementation and review; commits carry
-  `Co-Authored-By` trailers for Shaan-Shoukath, Claude and Codex. See `docs/HANDOFF.md`.
+- Phases I1–I5 (2026-10-23) were built by Claude Code driving Codex; from 2026-10-24 (I6 on) the
+  build is Claude Code alone, which writes, tests and reviews everything. Commits carry
+  `Co-Authored-By` trailers for Shaan-Shoukath and Claude. See `docs/HANDOFF.md`.

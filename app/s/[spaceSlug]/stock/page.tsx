@@ -11,6 +11,8 @@ import { EmptyState, PageHeader } from "@/components/ui/display";
 import { ListLayout } from "@/components/ui/layouts";
 import { descendantIds, locationOptions, PAGE_SIZE, pageOf, param } from "@/lib/catalogue/views";
 import { prisma } from "@/lib/db";
+import { PatchInBin } from "@/components/brand/PatchInBin";
+import { showsEmptyBin } from "@/lib/desk/eggs";
 import { canAdjustStock, canViewReports, requireSpace } from "@/lib/permissions";
 
 export const metadata: Metadata = { title: "Stock" };
@@ -68,6 +70,8 @@ export default async function StockPage({ params, searchParams }: PageProps<"/s/
   const total = stock.total;
   const pageCount = Math.max(1, Math.ceil(total / PAGE_SIZE));
 
+  const emptyBin = showsEmptyBin({ locationId, q }, rows.length);
+
   return (
     <ListLayout
       header={<PageHeader title="Stock" description="What sits where, what is held for loans and transfers, and what is waiting for repair." actions={canExport ? <Button asChild variant="secondary"><a href={`/s/${slug}/stock/movements/export`}>Export ledger</a></Button> : undefined} />}
@@ -82,7 +86,14 @@ export default async function StockPage({ params, searchParams }: PageProps<"/s/
         <RepairShelf slug={slug} levels={shelf.levels} assets={shelf.assets} canAct={canAct} />
       ) : rows.length === 0 ? (
         filtered ? (
-          <EmptyState title="Nothing matches these filters." action={<Button asChild variant="secondary"><Link href={`/s/${slug}/stock`}>Clear filters</Link></Button>} />
+          emptyBin ? (
+            <EmptyState title="This shelf is empty." action={<Button asChild variant="secondary"><Link href={`/s/${slug}/stock`}>Show every shelf</Link></Button>}>
+              <PatchInBin />
+              <span className="block">Nothing is stored here, or below it, right now.</span>
+            </EmptyState>
+          ) : (
+            <EmptyState title="Nothing matches these filters." action={<Button asChild variant="secondary"><Link href={`/s/${slug}/stock`}>Clear filters</Link></Button>} />
+          )
         ) : (
           <EmptyState patch title="No stock on the shelves yet." action={<Button asChild variant="primary"><Link href={`/s/${slug}/items`}>Go to items</Link></Button>}>
             Receive stock on an item, or import a spreadsheet.

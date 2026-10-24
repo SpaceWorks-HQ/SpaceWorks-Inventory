@@ -18,10 +18,18 @@ test("first-run setup creates the admin and a ready makerspace", async ({ page }
   await expect(page.getByRole("heading", { name: "Set up your space", level: 1 })).toBeVisible();
 
   await page.goto("/s/test-makerspace/setup?step=2");
-  await page.getByLabel("Building", { exact: true }).fill("Main building");
-  await page.getByLabel("Room 1 name", { exact: true }).fill("Electronics lab");
-  await page.getByRole("button", { name: "Build the list", exact: true }).click();
-  await expect(page.getByRole("table", { name: "Planned locations" })).toBeVisible();
+  // A cold production start can take the first click before the wizard hydrates
+  // (and hydration can reset the fields), so fill and build until the plan shows.
+  // The plan is a table in a scroll region named "Planned locations" (components/ui/table.tsx).
+  const plan = page.getByRole("region", { name: "Planned locations" });
+  await expect(async () => {
+    if (await plan.isVisible()) return;
+    await page.getByLabel("Building", { exact: true }).fill("Main building");
+    await page.getByLabel("Room 1 name", { exact: true }).fill("Electronics lab");
+    await page.getByRole("button", { name: "Build the list", exact: true }).click();
+    await expect(plan).toBeVisible({ timeout: 3_000 });
+  }).toPass({ timeout: 30_000 });
+  await expect(plan.getByRole("table")).toBeVisible();
   await page.getByRole("button", { name: "Save locations", exact: true }).click();
   await page.waitForURL(/step=3/);
 

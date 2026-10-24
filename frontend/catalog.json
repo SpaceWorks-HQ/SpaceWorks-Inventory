@@ -793,6 +793,21 @@
       "id": "scan:resolveScanAction"
     },
     {
+      "module": "app/actions/scan",
+      "name": "resolveIssueScanAction",
+      "id": "scan:resolveIssueScanAction"
+    },
+    {
+      "module": "app/actions/scan",
+      "name": "resolveDispatchScanAction",
+      "id": "scan:resolveDispatchScanAction"
+    },
+    {
+      "module": "app/actions/scan",
+      "name": "resolveSelfCheckoutScanAction",
+      "id": "scan:resolveSelfCheckoutScanAction"
+    },
+    {
       "module": "app/actions/settings",
       "name": "updateSettingsSection",
       "id": "settings:updateSettingsSection"
