@@ -10,7 +10,7 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 
 # Space Works Inventory agent guide
 
-> **Start here:** `docs/HANDOFF.md` explains what this repo is (a standalone app split out of SpaceWorks, part of the SpaceWorks-HQ family), the decisions already made, what is done, the work in progress and what is left.
+> **Start here:** `docs/DECISIONS.md` explains what this repo is (a standalone app split out of SpaceWorks, part of the SpaceWorks-HQ family), every decision already made and the checks left for the owner.
 
 `CLAUDE.md` is a byte-identical copy of this file so every coding agent reads
 the same rules. Edit `AGENTS.md`, then copy it over `CLAUDE.md`
@@ -88,18 +88,19 @@ and Playwright.
    foreign spaces, items, scans and records all answer the same not-found.
    Transfers between spaces check each side against its own membership.
 6. **Settings, not constants.** Policy lives in `lib/settings/sections.ts`
-   (space-manager sections need ADMIN, the inventory section needs MANAGER)
+   (every section needs MANAGER, the inventory manager)
    and every settings change is audited with the changed field names.
 
 ## Roles (RBAC)
 
-OWNER > ADMIN > MANAGER > STAFF > MEMBER. Capabilities live in `lib/roles.ts`
-(`ROLE_MATRIX` is the documented matrix, `docs/RBAC.md` the prose). MEMBER
-borrows; STAFF runs the desk (approve loans, issue/return, counts,
-dispatch/receive, take payments); MANAGER runs stock (catalogue, locations,
-adjustments, transfer approvals, reports, imports, inventory settings,
-incidents and borrowing access); ADMIN manages members, space settings,
-payments, API keys, webhooks and the audit log; OWNER can delete the space.
+MANAGER > STAFF > MEMBER; there is no admin or owner role. Capabilities live
+in `lib/roles.ts` (`ROLE_MATRIX` is the documented matrix, `docs/RBAC.md` the
+prose). MEMBER borrows; STAFF runs the desk (approve loans, issue/return,
+counts, dispatch/receive, take payments); MANAGER, the inventory manager, runs
+the whole space: stock, catalogue, settings, payments, members (other managers
+included), API keys, webhooks, the audit log and deleting the space. A space's
+creator becomes its first manager, and `lib/membership.ts` refuses to demote,
+suspend or remove the last active manager (row-locked, tested).
 Member borrowing standing (`GOOD`, `RESTRICTED`, `SUSPENDED`) is separate from
 the role and checked by `lib/lending/access.ts`.
 
@@ -177,9 +178,11 @@ regenerated files.
 
 ## Branching
 
-- `main` is production; only @Shaan-Shoukath merges to it. Never push to `main`.
-- `dev` is the integration branch. Commit in small logical steps with
-  conventional messages (`feat(loans): …`, `test(transfers): …`) and explicit paths.
+- Only two long-lived branches: `dev` (integration) and `main` (production).
+  Work lands on `dev`; `dev` merges to `main`, and only @Shaan-Shoukath pushes
+  or merges to `main`. Never push to `main`.
+- Commit in small logical steps with conventional messages
+  (`feat(loans): …`, `test(transfers): …`) and explicit paths.
 - Phases I1–I5 (2026-10-23) were built by Claude Code driving Codex; from 2026-10-24 (I6 on) the
   build is Claude Code alone, which writes, tests and reviews everything. Commits carry
-  `Co-Authored-By` trailers for Shaan-Shoukath and Claude. See `docs/HANDOFF.md`.
+  `Co-Authored-By` trailers for Shaan-Shoukath and Claude. See `docs/DECISIONS.md`.

@@ -13,11 +13,11 @@ export async function createUser(email: string, name = "Test Member") {
   return prisma.user.create({ data: { email, name, emailVerified: new Date() } });
 }
 
-export async function createSpace(slug: string, ownerId: string) {
-  return prisma.$transaction((tx) => createSpaceWithDefaults(tx, { name: `Space ${slug}`, slug, ownerId }));
+export async function createSpace(slug: string, managerId: string) {
+  return prisma.$transaction((tx) => createSpaceWithDefaults(tx, { name: `Space ${slug}`, slug, managerId }));
 }
 
-/** A space with an owner, a staff member, a member and two shelves. */
+/** A space with its creator (`owner`, the first inventory manager), a staff member, a member and two shelves. */
 export async function seedSpace(suffix: string) {
   const domain = `@${suffix}.test`;
   const owner = await createUser(`owner${domain}`, "Owner");

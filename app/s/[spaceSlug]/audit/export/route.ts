@@ -8,7 +8,7 @@ export const runtime = "nodejs";
 
 const NOT_FOUND = () => new Response("Not found", { status: 404, headers: { "Cache-Control": "private, no-store" } });
 
-/** CSV of the filtered audit log (admins; everyone else gets 404). Same filters as the page, newest first, capped. */
+/** CSV of the filtered audit log (inventory managers; everyone else gets 404). Same filters as the page, newest first, capped. */
 export async function GET(request: Request, context: { params: Promise<{ spaceSlug: string }> }) {
   const { spaceSlug } = await context.params;
   const user = await getCurrentUser();

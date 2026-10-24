@@ -13,7 +13,7 @@ import { Menu, MenuContent, MenuItem, MenuTrigger } from "@/components/ui/menu";
 import { Table, TBody, TD, TH, THead, TR } from "@/components/ui/table";
 import { BorrowingChip } from "@/components/inventory/StatusChips";
 import { useToast } from "@/components/feedback/ToastProvider";
-import { assignableRoles, canActOnMember, canManageMembers, roleLabel } from "@/lib/roles";
+import { assignableRoles, canManageMembers, roleLabel } from "@/lib/roles";
 import { BorrowingAccessDialog, type BorrowingTarget } from "./BorrowingAccessDialog";
 
 export type MemberRow = {
@@ -33,7 +33,7 @@ export type MemberRow = {
   isSelf: boolean;
 };
 
-/** Members list: admins change roles and access; managers set borrowing standing. */
+/** Members list: inventory managers change anyone else's role (other managers included), access and borrowing standing. */
 export function MembersTable({ slug, actorRole, members }: { slug: string; actorRole: SpaceRole; members: MemberRow[] }) {
   const router = useRouter();
   const { showToast } = useToast();
@@ -75,7 +75,7 @@ export function MembersTable({ slug, actorRole, members }: { slug: string; actor
         <TBody>
           {members.map((member) => {
             const name = member.name ?? member.email;
-            const editable = admin && !member.isSelf && canActOnMember(actor, member.role);
+            const editable = admin && !member.isSelf;
             return (
               <TR key={member.membershipId}>
                 <TD>

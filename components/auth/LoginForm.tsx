@@ -11,7 +11,7 @@ import { Field, Input, PasswordInput } from "@/components/ui/field";
 import { safeAuthRedirect } from "@/lib/authRedirect";
 
 const ERRORS: Record<string, string> = {
-  disabled: "This account is disabled. Contact your space admin.",
+  disabled: "This account is disabled. Contact your space's inventory manager.",
   link: "That sign-in link has expired or was already used. Ask for a new one.",
 };
 
@@ -134,7 +134,7 @@ export function LoginForm({ signupOpen = false }: { signupOpen?: boolean }) {
         {mode === "password" ? "Email me a sign-in link" : "Sign in with a password"}
       </Button>
       <p className="text-center text-sm text-ink-muted">
-        {signupOpen ? <>New here? <Link href="/signup" className="font-semibold text-ink underline underline-offset-4">Create an account</Link>, then ask your space for an invitation.</> : "Spaces are invite-only. Ask a space admin for an invitation."}
+        {signupOpen ? <>New here? <Link href="/signup" className="font-semibold text-ink underline underline-offset-4">Create an account</Link>, then ask your space for an invitation.</> : "Spaces are invite-only. Ask a space's inventory manager for an invitation."}
       </p>
     </div>
   );

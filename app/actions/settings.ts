@@ -14,9 +14,9 @@ import { deleteObjects, storeImage } from "@/lib/storage";
 import { idSchema } from "@/lib/validation";
 
 /**
- * Space settings. Space-manager sections and branding need ADMIN, the
- * inventory section and the taxonomy (categories, units, suppliers) need
- * MANAGER, deleting the space needs OWNER. Every change is audited.
+ * Space settings. Every section, branding and the taxonomy (categories,
+ * units, suppliers) and deleting the space need MANAGER, the inventory
+ * manager. Every change is audited.
  */
 
 function revalidateSpace(slug: string) {
@@ -68,7 +68,7 @@ export async function removeSpaceLogoAction(slug: string): Promise<ActionResult>
   return { ok: true };
 }
 
-/** Owners only, after typing the space address. Everything in the space is removed. */
+/** Inventory managers only, after typing the space address. Everything in the space is removed. */
 export async function deleteSpaceAction(slug: string, input: unknown): Promise<ActionResult> {
   const { ctx, denied } = await spaceAction(slug, canDeleteSpace);
   if (denied) return denied;

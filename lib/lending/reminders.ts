@@ -58,7 +58,7 @@ export async function runLoanReminders(now = new Date()) {
         await prisma.$transaction(async (tx) => {
           const claim = await tx.loan.updateMany({ where: { id: loan.id, escalatedAt: null }, data: { escalatedAt: now } });
           if (claim.count !== 1) return;
-          await notifyUsers(tx, space.id, await staffIds(tx, space.id, ["OWNER", "ADMIN", "MANAGER"]), { kind: "loan.escalated", title: `${loanRef(loan.number)} is ${space.overdueEscalateDays}+ days overdue`, body: "Follow up with the member, or mark items lost.", url: loanUrl(space.slug, loan.id, "staff"), email: true });
+          await notifyUsers(tx, space.id, await staffIds(tx, space.id, ["MANAGER"]), { kind: "loan.escalated", title: `${loanRef(loan.number)} is ${space.overdueEscalateDays}+ days overdue`, body: "Follow up with the member, or mark items lost.", url: loanUrl(space.slug, loan.id, "staff"), email: true });
           sent += 1;
         });
       }

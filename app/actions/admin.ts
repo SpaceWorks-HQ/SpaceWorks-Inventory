@@ -65,10 +65,10 @@ export async function updateInstanceSettingsAction(input: unknown): Promise<Acti
 const createSpaceSchema = z.object({
   name: z.string().trim().min(2, "Enter a space name.").max(80),
   slug: spaceSlugSchema,
-  ownerEmail: emailSchema,
+  managerEmail: emailSchema,
 });
 
-/** Create a space. An existing user becomes its owner; otherwise they get an owner invitation. */
+/** Create a space. An existing user becomes its inventory manager; otherwise they get a manager invitation. */
 export async function adminCreateSpace(input: unknown): Promise<ActionResult<{ slug: string; invited: boolean }>> {
   const session = await requireSuperAdminMfa();
   if (await isActionRateLimited("action", session.user.id)) return actionError(RATE_LIMITED);
@@ -77,19 +77,19 @@ export async function adminCreateSpace(input: unknown): Promise<ActionResult<{ s
   if (await prisma.space.findUnique({ where: { slug: parsed.data.slug }, select: { id: true } })) {
     return actionError("That address is taken.", { slug: ["That address is taken."] });
   }
-  const owner = await prisma.user.findUnique({ where: { email: parsed.data.ownerEmail }, select: { id: true } });
+  const manager = await prisma.user.findUnique({ where: { email: parsed.data.managerEmail }, select: { id: true } });
   const adminName = (await prisma.user.findUnique({ where: { id: session.user.id }, select: { name: true } }))?.name ?? null;
   const space = await prisma.$transaction(async (tx) => {
-    // The admin is the initial owner when the named owner has no account yet.
-    const created = await createSpaceWithDefaults(tx, { name: parsed.data.name, slug: parsed.data.slug, ownerId: owner?.id ?? session.user.id });
+    // The admin is the initial manager when the named manager has no account yet.
+    const created = await createSpaceWithDefaults(tx, { name: parsed.data.name, slug: parsed.data.slug, managerId: manager?.id ?? session.user.id });
     await recordAuditEvent({ client: tx, action: "admin.space_created", spaceId: created.id, actorId: session.user.id, targetType: "Space", targetId: created.id });
     return created;
   });
-  if (!owner) {
-    await createInvitation({ space, email: parsed.data.ownerEmail, role: "OWNER", invitedBy: { id: session.user.id, name: adminName } });
+  if (!manager) {
+    await createInvitation({ space, email: parsed.data.managerEmail, role: "MANAGER", invitedBy: { id: session.user.id, name: adminName } });
   }
   revalidatePath("/admin/spaces");
-  return { ok: true, data: { slug: space.slug, invited: !owner } };
+  return { ok: true, data: { slug: space.slug, invited: !manager } };
 }
 
 export async function adminSetUserDisabled(input: unknown): Promise<ActionResult> {

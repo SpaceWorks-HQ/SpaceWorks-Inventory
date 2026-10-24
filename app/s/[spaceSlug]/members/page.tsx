@@ -53,7 +53,7 @@ export default async function MembersPage({ params, searchParams }: PageProps<"/
       header={
         <PageHeader
           title="Members"
-          description={isAdmin ? "Everyone in this space, their role and whether they can borrow. Invite people below." : "Everyone in this space and whether they can borrow. Admins change roles and invite people."}
+          description={isAdmin ? "Everyone in this space, their role and whether they can borrow. Invite people below." : "Everyone in this space and whether they can borrow. Inventory managers change roles and invite people."}
         />
       }
       toolbar={
@@ -75,7 +75,7 @@ export default async function MembersPage({ params, searchParams }: PageProps<"/
       <MembersTable slug={space.slug} actorRole={membership.role} members={members} />
       {isAdmin ? (
         <section className="flex flex-col gap-4">
-          <SectionHeading title="Invitations" description="Invite people by email. Only owners can invite admins or owners." />
+          <SectionHeading title="Invitations" description="Invite people by email, other inventory managers included." />
           <InvitationsPanel slug={space.slug} roles={inviteRoles} invitations={invitations} />
         </section>
       ) : null}

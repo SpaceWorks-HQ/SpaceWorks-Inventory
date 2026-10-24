@@ -22,7 +22,7 @@ export type Principal = {
  * Space-bound API keys for /api/v1. Only a SHA-256 of the
  * secret is stored; the plain token is shown once at creation. A token acts
  * for its creator, so it stops working as soon as the creator is no longer an
- * active admin or owner of the space (or is disabled), when it is revoked
+ * active inventory manager of the space (or is disabled), when it is revoked
  * or when it expires.
  */
 
@@ -74,7 +74,7 @@ export async function authenticateApiToken(authorization: string | null, now = n
     where: { userId_spaceId: { userId: token.createdById, spaceId: token.space.id } },
     select: { role: true, status: true, user: { select: { name: true, disabledAt: true } } },
   });
-  if (!membership || membership.status !== "ACTIVE" || membership.user.disabledAt || !hasRoleAtLeast(membership.role, "ADMIN")) return null;
+  if (!membership || membership.status !== "ACTIVE" || membership.user.disabledAt || !hasRoleAtLeast(membership.role, "MANAGER")) return null;
 
   if (!token.lastUsedAt || now.getTime() - token.lastUsedAt.getTime() > LAST_USED_GRANULARITY_MS) {
     await prisma.apiToken.update({ where: { id: token.id }, data: { lastUsedAt: now } }).catch(() => undefined);

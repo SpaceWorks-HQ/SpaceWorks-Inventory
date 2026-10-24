@@ -12,13 +12,13 @@ import { slugify } from "@/lib/slug";
 export function CreateSpaceForm() {
   const router = useRouter();
   const { showToast } = useToast();
-  const [values, setValues] = useState({ name: "", slug: "", ownerEmail: "" });
+  const [values, setValues] = useState({ name: "", slug: "", managerEmail: "" });
   const [slugEdited, setSlugEdited] = useState(false);
   const [errors, setErrors] = useState<Record<string, string[]>>({});
   const [pending, startTransition] = useTransition();
   return (
     <Card>
-      <CardHeader title="New space" description="For another makerspace on this instance. Its owner finishes setup inside the space; they get an invitation if they don't have an account yet." />
+      <CardHeader title="New space" description="For another makerspace on this instance. Its inventory manager finishes setup inside the space; they get an invitation if they don't have an account yet." />
       <form
         className="grid gap-4 md:grid-cols-3 md:items-end"
         onSubmit={(event) => {
@@ -31,9 +31,9 @@ export function CreateSpaceForm() {
               return;
             }
             setErrors({});
-            setValues({ name: "", slug: "", ownerEmail: "" });
+            setValues({ name: "", slug: "", managerEmail: "" });
             setSlugEdited(false);
-            showToast(result.data?.invited ? "Space created and the owner invited." : "Space created.", "success");
+            showToast(result.data?.invited ? "Space created and the manager invited." : "Space created.", "success");
             router.refresh();
           });
         }}
@@ -44,8 +44,8 @@ export function CreateSpaceForm() {
         <Field label="Address" error={errors.slug?.[0]}>
           <PrefixInput prefix="/s/" value={values.slug} maxLength={60} onChange={(e) => { setSlugEdited(true); setValues((v) => ({ ...v, slug: e.target.value.toLowerCase() })); }} />
         </Field>
-        <Field label="Owner email" error={errors.ownerEmail?.[0]}>
-          <Input type="email" value={values.ownerEmail} onChange={(e) => setValues((v) => ({ ...v, ownerEmail: e.target.value }))} />
+        <Field label="Inventory manager email" error={errors.managerEmail?.[0]}>
+          <Input type="email" value={values.managerEmail} onChange={(e) => setValues((v) => ({ ...v, managerEmail: e.target.value }))} />
         </Field>
         <Button type="submit" variant="primary" loading={pending} className="md:col-span-3 md:justify-self-start">Create space</Button>
       </form>

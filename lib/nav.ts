@@ -60,8 +60,8 @@ export const NAV_GROUPS: readonly NavGroupConfig[] = [
     items: [
       { key: "members", label: "Members", path: "/members", minRole: "MANAGER" },
       { key: "inventory-settings", label: "Inventory settings", path: "/settings/inventory", minRole: "MANAGER" },
-      { key: "settings", label: "Space settings", path: "/settings", minRole: "ADMIN" },
-      { key: "audit", label: "Audit log", path: "/audit", minRole: "ADMIN" },
+      { key: "settings", label: "Space settings", path: "/settings", minRole: "MANAGER" },
+      { key: "audit", label: "Audit log", path: "/audit", minRole: "MANAGER" },
     ],
   },
 ];

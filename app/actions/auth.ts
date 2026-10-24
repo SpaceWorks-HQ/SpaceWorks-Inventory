@@ -25,7 +25,7 @@ const setupSchema = z.object({
   currency: currencySchema.optional(),
 });
 
-/** First-run only: create the instance owner and first space. The client then signs in. */
+/** First-run only: create the first account (the instance admin and the first space's manager). The client then signs in. */
 export async function completeSetup(input: unknown): Promise<ActionResult<{ spaceSlug: string }>> {
   if (await isActionRateLimited("setup")) return actionError(RATE_LIMITED);
   if (!(await isSetupOpen())) return actionError("Setup is already complete. Sign in instead.");

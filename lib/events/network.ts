@@ -1,7 +1,7 @@
 import { isIP } from "node:net";
 
 /**
- * Webhook targets must be public internet addresses so a space admin cannot
+ * Webhook targets must be public internet addresses so a space manager cannot
  * point the server at its own private network (SSRF). Development and
  * trusted LANs can opt out with ALLOW_PRIVATE_WEBHOOK_TARGETS=true.
  */

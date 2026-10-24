@@ -20,7 +20,7 @@ test("an inventory manager adds an item and receives stock into a shelf", async 
 });
 
 test("space settings save lending fees and the change is audited", async ({ page }) => {
-  await signIn(page, DEMO.owner, `${SPACE}/settings?tab=fees`);
+  await signIn(page, DEMO.creator, `${SPACE}/settings?tab=fees`);
   await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
   await page.getByRole("button", { name: "Save changes", exact: true }).first().click();
   await page.goto(`${SPACE}/audit`);
@@ -29,7 +29,7 @@ test("space settings save lending fees and the change is audited", async ({ page
 
 test("staff pages, reports and settings work at phone width without sideways scroll", async ({ page }) => {
   await page.setViewportSize({ width: 375, height: 812 });
-  await signIn(page, DEMO.owner);
+  await signIn(page, DEMO.creator);
   for (const path of ["", "/items", "/stock", "/locations", "/kits", "/reports", "/members", "/settings", "/settings/inventory", "/settings/integrations", "/purchases"]) {
     const response = await page.goto(`${SPACE}${path}`);
     expect(response?.status(), path).toBe(200);

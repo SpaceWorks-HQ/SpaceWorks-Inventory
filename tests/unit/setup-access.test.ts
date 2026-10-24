@@ -25,7 +25,7 @@ describe("QR landing", () => {
     const staff = viewer({ role: "STAFF" });
     expect(qrLandingDecision(target(), staff)).toEqual({ type: "redirect", url: "/s/tinker/items/item1" });
     expect(qrLandingDecision(target({ kind: "asset", id: "a1" }), staff)).toEqual({ type: "redirect", url: "/s/tinker/assets/a1" });
-    expect(qrLandingDecision(target({ kind: "location", id: "l1", itemId: null }), viewer({ role: "OWNER" }))).toEqual({ type: "redirect", url: "/s/tinker/stock?location=l1" });
+    expect(qrLandingDecision(target({ kind: "location", id: "l1", itemId: null }), viewer({ role: "MANAGER" }))).toEqual({ type: "redirect", url: "/s/tinker/stock?location=l1" });
     expect(qrLandingDecision(target({ kind: "kit", id: "k1", itemId: null }), staff)).toEqual({ type: "redirect", url: "/s/tinker/kits" });
     expect(qrLandingDecision(target({ kind: "container", id: "c1", itemId: null }), staff)).toEqual({ type: "redirect", url: "/s/tinker/kits" });
   });
@@ -52,7 +52,7 @@ describe("QR landing", () => {
     const unknown = qrLandingDecision(null, signedOut);
     expect(qrLandingDecision(target(), signedOut)).toEqual(unknown);
     expect(qrLandingDecision(target({ space: space({ publicCatalogue: true, archivedAt: new Date() }) }), signedOut)).toEqual(unknown);
-    expect(qrLandingDecision(target({ space: space({ archivedAt: new Date() }) }), viewer({ role: "OWNER" }))).toEqual({ type: "neutral", signedIn: true });
+    expect(qrLandingDecision(target({ space: space({ archivedAt: new Date() }) }), viewer({ role: "MANAGER" }))).toEqual({ type: "neutral", signedIn: true });
     expect(unknown).toEqual({ type: "neutral", signedIn: false });
   });
 });

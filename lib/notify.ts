@@ -30,7 +30,7 @@ export async function notifyUsers(client: DbClient, spaceId: string, userIds: st
 }
 
 /** Active members of a space with at least one of the given roles. */
-export async function staffIds(client: DbClient, spaceId: string, roles: SpaceRole[] = ["OWNER", "ADMIN", "MANAGER", "STAFF"]) {
+export async function staffIds(client: DbClient, spaceId: string, roles: SpaceRole[] = ["MANAGER", "STAFF"]) {
   const rows = await client.membership.findMany({ where: { spaceId, status: "ACTIVE", role: { in: roles } }, select: { userId: true } });
   return rows.map((row) => row.userId);
 }

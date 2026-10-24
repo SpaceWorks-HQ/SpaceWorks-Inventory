@@ -5,8 +5,8 @@ import { isValidCurrency } from "@/lib/format/money";
 
 /**
  * Every space setting, grouped into sections. Each section names the role
- * that may change it: OWNER/ADMIN are the space managers, MANAGER is the
- * inventory manager. Pure and client-safe so forms share the schemas.
+ * that may change it: MANAGER, the inventory manager who runs the space (there
+ * is no separate admin role). Pure and client-safe so forms share the schemas.
  * Money is integer minor units; forms convert from major units.
  */
 
@@ -17,7 +17,7 @@ const money = z.number().int().min(0).max(100_000_000);
 export const SETTINGS_SECTIONS = {
   general: {
     title: "General",
-    minRole: "ADMIN",
+    minRole: "MANAGER",
     schema: z.object({
       name: z.string().trim().min(2, "Enter a space name.").max(80),
       tagline: z.string().trim().max(140).transform((v) => v || null),
@@ -30,7 +30,7 @@ export const SETTINGS_SECTIONS = {
   },
   lending: {
     title: "Lending policy",
-    minRole: "ADMIN",
+    minRole: "MANAGER",
     schema: z.object({
       lendingEnabled: bool,
       publicCatalogue: bool,
@@ -47,7 +47,7 @@ export const SETTINGS_SECTIONS = {
   },
   eligibility: {
     title: "Member eligibility",
-    minRole: "ADMIN",
+    minRole: "MANAGER",
     schema: z.object({
       selfJoin: bool,
       requireVerifiedEmail: bool,
@@ -58,7 +58,7 @@ export const SETTINGS_SECTIONS = {
   },
   evidence: {
     title: "Evidence rules",
-    minRole: "ADMIN",
+    minRole: "MANAGER",
     schema: z.object({
       minEvidencePhotos: z.number().int().min(1, "At least one photo is always required.").max(3),
       requireContainer: bool,
@@ -67,7 +67,7 @@ export const SETTINGS_SECTIONS = {
   },
   fees: {
     title: "Fees and deposits",
-    minRole: "ADMIN",
+    minRole: "MANAGER",
     schema: z.object({
       depositMode: z.enum(["NONE", "FIXED", "PER_ITEM"]),
       depositMinor: money,
@@ -84,7 +84,7 @@ export const SETTINGS_SECTIONS = {
   },
   notifications: {
     title: "Notifications",
-    minRole: "ADMIN",
+    minRole: "MANAGER",
     schema: z.object({
       notifyStaffOnRequest: bool,
       notifyLowStock: bool,
@@ -93,7 +93,7 @@ export const SETTINGS_SECTIONS = {
   },
   network: {
     title: "Transfers between spaces",
-    minRole: "ADMIN",
+    minRole: "MANAGER",
     schema: z.object({
       acceptsTransfers: bool,
       shareStockWithSpaces: bool,

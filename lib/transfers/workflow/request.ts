@@ -65,7 +65,7 @@ export async function requestTransfer(tx: Tx, input: TransferRequest, actor: Act
   if (!between && !source.internalTransferApproval) {
     await approveTransfer(tx, { transferId: transfer.id, actingSpaceId: source.id, quantities: null }, { userId: null });
   } else {
-    await notifyUsers(tx, source.id, await staffIds(tx, source.id, ["OWNER", "ADMIN", "MANAGER"]), { kind: "transfer.requested", title: `Transfer ${transferRef(number)} needs approval`, body: between ? `${dest.name} ← ${source.name}` : null, url: transferUrl(source.slug, transfer.id) }, { excludeUserId: actor.userId });
+    await notifyUsers(tx, source.id, await staffIds(tx, source.id, ["MANAGER"]), { kind: "transfer.requested", title: `Transfer ${transferRef(number)} needs approval`, body: between ? `${dest.name} ← ${source.name}` : null, url: transferUrl(source.slug, transfer.id) }, { excludeUserId: actor.userId });
   }
   return transfer;
 }

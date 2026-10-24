@@ -2,7 +2,6 @@ import { describe, expect, it } from "vitest";
 import type { SpaceRole } from "@prisma/client";
 import {
   assignableRoles,
-  canActOnMember,
   canAdjustStock,
   canApproveLoans,
   canApproveTransfers,
@@ -26,11 +25,11 @@ import {
 const as = (role: SpaceRole) => ({ role });
 
 describe("role ranks", () => {
-  it("orders OWNER > ADMIN > MANAGER > STAFF > MEMBER", () => {
-    expect(SPACE_ROLES).toEqual(["OWNER", "ADMIN", "MANAGER", "STAFF", "MEMBER"]);
+  it("orders MANAGER > STAFF > MEMBER, with no admin or owner role", () => {
+    expect(SPACE_ROLES).toEqual(["MANAGER", "STAFF", "MEMBER"]);
     expect(hasRoleAtLeast("MANAGER", "STAFF")).toBe(true);
     expect(hasRoleAtLeast("STAFF", "MANAGER")).toBe(false);
-    expect(hasRoleAtLeast("OWNER", "ADMIN")).toBe(true);
+    expect(hasRoleAtLeast("STAFF", "MEMBER")).toBe(true);
   });
 });
 
@@ -46,11 +45,11 @@ describe("capability matrix", () => {
     ["approve transfers", canApproveTransfers, "MANAGER"],
     ["reports", canViewReports, "MANAGER"],
     ["inventory settings", canManageInventorySettings, "MANAGER"],
-    ["lending policy", canManageLending, "ADMIN"],
-    ["members", canManageMembers, "ADMIN"],
-    ["api keys", canManageApiKeys, "ADMIN"],
-    ["audit log", canViewAuditLog, "ADMIN"],
-    ["delete space", canDeleteSpace, "OWNER"],
+    ["lending policy", canManageLending, "MANAGER"],
+    ["members", canManageMembers, "MANAGER"],
+    ["api keys", canManageApiKeys, "MANAGER"],
+    ["audit log", canViewAuditLog, "MANAGER"],
+    ["delete space", canDeleteSpace, "MANAGER"],
   ];
   for (const [name, check, minimum] of cases) {
     it(`${name} needs ${minimum}`, () => {
@@ -62,24 +61,17 @@ describe("capability matrix", () => {
     for (const row of ROLE_MATRIX) expect(row.check(null)).toBe(false);
   });
 
-  it("gives owners every capability and members only borrowing", () => {
-    expect(ROLE_MATRIX.every((row) => row.check(as("OWNER")))).toBe(true);
+  it("gives inventory managers every capability and members only borrowing", () => {
+    expect(ROLE_MATRIX.every((row) => row.check(as("MANAGER")))).toBe(true);
+    expect(ROLE_MATRIX.some((row) => /owner/i.test(row.capability))).toBe(false);
     expect(ROLE_MATRIX.filter((row) => row.check(as("MEMBER"))).map((row) => row.capability)).toEqual(["Browse the catalogue and request loans"]);
   });
 });
 
 describe("member management", () => {
-  it("lets owners assign every role and admins only roles below admin", () => {
-    expect(assignableRoles(as("OWNER"))).toEqual(["OWNER", "ADMIN", "MANAGER", "STAFF", "MEMBER"]);
-    expect(assignableRoles(as("ADMIN"))).toEqual(["MANAGER", "STAFF", "MEMBER"]);
-    expect(assignableRoles(as("MANAGER"))).toEqual([]);
-  });
-
-  it("stops admins acting on other admins or owners", () => {
-    expect(canActOnMember(as("ADMIN"), "MANAGER")).toBe(true);
-    expect(canActOnMember(as("ADMIN"), "ADMIN")).toBe(false);
-    expect(canActOnMember(as("ADMIN"), "OWNER")).toBe(false);
-    expect(canActOnMember(as("OWNER"), "OWNER")).toBe(true);
-    expect(canActOnMember(as("MANAGER"), "MEMBER")).toBe(false);
+  it("lets inventory managers assign every role, other managers included", () => {
+    expect(assignableRoles(as("MANAGER"))).toEqual(["MANAGER", "STAFF", "MEMBER"]);
+    expect(assignableRoles(as("STAFF"))).toEqual([]);
+    expect(assignableRoles(as("MEMBER"))).toEqual([]);
   });
 });

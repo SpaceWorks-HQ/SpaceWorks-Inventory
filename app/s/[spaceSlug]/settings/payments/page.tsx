@@ -5,7 +5,7 @@ import { requireSpace } from "@/lib/permissions";
 
 export default async function PaymentSettingsPage({ params }: PageProps<"/s/[spaceSlug]/settings/payments">) {
   const { spaceSlug } = await params;
-  const { space } = await requireSpace(spaceSlug, "ADMIN");
+  const { space } = await requireSpace(spaceSlug, "MANAGER");
   const config = await getPaymentConfigView(space.id);
   const slug = space.slug;
   const currency = space.currency;

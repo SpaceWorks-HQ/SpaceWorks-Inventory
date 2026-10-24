@@ -17,7 +17,7 @@ import { queueRefund, returnDeposit } from "@/lib/payments/refunds";
 import { OFFLINE_METHODS } from "@/lib/payments/types";
 
 /**
- * Payments: provider settings (ADMIN), the borrower's own pay now / pay
+ * Payments: provider settings (MANAGER), the borrower's own pay now / pay
  * later / offline submission, and the desk's offline payments, waivers,
  * deposit returns and refunds (STAFF). Gateway calls never run inside a
  * database transaction.

@@ -4,7 +4,7 @@ import path from "node:path";
 import { expect, test, type Locator, type Page } from "@playwright/test";
 
 export const SPACE = "/s/tinkerspace-kochi";
-export const DEMO = { owner: "anjali", admin: "rahul", manager: "meera", staff: "joel", member: "fathima", member2: "vivek", member3: "nisha" } as const;
+export const DEMO = { creator: "anjali", manager2: "rahul", manager: "meera", staff: "joel", member: "fathima", member2: "vivek", member3: "nisha" } as const;
 
 /** Skip a spec unless the demo seed ran (DEMO_PASSWORD set). */
 export function needsDemo() {

@@ -24,8 +24,6 @@ datasource db {
 // ───────────────────────────── Enums ─────────────────────────────
 
 enum SpaceRole {
-  OWNER
-  ADMIN
   MANAGER
   STAFF
   MEMBER

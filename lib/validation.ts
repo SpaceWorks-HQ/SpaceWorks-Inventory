@@ -17,5 +17,5 @@ export const spaceSlugSchema = z
 export const timeZoneSchema = z.string().trim().refine(isValidTimeZone, "Choose a valid time zone.");
 export const currencySchema = z.string().trim().toUpperCase().refine(isValidCurrency, "Use a three-letter currency code such as INR.");
 
-export const roleSchema = z.enum(["OWNER", "ADMIN", "MANAGER", "STAFF", "MEMBER"]);
+export const roleSchema = z.enum(["MANAGER", "STAFF", "MEMBER"]);
 export const idSchema = z.string().trim().min(1).max(64).regex(/^[A-Za-z0-9_-]+$/);

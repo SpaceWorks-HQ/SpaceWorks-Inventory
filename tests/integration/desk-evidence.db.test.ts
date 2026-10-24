@@ -39,7 +39,7 @@ describe("evidence photo access", () => {
     const loan = await prisma.loan.create({ data: { spaceId: a.space.id, number: 9001, borrowerId: a.member.id, status: "ISSUED", dueAt: new Date(Date.now() + 86_400_000), lines: { create: [{ itemId: item.id, quantityRequested: 1, quantityApproved: 1, quantityIssued: 1 }] } } });
     const evidence = await prisma.evidence.create({ data: { spaceId: a.space.id, kind: "ISSUE", loanId: loan.id, remarks: "", photos: { create: [fakePhoto(a.space.id)] } }, include: { photos: true } });
     const photoId = evidence.photos[0]!.id;
-    const view = (spaceId: string, userId: string, role: "STAFF" | "MEMBER" | "OWNER") => evidencePhotoForViewer({ spaceId, userId, role, photoId });
+    const view = (spaceId: string, userId: string, role: "STAFF" | "MEMBER" | "MANAGER") => evidencePhotoForViewer({ spaceId, userId, role, photoId });
     expect(await view(a.space.id, a.staff.id, "STAFF")).toMatchObject({ id: photoId });
     expect(await view(a.space.id, a.member.id, "MEMBER")).toMatchObject({ id: photoId });
     expect(await view(a.space.id, otherMember.id, "MEMBER")).toBeNull();
@@ -58,7 +58,7 @@ describe("evidence photo access", () => {
     expect(await evidencePhotoForViewer({ spaceId: b.id, userId: a.member.id, role: "MEMBER", photoId })).toBeNull();
     const c = await createSpace(`space-c-${suffix}`, a.owner.id);
     try {
-      expect(await evidencePhotoForViewer({ spaceId: c.id, userId: a.owner.id, role: "OWNER", photoId })).toBeNull();
+      expect(await evidencePhotoForViewer({ spaceId: c.id, userId: a.owner.id, role: "MANAGER", photoId })).toBeNull();
     } finally {
       await cleanup([c.slug], "@nobody.invalid");
     }

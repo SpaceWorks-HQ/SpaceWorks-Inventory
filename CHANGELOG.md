@@ -43,6 +43,17 @@ build is tagged `v<version>-main.<run>.<commit>`; see
 - README screenshots in light and dark mode under `docs/screenshots/`.
 - A static test of the Render Blueprint.
 
+### Changed
+
+- **Three roles: Inventory manager, Staff and Member.** The admin and owner
+  roles are gone; the inventory manager runs the whole space, including
+  members, other managers and deleting the space. The space's creator is its
+  first manager, and the last active manager can't be demoted, suspended or
+  removed, or leave. A migration turns existing owners, admins and their
+  pending invitations into inventory managers.
+- `docs/DECISIONS.md` records every product and owner decision and the checks
+  left for the owner; it replaces `docs/HANDOFF.md`.
+
 ### Fixed
 
 - Members can no longer learn another member's loan status, and the member

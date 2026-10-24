@@ -32,7 +32,7 @@ export async function checkLowStock(tx: Tx, itemIds: string[]) {
     await tx.item.update({ where: { id: itemId }, data: { lowStockAlertAt: new Date() } });
     await emitEvent(tx, { spaceId: item.spaceId, type: "stock.low", data: { itemId: item.id, sku: item.sku, available, reorderPoint: item.reorderPoint } });
     if (!item.space.notifyLowStock) continue;
-    const managers = await tx.membership.findMany({ where: { spaceId: item.spaceId, status: "ACTIVE", role: { in: ["OWNER", "ADMIN", "MANAGER"] } }, select: { userId: true } });
+    const managers = await tx.membership.findMany({ where: { spaceId: item.spaceId, status: "ACTIVE", role: "MANAGER" }, select: { userId: true } });
     await createNotifications(managers.map((manager) => ({
       userId: manager.userId,
       spaceId: item.spaceId,

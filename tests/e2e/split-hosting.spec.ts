@@ -13,7 +13,7 @@ let userId: string, spaceId: string;
 test.beforeAll(async () => {
   const user = await prisma.user.create({ data: { email, name: "Gateway reviewer", passwordHash: await bcrypt.hash(password, 10), emailVerified: new Date() } });
   userId = user.id;
-  const space = await prisma.space.create({ data: { slug, name: "Gateway browser space", tagPrefix: `G${suffix.slice(0, 4).toUpperCase()}`, setupCompletedAt: new Date(), memberships: { create: { userId, role: "OWNER" } } } });
+  const space = await prisma.space.create({ data: { slug, name: "Gateway browser space", tagPrefix: `G${suffix.slice(0, 4).toUpperCase()}`, setupCompletedAt: new Date(), memberships: { create: { userId, role: "MANAGER" } } } });
   spaceId = space.id;
 });
 test.afterAll(async () => {

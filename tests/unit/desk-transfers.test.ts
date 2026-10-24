@@ -40,14 +40,14 @@ describe("transfer desk rules", () => {
   it("offers each side only its own steps, by role", () => {
     expect(allowedTransferActions("REQUESTED", "source", "MANAGER")).toEqual(["approve", "reject", "cancel"]);
     expect(allowedTransferActions("REQUESTED", "source", "STAFF")).toEqual(["cancel"]);
-    expect(allowedTransferActions("REQUESTED", "destination", "OWNER")).toEqual(["cancel"]);
+    expect(allowedTransferActions("REQUESTED", "destination", "MANAGER")).toEqual(["cancel"]);
     expect(allowedTransferActions("APPROVED", "destination", "STAFF")).toEqual(["cancel"]);
     expect(allowedTransferActions("APPROVED", "source", "STAFF")).toEqual(["cancel", "dispatch"]);
     expect(allowedTransferActions("DISPATCHED", "destination", "STAFF")).toEqual(["receive", "missing", "sendBack"]);
     expect(allowedTransferActions("DISPATCHED", "source", "STAFF")).toEqual(["missing"]);
     expect(allowedTransferActions("RETURNING", "source", "STAFF")).toEqual(["missing", "receiveReturn"]);
     expect(allowedTransferActions("DISPATCHED", "both", "STAFF")).toEqual(["receive", "missing", "sendBack"]);
-    expect(allowedTransferActions("RECEIVED", "both", "OWNER")).toEqual([]);
+    expect(allowedTransferActions("RECEIVED", "both", "MANAGER")).toEqual([]);
     expect(allowedTransferActions("REQUESTED", "source", "MEMBER")).toEqual([]);
   });
   it("filters by direction and words the timeline", () => {

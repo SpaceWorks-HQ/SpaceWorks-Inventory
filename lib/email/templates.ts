@@ -20,7 +20,7 @@ function actionButton(url: string, label: string) {
 <p style="font-size:13px;color:${EMAIL_COLORS.inkMuted};overflow-wrap:anywhere">Or open this link: <a href="${safe}" style="color:${EMAIL_COLORS.teal}">${safe}</a></p>`;
 }
 
-const ROLE_WORDS: Record<string, string> = { OWNER: "an owner", ADMIN: "an admin", MANAGER: "an inventory manager", STAFF: "staff", MEMBER: "a member" };
+const ROLE_WORDS: Record<string, string> = { MANAGER: "an inventory manager", STAFF: "staff", MEMBER: "a member" };
 
 export function renderInviteEmail(input: { spaceName: string; inviterName?: string | null; role: string; inviteUrl: string; expiresAt: Date }): RenderedEmail {
   const who = input.inviterName?.trim() ? escapeHtml(input.inviterName.trim()) : "Someone";

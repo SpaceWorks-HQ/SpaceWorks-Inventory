@@ -10,6 +10,7 @@ import { PageHeader, SectionHeading } from "@/components/ui/display";
 import { SettingsLayout } from "@/components/ui/layouts";
 import { currencyMinorDigits } from "@/lib/format/money";
 import { requireSpace } from "@/lib/permissions";
+import { canDeleteSpace } from "@/lib/roles";
 import { SETTINGS_SECTIONS, type SettingsSection } from "@/lib/settings/sections";
 
 export const metadata = { title: "Space settings" };
@@ -34,13 +35,12 @@ function sectionValues(space: Space, section: SettingsSection): Record<string, S
 export default async function SpaceSettingsPage({ params, searchParams }: PageProps<"/s/[spaceSlug]/settings">) {
   const { spaceSlug } = await params;
   const { tab: rawTab } = await searchParams;
-  const { space, membership } = await requireSpace(spaceSlug, "ADMIN");
+  const { space, membership } = await requireSpace(spaceSlug, "MANAGER");
   const tab = pickTab(rawTab);
   const section = (PAGE_SECTIONS as readonly string[]).includes(tab) ? (tab as SettingsSection) : null;
   const values = section ? sectionValues(space, section) : null;
   const minorDigits = currencyMinorDigits(space.currency);
   const logoUrl = space.logoKey ? `/api/s/${space.slug}/logo?v=${space.updatedAt.getTime()}` : null;
-  const isOwner = membership.role === "OWNER";
   const slug = space.slug;
 
   return (
@@ -67,7 +67,7 @@ export default async function SpaceSettingsPage({ params, searchParams }: PagePr
       ) : (
         <div className="flex flex-col gap-4">
           <SectionHeading title="Danger zone" description="Steps that can't be undone." />
-          <DeleteSpaceZone slug={slug} spaceName={space.name} isOwner={isOwner} />
+          <DeleteSpaceZone slug={slug} spaceName={space.name} canDelete={canDeleteSpace(membership)} />
         </div>
       )}
     </SettingsLayout>

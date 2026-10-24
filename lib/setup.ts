@@ -21,7 +21,7 @@ export type SetupInput = {
 };
 
 /**
- * Create the instance owner and the first space. A transaction-scoped
+ * Create the first account (instance admin and inventory manager) and the first space. A transaction-scoped
  * advisory lock plus a re-check inside it makes setup succeed exactly once,
  * even with concurrent submissions.
  */
@@ -37,7 +37,7 @@ export async function performSetup(input: SetupInput): Promise<{ ok: true; userI
     const space = await createSpaceWithDefaults(tx, {
       name: input.spaceName.trim(),
       slug: input.spaceSlug,
-      ownerId: user.id,
+      managerId: user.id,
       timezone: input.timezone,
       currency: input.currency,
     });

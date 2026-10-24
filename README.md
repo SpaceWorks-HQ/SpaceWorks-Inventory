@@ -88,7 +88,7 @@ signed webhooks connect it to the other Space Works apps
   branding) and inventory-manager settings for the stock side (categories,
   units, thresholds, transfer approvals, labels, count schedules). Every
   change is audited.
-- Roles: Owner, Admin, Inventory manager, Staff and Member
+- Roles: Inventory manager, Staff and Member
   ([role matrix](docs/RBAC.md)).
 - Reports with CSV and Excel exports, an audit log, email and in-app
   notifications, signed outbound webhooks and a REST API with API keys
@@ -238,8 +238,8 @@ DEMO_PASSWORD='choose-12-or-more-characters' npm run db:seed:demo
 npm run dev
 ```
 
-Open http://localhost:3000 and sign in as `anjali@tinkerspace.test` (owner), `meera@tinkerspace.test`
-(inventory manager), `joel@tinkerspace.test` (staff) or `fathima@tinkerspace.test` (member) with your
+Open http://localhost:3000 and sign in as `anjali@tinkerspace.test` or `meera@tinkerspace.test`
+(inventory managers), `joel@tinkerspace.test` (staff) or `fathima@tinkerspace.test` (member) with your
 demo password. To try the first-run wizard instead, skip the seed and open `/setup`. Without SMTP,
 development emails (magic links, invitations) are written to `.data/mail/`.
 
@@ -284,7 +284,7 @@ How this app applies the brand is in [docs/DESIGN.md](docs/DESIGN.md). Rebuild t
 | [API](docs/API.md) | Integrate with API keys and webhooks |
 | [Testing](docs/TESTING.md) | Run the checks |
 | [Operations](docs/production-operations.md) | Run it in production |
-| [Handoff](docs/HANDOFF.md) | See what is done and what is next |
+| [Decisions](docs/DECISIONS.md) | See every product decision and the owner's checks |
 
 ## Common commands
 

@@ -23,9 +23,10 @@ reports, an audit log, webhooks and a REST API.
 
 | Document | What it covers |
 | --- | --- |
+| [Decisions](DECISIONS.md) | Every product and owner decision, dated, and the checks left for the owner |
 | [Architecture](ARCHITECTURE.md) | Shape of the application, data model, stock buckets and the main flows |
 | [Invariants](INVARIANTS.md) | The rules every screen, API call and job keeps, and where they are enforced |
-| [Roles and permissions](RBAC.md) | Owner, admin, inventory manager, staff and member, and the role matrix |
+| [Roles and permissions](RBAC.md) | Inventory manager, staff and member, and the role matrix |
 | [REST API](API.md) | API keys, scopes, endpoints and webhooks |
 | [Design system](DESIGN.md) | Tokens, type, components and the Space Works look |
 | [Testing](TESTING.md) | Test suites and what to run when |

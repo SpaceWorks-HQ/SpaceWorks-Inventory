@@ -29,7 +29,7 @@ function sectionValues(space: Space, section: SettingsSection): Record<string, S
 export default async function SpaceSetupPage({ params, searchParams }: PageProps<"/s/[spaceSlug]/setup">) {
   const { spaceSlug } = await params;
   const { step: rawStep } = await searchParams;
-  const { space, membership } = await requireSpace(spaceSlug, "ADMIN");
+  const { space, membership } = await requireSpace(spaceSlug, "MANAGER");
   const step = setupStep(rawStep);
   const progress = await setupProgress(space.id);
   const slug = space.slug;

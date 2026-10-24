@@ -8,14 +8,14 @@ import { ConfirmDialog } from "@/components/ui/dialog";
 import { Callout, DangerZone } from "@/components/ui/display";
 import { useToast } from "@/components/feedback/ToastProvider";
 
-/** Owners delete the space after typing its address; everyone else sees who can. */
-export function DeleteSpaceZone({ slug, spaceName, isOwner }: { slug: string; spaceName: string; isOwner: boolean }) {
+/** Inventory managers delete the space after typing its address; everyone else sees who can. */
+export function DeleteSpaceZone({ slug, spaceName, canDelete }: { slug: string; spaceName: string; canDelete: boolean }) {
   const router = useRouter();
   const { showToast } = useToast();
   const [open, setOpen] = useState(false);
   const [pending, startTransition] = useTransition();
-  if (!isOwner) {
-    return <Callout tone="info" title="Only owners can delete this space.">Ask an owner if this space should be closed. Archiving by the instance admin keeps everything and can be undone.</Callout>;
+  if (!canDelete) {
+    return <Callout tone="info" title="Only inventory managers can delete this space.">Ask an inventory manager if this space should be closed. Archiving by the instance admin keeps everything and can be undone.</Callout>;
   }
   return (
     <>

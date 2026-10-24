@@ -59,7 +59,7 @@ behind a fresh authenticator code):
 - **Spaces**, **Users**, **Jobs** (queue counts, failed jobs, retry, pause) and
   **Email outbox** (what was sent and why a message failed).
 
-**Each space, `/s/<slug>/settings`** (admins and owners unless noted):
+**Each space, `/s/<slug>/settings`** (inventory managers):
 
 | Tab | What it holds |
 | --- | --- |
@@ -74,10 +74,10 @@ behind a fresh authenticator code):
 | Payments (`/settings/payments`) | Razorpay, Stripe and cash/bank (offline) payments, test mode, webhook URLs |
 | Integrations (`/settings/integrations`) | API keys and outbound webhooks |
 | Roles (`/settings/roles`) | The role matrix for this space |
-| Danger zone | Delete the space (owners) |
+| Danger zone | Delete the space |
 
-**Inventory settings, `/s/<slug>/settings/inventory`** (inventory managers and
-above): stock rules (approval for transfers between locations, label size and
+**Inventory settings, `/s/<slug>/settings/inventory`** (inventory managers):
+stock rules (approval for transfers between locations, label size and
 contents, default reorder point, cycle-count variance threshold), count
 schedules, categories, units and suppliers.
 

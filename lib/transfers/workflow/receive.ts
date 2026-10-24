@@ -71,7 +71,7 @@ export async function receiveTransfer(tx: Tx, input: { transferId: string; actin
   const evidence = await recordEvidence(tx, { ...input.evidence, spaceId: transfer.destSpaceId, kind: "TRANSFER_RECEIPT", transferId: transfer.id, actorId: actor.userId, minPhotos: transfer.destSpace.minEvidencePhotos, remarksRequired: damaged > 0 });
   const status = await finish(tx, transfer, { destLocationId: transfer.destLocationId ?? destLocationId });
   await logTransferStep(tx, transfer, { type: "received", event: "transfer.received", spaceId: transfer.destSpaceId, actor, note: input.evidence.remarks || null, evidenceId: evidence.id, metadata: { received, damaged }, status });
-  await notifyUsers(tx, transfer.sourceSpaceId, await staffIds(tx, transfer.sourceSpaceId, ["OWNER", "ADMIN", "MANAGER"]), { kind: "transfer.received", title: `${transferRef(transfer.number)}: ${received + damaged} received${damaged ? `, ${damaged} damaged` : ""}`, url: transferUrl(transfer.sourceSpace.slug, transfer.id) });
+  await notifyUsers(tx, transfer.sourceSpaceId, await staffIds(tx, transfer.sourceSpaceId, ["MANAGER"]), { kind: "transfer.received", title: `${transferRef(transfer.number)}: ${received + damaged} received${damaged ? `, ${damaged} damaged` : ""}`, url: transferUrl(transfer.sourceSpace.slug, transfer.id) });
   return { status, received, damaged };
 }
 

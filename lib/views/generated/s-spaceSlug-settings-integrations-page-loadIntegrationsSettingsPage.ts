@@ -49,7 +49,7 @@ function endpointRow(endpoint: Endpoint, timezone: string, now: Date): EndpointR
 }
 export async function loadIntegrationsSettingsPage({ params }: PageProps<"/s/[spaceSlug]/settings/integrations">) {
 const { spaceSlug } = await params;
-const { space } = await requireSpace(spaceSlug, "ADMIN");
+const { space } = await requireSpace(spaceSlug, "MANAGER");
 const [tokens, endpoints] = await Promise.all([listApiTokens(space.id), listEndpoints(space.id)]);
 const now = new Date();
 const keys = tokens.map((token) => keyRow(token, space.timezone, now));

@@ -10,7 +10,7 @@ export function openApiDocument(baseUrl: string) {
     info: {
       title: "Space Works Inventory API",
       version: "1.0.0",
-      description: "Space-bound REST API. Send an API key created under Space settings → Integrations as `Authorization: Bearer swi_…`. A key acts for its creator within its scopes and stops working when the creator is no longer an admin. Lists use cursor pagination (`limit` ≤ 100, `cursor` = `nextCursor`). Money is integer minor units of the space currency. Errors are `{ error: { code, message } }`.",
+      description: "Space-bound REST API. Send an API key created under Space settings → Integrations as `Authorization: Bearer swi_…`. A key acts for its creator within its scopes and stops working when the creator is no longer an inventory manager. Lists use cursor pagination (`limit` ≤ 100, `cursor` = `nextCursor`). Money is integer minor units of the space currency. Errors are `{ error: { code, message } }`.",
       license: { name: "AGPL-3.0-or-later", identifier: "AGPL-3.0-or-later" },
     },
     servers: [{ url: `${baseUrl.replace(/\/$/, "")}/api/v1` }],

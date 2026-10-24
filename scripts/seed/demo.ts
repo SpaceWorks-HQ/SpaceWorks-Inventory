@@ -21,8 +21,8 @@ const SPACES = [
   { slug: "maker-lab-thrissur", name: "Maker Lab Thrissur", tagline: "The Thrissur chapter's workshop." },
 ];
 const PEOPLE: { key: string; name: string; role: SpaceRole }[] = [
-  { key: "anjali", name: "Anjali Menon", role: "OWNER" },
-  { key: "rahul", name: "Rahul Varghese", role: "ADMIN" },
+  { key: "anjali", name: "Anjali Menon", role: "MANAGER" },
+  { key: "rahul", name: "Rahul Varghese", role: "MANAGER" },
   { key: "meera", name: "Meera Nair", role: "MANAGER" },
   { key: "joel", name: "Joel Thomas", role: "STAFF" },
   { key: "fathima", name: "Fathima Rahman", role: "MEMBER" },
@@ -47,8 +47,8 @@ export async function seedDemo(password: string) {
     const user = await prisma.user.create({ data: { email: `${person.key}${DOMAIN}`, name: person.name, passwordHash, emailVerified: new Date(), isInstanceAdmin: person.key === "anjali" } });
     users.set(person.key, user.id);
   }
-  const owner = users.get("anjali")!;
-  const [kochi, thrissur] = await prisma.$transaction(async (tx) => Promise.all(SPACES.map((s) => createSpaceWithDefaults(tx, { name: s.name, slug: s.slug, tagline: s.tagline, ownerId: owner }))));
+  const anjali = users.get("anjali")!;
+  const [kochi, thrissur] = await prisma.$transaction(async (tx) => Promise.all(SPACES.map((s) => createSpaceWithDefaults(tx, { name: s.name, slug: s.slug, tagline: s.tagline, managerId: anjali }))));
   for (const person of PEOPLE.slice(1)) {
     await prisma.membership.create({ data: { spaceId: kochi!.id, userId: users.get(person.key)!, role: person.role, memberNumber: person.role === "MEMBER" ? `TSK-${1000 + PEOPLE.indexOf(person)}` : null } });
   }
@@ -58,9 +58,9 @@ export async function seedDemo(password: string) {
     data: { setupCompletedAt: new Date(), publicCatalogue: true, selfCheckoutEnabled: true, selfJoin: true, depositMode: "PER_ITEM", depositMinor: 0, payLaterEnabled: true, address: "Kakkanad, Kochi" },
   });
   await prisma.space.update({ where: { id: thrissur!.id }, data: { setupCompletedAt: new Date() } });
-  await prisma.$transaction((tx) => loadSampleData(tx, kochi!.id, owner), { timeout: 60_000 });
+  await prisma.$transaction((tx) => loadSampleData(tx, kochi!.id, anjali), { timeout: 60_000 });
   await prisma.item.updateMany({ where: { spaceId: kochi!.id, sku: { in: ["DRILL-CORDLESS", "JIGSAW"] } }, data: { depositMinor: 100_000 } });
-  const thrissurShelf = await prisma.$transaction((tx) => createLocation(tx, thrissur!.id, { name: "Intake shelf", code: "IN", kind: "SHELF" }, { userId: owner }));
+  const thrissurShelf = await prisma.$transaction((tx) => createLocation(tx, thrissur!.id, { name: "Intake shelf", code: "IN", kind: "SHELF" }, { userId: anjali }));
 
   const item = async (sku: string) => prisma.item.findUniqueOrThrow({ where: { spaceId_sku: { spaceId: kochi!.id, sku } }, include: { assets: { orderBy: { assetTag: "asc" } } } });
   const staff = { userId: users.get("joel")! };

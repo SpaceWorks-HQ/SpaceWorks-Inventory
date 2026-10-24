@@ -44,7 +44,7 @@ export function CreateApiKeyDialog({ slug }: { slug: string }) {
           <Button variant="secondary" startIcon={<Plus />}>New API key</Button>
         </DialogTrigger>
         <DialogContent size="md">
-          <DialogHeader title="New API key" description="The key acts for you, within these scopes. It stops working if you stop being an admin of this space." />
+          <DialogHeader title="New API key" description="The key acts for you, within these scopes. It stops working if you stop being an inventory manager of this space." />
           <form
             id="create-api-key"
             onSubmit={(event) => {

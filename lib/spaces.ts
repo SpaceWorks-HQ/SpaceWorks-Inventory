@@ -6,7 +6,7 @@ import { prisma, type DbClient } from "@/lib/db";
 export type CreateSpaceInput = {
   name: string;
   slug: string;
-  ownerId: string;
+  managerId: string;
   tagline?: string | null;
   timezone?: string;
   currency?: string;
@@ -64,7 +64,7 @@ export async function tagPrefixTaken(tx: DbClient, prefix: string, exceptSpaceId
 }
 
 /**
- * Create a space with its owner membership and default units. Run inside a
+ * Create a space with its first inventory manager and default units. Run inside a
  * transaction so a failed setup leaves nothing behind.
  */
 export async function createSpaceWithDefaults(tx: DbClient, input: CreateSpaceInput) {
@@ -76,7 +76,7 @@ export async function createSpaceWithDefaults(tx: DbClient, input: CreateSpaceIn
       tagPrefix: await uniqueTagPrefix(tx, input.tagPrefix ?? tagPrefixFor(input.name)),
       ...(input.timezone ? { timezone: input.timezone } : {}),
       ...(input.currency ? { currency: input.currency } : {}),
-      memberships: { create: { userId: input.ownerId, role: "OWNER" } },
+      memberships: { create: { userId: input.managerId, role: "MANAGER" } },
     },
   });
   await tx.unit.createMany({ data: DEFAULT_UNITS.map((unit) => ({ spaceId: space.id, ...unit })) });

@@ -5,26 +5,27 @@ import type { SpaceRole } from "@prisma/client";
  * unit tests). Server code checks these after `requireSpace` resolved the
  * membership from the database; UI visibility is never authorization.
  *
- * OWNER > ADMIN > MANAGER > STAFF > MEMBER. The full matrix is documented in
+ * MANAGER > STAFF > MEMBER. The inventory manager runs the whole space,
+ * including deleting it and managing other managers (owner decisions
+ * 2026-10-24: no admin or owner role). A space always keeps at least one
+ * active manager (lib/membership.ts). The full matrix is documented in
  * docs/RBAC.md and enforced by tests/unit/roles.test.ts.
  */
-export const SPACE_ROLES: readonly SpaceRole[] = ["OWNER", "ADMIN", "MANAGER", "STAFF", "MEMBER"] as const;
+export const SPACE_ROLES: readonly SpaceRole[] = ["MANAGER", "STAFF", "MEMBER"] as const;
 
-const roleRank: Record<SpaceRole, number> = { MEMBER: 0, STAFF: 1, MANAGER: 2, ADMIN: 3, OWNER: 4 };
+const roleRank: Record<SpaceRole, number> = { MEMBER: 0, STAFF: 1, MANAGER: 2 };
 
 export function hasRoleAtLeast(role: SpaceRole, min: SpaceRole): boolean {
   return roleRank[role] >= roleRank[min];
 }
 
 export function roleLabel(role: SpaceRole): string {
-  return { OWNER: "Owner", ADMIN: "Admin", MANAGER: "Inventory manager", STAFF: "Staff", MEMBER: "Member" }[role];
+  return { MANAGER: "Inventory manager", STAFF: "Staff", MEMBER: "Member" }[role];
 }
 
 export function roleDescription(role: SpaceRole): string {
   return {
-    OWNER: "Everything, plus deleting the space and transferring ownership.",
-    ADMIN: "Members, settings, API keys, webhooks and the audit log.",
-    MANAGER: "Catalogue, locations, adjustments, approvals, imports and reports.",
+    MANAGER: "Runs the space: catalogue, stock, settings, payments, members and other managers, API keys, webhooks, the audit log and deleting the space.",
     STAFF: "Issue and return loans, counts, dispatch and receive transfers.",
     MEMBER: "Browse the catalogue, borrow and return their own loans.",
   }[role];
@@ -79,40 +80,26 @@ export const canImport = (m: RoleHolder) => atLeast(m, "MANAGER");
 /** Inventory-manager settings: thresholds, transfer approvals, labels, count schedules. */
 export const canManageInventorySettings = (m: RoleHolder) => atLeast(m, "MANAGER");
 
-// ───────────── Admins and owners ─────────────
-/** Invite, change roles, suspend and remove members. */
-export const canManageMembers = (m: RoleHolder) => atLeast(m, "ADMIN");
-export const canManageApiKeys = (m: RoleHolder) => atLeast(m, "ADMIN");
-export const canManageWebhooks = (m: RoleHolder) => atLeast(m, "ADMIN");
-export const canViewAuditLog = (m: RoleHolder) => atLeast(m, "ADMIN");
+// ───────────── Space-wide (inventory managers) ─────────────
+/** Invite, change roles, suspend and remove members, other managers included. */
+export const canManageMembers = (m: RoleHolder) => atLeast(m, "MANAGER");
+export const canManageApiKeys = (m: RoleHolder) => atLeast(m, "MANAGER");
+export const canManageWebhooks = (m: RoleHolder) => atLeast(m, "MANAGER");
+export const canViewAuditLog = (m: RoleHolder) => atLeast(m, "MANAGER");
 /** Space-manager settings: general, lending policy, eligibility, evidence, fees, payments, notifications, branding. */
-export const canManageSpace = (m: RoleHolder) => atLeast(m, "ADMIN");
+export const canManageSpace = (m: RoleHolder) => atLeast(m, "MANAGER");
 /** Lending policy and fees are space-manager settings. */
 export const canManageLending = canManageSpace;
 /** Payment providers and refunds. */
 export const canManagePayments = canManageSpace;
 /** Record offline payments, waive fees and refund deposits at the desk. */
 export const canTakePayments = (m: RoleHolder) => atLeast(m, "STAFF");
-/** Delete the space or transfer ownership. */
-export const canDeleteSpace = (m: RoleHolder) => atLeast(m, "OWNER");
-export const canTransferOwnership = (m: RoleHolder) => atLeast(m, "OWNER");
+/** Delete the space. */
+export const canDeleteSpace = (m: RoleHolder) => atLeast(m, "MANAGER");
 
-/**
- * Which roles an actor may assign. Only owners create owners or admins;
- * admins assign every role below admin.
- */
+/** Which roles an actor may assign: managers assign every role, other managers included. */
 export function assignableRoles(actor: RoleHolder): SpaceRole[] {
-  if (atLeast(actor, "OWNER")) return ["OWNER", "ADMIN", "MANAGER", "STAFF", "MEMBER"];
-  if (atLeast(actor, "ADMIN")) return ["MANAGER", "STAFF", "MEMBER"];
-  return [];
-}
-
-/** Can `actor` change or remove a member who currently has `targetRole`? */
-export function canActOnMember(actor: RoleHolder, targetRole: SpaceRole): boolean {
-  if (!canManageMembers(actor)) return false;
-  if (actor!.role === "OWNER") return true;
-  // Admins manage everyone below admin, never other admins or owners.
-  return !hasRoleAtLeast(targetRole, "ADMIN");
+  return canManageMembers(actor) ? [...SPACE_ROLES] : [];
 }
 
 /** One row per capability for the RBAC matrix page and docs. */
@@ -139,5 +126,5 @@ export const ROLE_MATRIX: readonly { capability: string; check: (m: RoleHolder) 
   { capability: "API keys and webhooks", check: canManageApiKeys },
   { capability: "Audit log", check: canViewAuditLog },
   { capability: "Space settings", check: canManageSpace },
-  { capability: "Delete the space or transfer ownership", check: canDeleteSpace },
+  { capability: "Delete the space", check: canDeleteSpace },
 ];

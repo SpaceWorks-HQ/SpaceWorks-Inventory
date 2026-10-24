@@ -8,8 +8,8 @@ Base URL: `https://<your-instance>/api/v1`
 
 ## Authentication
 
-Create a key under **Space settings → Integrations → API keys** (admins and
-owners). The secret is shown once. Send it on every request:
+Create a key under **Space settings → Integrations → API keys** (inventory
+managers). The secret is shown once. Send it on every request:
 
 ```bash
 curl -H "Authorization: Bearer swi_XXXXXXXXXXXX_<secret>" https://inventory.example.org/api/v1/space
@@ -18,7 +18,7 @@ curl -H "Authorization: Bearer swi_XXXXXXXXXXXX_<secret>" https://inventory.exam
 - A key belongs to one space and can only see that space's records.
 - A key acts for the person who created it, within its scopes. It stops
   working when it is revoked, expires, or its creator is no longer an active
-  admin or owner of the space (or their account is disabled).
+  inventory manager of the space (or their account is disabled).
 - Only a SHA-256 of the secret is stored. Lost keys can't be recovered;
   revoke and create a new one.
 - Reads are limited to 600 requests a minute per key, writes to 60. Over the

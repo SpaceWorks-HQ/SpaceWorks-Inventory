@@ -3,25 +3,25 @@ import "server-only";
 import type { Membership, MembershipStatus, SpaceRole } from "@prisma/client";
 import { prisma, type Tx } from "@/lib/db";
 import { recordAuditEvent } from "@/lib/audit";
-import { assignableRoles, canActOnMember } from "@/lib/roles";
+import { assignableRoles, canManageMembers } from "@/lib/roles";
 
 type Result = { ok: true } | { ok: false; error: string };
 
-export const LAST_OWNER_ERROR = "A space needs at least one active owner. Make someone else an owner first.";
+export const LAST_MANAGER_ERROR = "A space needs at least one active inventory manager. Make someone else an inventory manager first.";
 
 /**
- * Lock the space's owner rows and report whether another active owner
+ * Lock the space's manager rows and report whether another active manager
  * remains besides `excludingMembershipId`. Row locks serialise concurrent
- * demotions/removals so two owners cannot remove each other at once.
+ * demotions/removals so two managers cannot remove each other at once.
  */
-async function hasAnotherActiveOwner(tx: Tx, spaceId: string, excludingMembershipId: string) {
-  const owners = await tx.$queryRaw<Array<{ id: string; status: MembershipStatus }>>`
+async function hasAnotherActiveManager(tx: Tx, spaceId: string, excludingMembershipId: string) {
+  const managers = await tx.$queryRaw<Array<{ id: string; status: MembershipStatus }>>`
     SELECT "id", "status" FROM "Membership"
-    WHERE "spaceId" = ${spaceId} AND "role" = 'OWNER'
+    WHERE "spaceId" = ${spaceId} AND "role" = 'MANAGER'
     ORDER BY "id"
     FOR UPDATE
   `;
-  return owners.some((owner) => owner.id !== excludingMembershipId && owner.status === "ACTIVE");
+  return managers.some((manager) => manager.id !== excludingMembershipId && manager.status === "ACTIVE");
 }
 
 async function loadTarget(tx: Tx, spaceId: string, membershipId: string) {
@@ -35,10 +35,10 @@ export async function changeMemberRole(input: { actor: Membership; membershipId:
   return prisma.$transaction(async (tx) => {
     const target = await loadTarget(tx, actor.spaceId, input.membershipId);
     if (!target) return { ok: false as const, error: "That member wasn't found." };
-    if (!canActOnMember(actor, target.role)) return { ok: false as const, error: "You can't change this member's role." };
+    if (!canManageMembers(actor)) return { ok: false as const, error: "You can't change this member's role." };
     if (target.role === input.role) return { ok: true as const };
-    if (target.role === "OWNER" && !(await hasAnotherActiveOwner(tx, actor.spaceId, target.id))) {
-      return { ok: false as const, error: LAST_OWNER_ERROR };
+    if (target.role === "MANAGER" && !(await hasAnotherActiveManager(tx, actor.spaceId, target.id))) {
+      return { ok: false as const, error: LAST_MANAGER_ERROR };
     }
     await tx.membership.update({ where: { id: target.id }, data: { role: input.role } });
     await recordAuditEvent({
@@ -61,10 +61,10 @@ export async function setMemberStatus(input: { actor: Membership; membershipId: 
     const target = await loadTarget(tx, actor.spaceId, input.membershipId);
     if (!target) return { ok: false as const, error: "That member wasn't found." };
     if (target.id === actor.id) return { ok: false as const, error: "You can't suspend yourself." };
-    if (!canActOnMember(actor, target.role)) return { ok: false as const, error: "You can't change this member." };
+    if (!canManageMembers(actor)) return { ok: false as const, error: "You can't change this member." };
     if (target.status === input.status) return { ok: true as const };
-    if (input.status === "SUSPENDED" && target.role === "OWNER" && !(await hasAnotherActiveOwner(tx, actor.spaceId, target.id))) {
-      return { ok: false as const, error: LAST_OWNER_ERROR };
+    if (input.status === "SUSPENDED" && target.role === "MANAGER" && !(await hasAnotherActiveManager(tx, actor.spaceId, target.id))) {
+      return { ok: false as const, error: LAST_MANAGER_ERROR };
     }
     await tx.membership.update({ where: { id: target.id }, data: { status: input.status } });
     await recordAuditEvent({
@@ -86,9 +86,9 @@ export async function removeMember(input: { actor: Membership; membershipId: str
     const target = await loadTarget(tx, actor.spaceId, input.membershipId);
     if (!target) return { ok: false as const, error: "That member wasn't found." };
     const leaving = target.id === actor.id;
-    if (!leaving && !canActOnMember(actor, target.role)) return { ok: false as const, error: "You can't remove this member." };
-    if (target.role === "OWNER" && !(await hasAnotherActiveOwner(tx, actor.spaceId, target.id))) {
-      return { ok: false as const, error: LAST_OWNER_ERROR };
+    if (!leaving && !canManageMembers(actor)) return { ok: false as const, error: "You can't remove this member." };
+    if (target.role === "MANAGER" && !(await hasAnotherActiveManager(tx, actor.spaceId, target.id))) {
+      return { ok: false as const, error: LAST_MANAGER_ERROR };
     }
     await tx.membership.delete({ where: { id: target.id } });
     await recordAuditEvent({

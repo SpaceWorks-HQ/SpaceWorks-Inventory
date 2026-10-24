@@ -25,7 +25,7 @@ function filterQuery(filters: AuditFilters, cursor: string | null): string {
 
 export default async function AuditLogPage({ params, searchParams }: PageProps<"/s/[spaceSlug]/audit">) {
   const { spaceSlug } = await params;
-  const { space } = await requireSpace(spaceSlug, "ADMIN");
+  const { space } = await requireSpace(spaceSlug, "MANAGER");
   const filters = parseAuditFilters(await searchParams);
   const [page, memberships, targets] = await Promise.all([
     listAuditPage(space.id, filters, space.timezone),

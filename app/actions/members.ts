@@ -115,7 +115,7 @@ export async function removeMemberAction(slug: string, input: unknown): Promise<
   return { ok: true };
 }
 
-/** Leave a space (any role; the sole owner is blocked). */
+/** Leave a space (any role; the last inventory manager is blocked). */
 export async function leaveSpaceAction(slug: string): Promise<ActionResult> {
   const ctx = await context(slug);
   if (!ctx) return actionError(NOT_ALLOWED);
